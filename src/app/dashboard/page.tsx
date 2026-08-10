@@ -24,6 +24,7 @@ import {
   Headphones,
   CheckSquare,
   FileSpreadsheet,
+  FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,17 @@ interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   imagePreview?: string;
+  documentInfo?: { name: string; size: string };
+}
+
+interface AttachedFile {
+  name: string;
+  type: 'image' | 'document';
+  mimeType: string;
+  size: string;
+  preview?: string;
+  textData?: string;
+  base64?: string;
 }
 
 interface SavedSession {
@@ -68,7 +80,7 @@ export default function DashboardPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<'groq' | 'gemini'>('groq');
-  const [attachedImage, setAttachedImage] = useState<{ mimeType: string; base64: string; preview: string } | null>(null);
+  const [attachedFile, setAttachedFile] = useState<AttachedFile | null>(null);
 
   const [archives, setArchives] = useState<SavedSession[]>([]);
   const [showArchives, setShowArchives] = useState(false);
@@ -115,46 +127,81 @@ export default function DashboardPage() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload a valid image file (PNG, JPG, WebP).');
-      return;
-    }
+    const fileSizeKb = Math.round(file.size / 1024);
+    const sizeStr = fileSizeKb > 1024 ? `${(fileSizeKb / 1024).toFixed(1)} MB` : `${fileSizeKb} KB`;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.split(',')[1];
-      setAttachedImage({
-        mimeType: file.type,
-        base64,
-        preview: result,
-      });
-      setSelectedProvider('gemini');
-      toast.success('Image attached! Switched engine to Google Gemini Vision 👁️');
-    };
-    reader.readAsDataURL(file);
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        setAttachedFile({
+          name: file.name,
+          type: 'image',
+          mimeType: file.type,
+          size: sizeStr,
+          preview: result,
+          base64,
+        });
+        setSelectedProvider('gemini');
+        toast.success(`Image attached: "${file.name}" (Switched to Gemini Vision 👁️)`);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Document file (.pdf, .txt, .csv, .json, .md, .docx)
+      try {
+        const textContent = await file.text();
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          const base64 = result.split(',')[1];
+          setAttachedFile({
+            name: file.name,
+            type: 'document',
+            mimeType: file.type || 'application/octet-stream',
+            size: sizeStr,
+            textData: textContent.slice(0, 16000), // Read text for analysis
+            base64,
+          });
+          toast.success(`Document attached: "${file.name}" (${sizeStr}) 📄`);
+        };
+        reader.readAsDataURL(file);
+      } catch {
+        toast.error('Could not read document file.');
+      }
+    }
   };
 
   const handleSend = async (textToSend?: string) => {
     const query = (textToSend || input).trim();
-    if ((!query && !attachedImage) || loading) return;
+    if ((!query && !attachedFile) || loading) return;
+
+    let userPrompt = query;
+    if (attachedFile?.type === 'document' && attachedFile.textData) {
+      userPrompt = query
+        ? `${query}\n\n[Attached Document: ${attachedFile.name}]\n\`\`\`\n${attachedFile.textData}\n\`\`\``
+        : `Please analyze this attached document (${attachedFile.name}) and provide coaching feedback, habit optimization, and actionable next steps:\n\`\`\`\n${attachedFile.textData}\n\`\`\``;
+    } else if (!userPrompt && attachedFile?.type === 'image') {
+      userPrompt = 'Please analyze this schedule/chart image and provide actionable habit coaching advice.';
+    }
 
     const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: query || 'Analyze this image and give actionable habit/routine advice.',
-      imagePreview: attachedImage?.preview,
+      content: userPrompt,
+      imagePreview: attachedFile?.type === 'image' ? attachedFile.preview : undefined,
+      documentInfo: attachedFile?.type === 'document' ? { name: attachedFile.name, size: attachedFile.size } : undefined,
     };
 
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
-    const imagePayload = attachedImage ? { mimeType: attachedImage.mimeType, base64: attachedImage.base64 } : undefined;
-    setAttachedImage(null);
+    const imagePayload = attachedFile?.type === 'image' && attachedFile.base64 ? { mimeType: attachedFile.mimeType, base64: attachedFile.base64 } : undefined;
+    setAttachedFile(null);
     setLoading(true);
 
     const assistantMsgId = (Date.now() + 1).toString();
@@ -531,6 +578,18 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {m.documentInfo && (
+                <div className="mb-2.5 p-2.5 bg-purple-950/80 border border-purple-500/30 rounded-xl flex items-center gap-2 max-w-sm shadow-sm">
+                  <div className="w-8 h-8 rounded-lg bg-purple-900/60 border border-purple-500/20 flex items-center justify-center text-purple-300 shrink-0">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold text-white truncate">{m.documentInfo.name}</div>
+                    <div className="text-[10px] text-purple-300 font-mono">{m.documentInfo.size} Document Attached</div>
+                  </div>
+                </div>
+              )}
+
               <div className="prose prose-invert prose-xs sm:prose-sm max-w-none break-words">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {m.content}
@@ -576,18 +635,25 @@ export default function DashboardPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Image Preview Floating Pill */}
-      {attachedImage && (
+      {/* File / Document Preview Floating Pill */}
+      {attachedFile && (
         <div className="flex items-center gap-2 p-2 bg-slate-900/90 border border-purple-500/30 rounded-xl max-w-fit shadow-lg">
-          <ImageIcon className="w-4 h-4 text-cyan-400" />
-          <span className="text-xs text-slate-200">Image attached for Gemini Vision</span>
-          <button onClick={() => setAttachedImage(null)} className="text-slate-400 hover:text-red-400 p-0.5">
+          {attachedFile.type === 'image' ? (
+            <ImageIcon className="w-4 h-4 text-cyan-400" />
+          ) : (
+            <FileText className="w-4 h-4 text-purple-400" />
+          )}
+          <div className="text-xs text-slate-200">
+            <span className="font-semibold text-white">{attachedFile.name}</span>{' '}
+            <span className="text-slate-400 font-mono">({attachedFile.size})</span>
+          </div>
+          <button onClick={() => setAttachedFile(null)} className="text-slate-400 hover:text-red-400 p-0.5 ml-1">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Input Form with Attachment Button */}
+      {/* Input Form with Multi-Format Attachment Button */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -598,15 +664,15 @@ export default function DashboardPage() {
         <input
           type="file"
           ref={fileInputRef}
-          onChange={handleImageUpload}
-          accept="image/*"
+          onChange={handleFileUpload}
+          accept="image/*,.pdf,.txt,.csv,.json,.md,.docx,.doc,.xlsx"
           className="hidden"
         />
 
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          title="Upload habit chart / schedule image for Gemini Vision"
+          title="Upload image or document (.pdf, .txt, .csv, .md, .docx)"
           className="p-2 rounded-xl text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors"
         >
           <Paperclip className="w-4 h-4" />
@@ -624,7 +690,7 @@ export default function DashboardPage() {
         <Button
           type="submit"
           size="sm"
-          disabled={(!input.trim() && !attachedImage) || loading}
+          disabled={(!input.trim() && !attachedFile) || loading}
           className="gradient-button h-10 px-4 rounded-xl shadow-lg shadow-purple-500/20 flex items-center gap-1.5"
         >
           <Send className="w-4 h-4" />
