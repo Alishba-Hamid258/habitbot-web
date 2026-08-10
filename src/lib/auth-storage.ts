@@ -476,6 +476,46 @@ export function saveActiveMedia(userId: number, url: string, title?: string) {
   window.dispatchEvent(new Event('habitbot_media_updated'));
 }
 
+export interface TaskHistoryItem {
+  id: string;
+  task: string;
+  priority: 'High' | 'Medium' | 'Low';
+  time: string;
+  completedAt: string;
+}
+
+/**
+ * Permanently logs completed tasks into user's historical archive
+ */
+export function logTaskCompletion(
+  userId: number,
+  task: { id: string; task: string; priority: 'High' | 'Medium' | 'Low'; time: string }
+) {
+  if (typeof window === 'undefined') return;
+  const history = getUserScopedData<TaskHistoryItem[]>(userId, 'task_history', []);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const existing = history.filter((h) => h.id !== task.id);
+  const updated = [
+    {
+      id: task.id,
+      task: task.task,
+      priority: task.priority,
+      time: task.time,
+      completedAt: todayStr,
+    },
+    ...existing,
+  ];
+  setUserScopedData(userId, 'task_history', updated);
+}
+
+/**
+ * Gets the list of completed task history for a user
+ */
+export function getTaskHistory(userId: number): TaskHistoryItem[] {
+  return getUserScopedData<TaskHistoryItem[]>(userId, 'task_history', []);
+}
+
 /**
  * Computes live user XP, streak, and discipline stats for active user
  */

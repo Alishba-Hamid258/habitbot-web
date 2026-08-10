@@ -40,7 +40,12 @@ export default function AdminPage() {
 
       // 3. Tasks
       const tasks = getUserScopedData<any[]>(u.id, 'tasks', []);
-      tasksCount += tasks.filter((t) => t.done).length;
+      const taskHistory = getUserScopedData<any[]>(u.id, 'task_history', []);
+      const uniqueDone = new Set([
+        ...tasks.filter((t) => t.done).map((t) => t.id),
+        ...taskHistory.map((h) => h.id),
+      ]);
+      tasksCount += uniqueDone.size;
 
       // 4. Chat Archives
       const archives = getUserScopedData<any[]>(u.id, 'chat_archives', []);

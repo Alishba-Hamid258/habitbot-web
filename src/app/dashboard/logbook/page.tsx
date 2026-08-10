@@ -134,17 +134,42 @@ export default function LogbookPage() {
         XLSX.utils.book_append_sheet(wb, wsFocus, 'Deep Work Sessions');
       }
 
-      // 4. Sheet: Tasks History
+      // 4. Sheet: Tasks History & Action Records
       if (selectedSheets.tasks) {
         const userTasks = getUserScopedData<any[]>(userId, 'tasks', []);
-        const taskRows = userTasks.length > 0
-          ? userTasks.map((t) => ({
+        const taskHistory = getUserScopedData<any[]>(userId, 'task_history', []);
+
+        const combinedTasks: any[] = [];
+
+        // 1. Add all permanent completed historical tasks
+        taskHistory.forEach((h) => {
+          combinedTasks.push({
+            Date: h.completedAt,
+            Task: h.task,
+            Priority: h.priority,
+            EstTime: h.time,
+            Status: 'Completed',
+          });
+        });
+
+        // 2. Add active pending tasks not in history
+        userTasks
+          .filter((t) => !t.done)
+          .forEach((t) => {
+            combinedTasks.push({
+              Date: 'Pending Sprint',
               Task: t.task,
               Priority: t.priority,
               EstTime: t.time,
-              Status: t.done ? 'Completed' : 'Pending',
-            }))
-          : [{ Task: 'No tasks configured', Priority: '', EstTime: '', Status: '' }];
+              Status: 'In Progress',
+            });
+          });
+
+        const taskRows =
+          combinedTasks.length > 0
+            ? combinedTasks
+            : [{ Date: new Date().toISOString().split('T')[0], Task: 'No tasks configured', Priority: '', EstTime: '', Status: '' }];
+
         const wsTasks = XLSX.utils.json_to_sheet(taskRows);
         XLSX.utils.book_append_sheet(wb, wsTasks, 'Tasks History');
       }
