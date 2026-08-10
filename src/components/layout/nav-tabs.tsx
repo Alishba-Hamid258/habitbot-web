@@ -17,7 +17,7 @@ const TABS = [
 
 export function NavTabs() {
   const pathname = usePathname();
-  const [stats, setStats] = useState({ streak: 0, disciplineRate: 0 });
+  const [stats, setStats] = useState({ streak: 0, disciplineRate: 0, isAtRisk: false });
 
   const refreshStats = () => {
     const active = getActiveUser();
@@ -26,6 +26,7 @@ export function NavTabs() {
       setStats({
         streak: userStats.streak,
         disciplineRate: userStats.disciplineRate,
+        isAtRisk: userStats.isAtRisk,
       });
     }
   };
@@ -67,14 +68,28 @@ export function NavTabs() {
         })}
       </nav>
 
-      {/* Top Right Live Stats Badge (Starts at 0 for new account) */}
+      {/* Top Right Live Stats Badge with Streak At-Risk Shield */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/80 rounded-lg border border-white/5 text-xs text-amber-300 font-mono">
-          <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-          <span>{stats.streak}d Streak</span>
+        <div
+          title={
+            stats.isAtRisk
+              ? '⚠️ Streak At Risk! Check at least 1 habit or click Freeze Day today to keep your streak alive!'
+              : `${stats.streak} consecutive days active!`
+          }
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+            stats.isAtRisk
+              ? 'bg-amber-950/60 border-amber-500/50 text-amber-300 shadow-sm shadow-amber-500/20 animate-pulse'
+              : 'bg-slate-900/80 border-white/5 text-amber-300'
+          }`}
+        >
+          <Flame className={`w-3.5 h-3.5 ${stats.isAtRisk ? 'text-amber-400 animate-bounce' : 'text-amber-400 fill-amber-400'}`} />
+          <span>{stats.isAtRisk ? `${stats.streak}d At Risk ⚠️` : `${stats.streak}d Streak`}</span>
         </div>
 
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/80 rounded-lg border border-white/5 text-xs text-cyan-300 font-mono">
+        <div
+          title={`Discipline Rate: Completed Habits Today (${stats.disciplineRate}%)`}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/80 rounded-lg border border-white/5 text-xs text-cyan-300 font-mono"
+        >
           <Target className="w-3.5 h-3.5 text-cyan-400" />
           <span>{stats.disciplineRate}% Discipline</span>
         </div>

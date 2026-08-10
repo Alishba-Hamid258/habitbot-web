@@ -14,7 +14,9 @@ import {
   setUserScopedData,
   addXP,
   checkAndPerformDailyMidnightReset,
+  calculateUserStreakInfo,
 } from '@/lib/auth-storage';
+import { Flame, AlertTriangle } from 'lucide-react';
 
 interface HabitItem {
   id: string;
@@ -135,6 +137,7 @@ export function HabitMatrix() {
     }
   };
 
+  const streakInfo = calculateUserStreakInfo(userId);
   const completedCount = habits.filter((h) => h.completed).length;
   const progress = habits.length ? Math.round((completedCount / habits.length) * 100) : 0;
 
@@ -150,6 +153,22 @@ export function HabitMatrix() {
           {completedCount}/{habits.length} ({progress}%)
         </span>
       </div>
+
+      {/* Streak At-Risk Warning Banner (Grace State) */}
+      {streakInfo.isAtRisk && !isFrozen && (
+        <div className="p-2 bg-amber-950/60 border border-amber-500/40 rounded-lg flex items-center justify-between text-[11px] text-amber-300 animate-pulse shadow-sm">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="truncate"><b>{streakInfo.streak}d Streak at risk!</b> Check 1 habit or freeze</span>
+          </div>
+          <button
+            onClick={toggleFreezeDay}
+            className="text-[10px] text-cyan-300 hover:text-white underline font-semibold shrink-0 ml-1"
+          >
+            Freeze
+          </button>
+        </div>
+      )}
 
       {/* Freeze Banner when active */}
       {isFrozen && (

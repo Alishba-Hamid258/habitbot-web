@@ -613,55 +613,92 @@ export function checkAndPerformDailyMidnightReset(userId: number) {
 }
 
 /**
- * Calculates continuous multi-day streak across consecutive calendar dates
+ * Calculates continuous multi-day streak and whether it is currently at risk today
  */
-export function calculateUserStreak(userId: number): number {
-  if (typeof window === 'undefined') return 0;
+export function calculateUserStreakInfo(userId: number): {
+  streak: number;
+  isAtRisk: boolean;
+  needsActionToday: boolean;
+} {
+  if (typeof window === 'undefined') {
+    return { streak: 0, isAtRisk: false, needsActionToday: false };
+  }
+
   const history = getUserScopedData<DailyHabitLogRecord[]>(userId, 'daily_habit_history', []);
   const habits = getUserScopedData<any[]>(userId, 'habits', []);
   const completedToday = habits.filter((h) => h.completed).length;
   const isFrozenToday = getUserScopedData<boolean>(userId, 'is_frozen', false);
 
-  let streak = 0;
+  const doneToday = completedToday > 0 || isFrozenToday;
+
+  // Count consecutive completed days backwards from yesterday
   const today = new Date();
-
-  // If active or frozen today
-  if (completedToday > 0 || isFrozenToday) {
-    streak = 1;
-  }
-
-  // Count consecutive previous days backwards
   const checkDate = new Date(today);
   checkDate.setDate(checkDate.getDate() - 1);
 
+  let pastConsecutiveDays = 0;
   while (true) {
     const dateStr = checkDate.toISOString().split('T')[0];
     const log = history.find((h) => h.date === dateStr);
 
     if (log && (log.completedCount > 0 || log.isFrozen)) {
-      streak += 1;
+      pastConsecutiveDays += 1;
       checkDate.setDate(checkDate.getDate() - 1);
     } else {
       break;
     }
   }
 
-  return streak;
+  if (doneToday) {
+    return {
+      streak: pastConsecutiveDays + 1,
+      isAtRisk: false,
+      needsActionToday: false,
+    };
+  } else {
+    // If not completed yet today, but they had a streak yesterday:
+    // It is AT RISK! (Grace state until midnight)
+    if (pastConsecutiveDays > 0) {
+      return {
+        streak: pastConsecutiveDays,
+        isAtRisk: true,
+        needsActionToday: true,
+      };
+    } else {
+      return {
+        streak: 0,
+        isAtRisk: false,
+        needsActionToday: habits.length > 0,
+      };
+    }
+  }
+}
+
+export function calculateUserStreak(userId: number): number {
+  return calculateUserStreakInfo(userId).streak;
 }
 
 /**
  * Computes live user XP, multi-day streak, and discipline stats for active user
  */
 export function computeUserStats(userId: number) {
-  if (typeof window === 'undefined') return { totalXP: 0, streak: 0, disciplineRate: 0 };
+  if (typeof window === 'undefined') {
+    return { totalXP: 0, streak: 0, disciplineRate: 0, isAtRisk: false, needsActionToday: false };
+  }
 
   const totalXP = getUserXP(userId);
 
   const habits = getUserScopedData<any[]>(userId, 'habits', []);
   const completedHabits = habits.filter((h) => h.completed).length;
-  const streak = calculateUserStreak(userId);
+  const streakInfo = calculateUserStreakInfo(userId);
 
   const disciplineRate = habits.length > 0 ? Math.round((completedHabits / habits.length) * 100) : 0;
 
-  return { totalXP, streak, disciplineRate };
+  return {
+    totalXP,
+    streak: streakInfo.streak,
+    disciplineRate,
+    isAtRisk: streakInfo.isAtRisk,
+    needsActionToday: streakInfo.needsActionToday,
+  };
 }
