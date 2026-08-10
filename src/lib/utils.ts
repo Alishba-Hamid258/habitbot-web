@@ -33,11 +33,15 @@ export function formatTimestamp(dateStr: string): string {
 }
 
 /**
- * Extracts YouTube 11-character video ID from common URL patterns
+ * Extracts YouTube 11-character video ID from all common URL patterns (watch, live, shorts, youtu.be, embed, plain ID)
  */
 export function extractYouTubeId(url: string): string | null {
   if (!url) return null;
-  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-  const match = url.match(regExp);
+  const trimmed = url.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|live|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const match = trimmed.match(regExp);
   return match ? match[1] : null;
 }
