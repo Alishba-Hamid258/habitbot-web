@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckSquare, Plus, Trash2, Snowflake, Trophy, Sparkles } from 'lucide-react';
+import { CheckSquare, Plus, Trash2, Snowflake, ShieldCheck, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -71,23 +71,31 @@ export function HabitMatrix() {
     toast.info(`Removed "${name}" from matrix.`);
   };
 
-  const handleFreezeDay = () => {
-    setIsFrozen(true);
-    // Trigger subtle snowflake canvas effect
-    confetti({
-      particleCount: 50,
-      angle: 90,
-      spread: 180,
-      origin: { y: 0 },
-      colors: ['#ffffff', '#bae6fd', '#e0f2fe'],
-      shapes: ['circle'],
-      ticks: 300,
-      gravity: 0.4,
-      scalar: 1.2,
-    });
-    toast.success('❄️ Streak Frozen! Your streak is safely shielded for today.', {
-      icon: '🛡️',
-    });
+  // Toggle Freeze & Unfreeze freely
+  const toggleFreezeDay = () => {
+    if (!isFrozen) {
+      setIsFrozen(true);
+      // Snow animation effect
+      confetti({
+        particleCount: 60,
+        angle: 90,
+        spread: 180,
+        origin: { y: 0 },
+        colors: ['#ffffff', '#bae6fd', '#e0f2fe', '#38bdf8'],
+        shapes: ['circle'],
+        ticks: 300,
+        gravity: 0.4,
+        scalar: 1.2,
+      });
+      toast.success('❄️ Streak Frozen! Your streak is safely shielded for today.', {
+        icon: '🛡️',
+      });
+    } else {
+      setIsFrozen(false);
+      toast.info('☀️ Streak Unfrozen. Back to active daily tracking!', {
+        icon: '🔥',
+      });
+    }
   };
 
   const completedCount = habits.filter((h) => h.completed).length;
@@ -105,6 +113,22 @@ export function HabitMatrix() {
           {completedCount}/{habits.length} ({progress}%)
         </span>
       </div>
+
+      {/* Freeze Banner when active */}
+      {isFrozen && (
+        <div className="p-2 bg-cyan-950/50 border border-cyan-500/30 rounded-lg flex items-center justify-between text-[11px] text-cyan-300">
+          <div className="flex items-center gap-1.5">
+            <Snowflake className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+            <span>Streak Shield Active (Rest Day)</span>
+          </div>
+          <button
+            onClick={toggleFreezeDay}
+            className="text-[10px] text-cyan-200 hover:text-white underline font-medium"
+          >
+            Unfreeze
+          </button>
+        </div>
+      )}
 
       {/* Habits List */}
       <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
@@ -154,7 +178,7 @@ export function HabitMatrix() {
         </AnimatePresence>
       </div>
 
-      {/* Add Habit Form Toggle */}
+      {/* Add Habit Form Toggle & Freeze/Unfreeze Button */}
       {showAddForm ? (
         <form onSubmit={addHabit} className="flex items-center gap-1.5 pt-1">
           <Input
@@ -192,16 +216,24 @@ export function HabitMatrix() {
           <Button
             size="sm"
             variant="outline"
-            disabled={isFrozen}
-            onClick={handleFreezeDay}
-            className={`h-7 px-2.5 text-[11px] border-white/10 gap-1 rounded-lg ${
+            onClick={toggleFreezeDay}
+            className={`h-7 px-2.5 text-[11px] border gap-1 rounded-lg transition-all ${
               isFrozen
-                ? 'bg-cyan-950/50 text-cyan-300 border-cyan-500/30'
-                : 'bg-slate-950/50 hover:bg-cyan-950/30 text-cyan-400 hover:text-cyan-200'
+                ? 'bg-cyan-900/60 text-cyan-200 border-cyan-400/50 shadow-sm shadow-cyan-500/30'
+                : 'bg-slate-950/50 hover:bg-cyan-950/30 text-cyan-400 hover:text-cyan-200 border-white/10'
             }`}
           >
-            <Snowflake className="w-3 h-3" />
-            {isFrozen ? 'Frozen' : 'Freeze'}
+            {isFrozen ? (
+              <>
+                <Sun className="w-3 h-3 text-amber-300" />
+                <span>Unfreeze</span>
+              </>
+            ) : (
+              <>
+                <Snowflake className="w-3 h-3" />
+                <span>Freeze Day</span>
+              </>
+            )}
           </Button>
         </div>
       )}

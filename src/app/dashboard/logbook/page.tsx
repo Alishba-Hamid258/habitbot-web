@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Sparkles, Calendar, FileSpreadsheet } from 'lucide-react';
+import { BookOpen, Sparkles, Calendar, FileSpreadsheet, Download, CheckCircle2, Shield, Clock, CheckSquare, MessageSquare, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -183,23 +183,63 @@ export default function LogbookPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-purple-400" /> Logbook & Reflections
-          </h1>
-          <p className="text-xs text-slate-400">Daily evening reflections, behavioral insights, and multi-sheet Excel data backups</p>
+      <div>
+        <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-purple-400" /> Logbook, Reflections & Life Audit
+        </h1>
+        <p className="text-xs text-slate-400">Daily evening reflections, behavioral insights, and complete 6-sheet Excel backups</p>
+      </div>
+
+      {/* Multi-Sheet Life Audit Exporter Banner Card */}
+      <div className="p-5 bg-gradient-to-r from-purple-950/30 via-slate-900/60 to-cyan-950/30 rounded-xl border border-purple-500/20 space-y-3 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-bold text-white flex items-center gap-2">
+              <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+              <span>Full Life Audit Data Export (.xlsx)</span>
+            </div>
+            <p className="text-xs text-slate-300 mt-1">
+              Exports your entire HabitBot journey into a formatted multi-sheet Excel spreadsheet.
+            </p>
+          </div>
+
+          <Button
+            onClick={handleExportLifeAudit}
+            disabled={exporting}
+            className="gradient-button text-xs gap-1.5 px-4 py-2 rounded-xl shadow-lg shadow-purple-500/20 shrink-0"
+          >
+            <Download className="w-4 h-4" />
+            <span>{exporting ? 'Generating Excel...' : 'Download Life Audit (.xlsx)'}</span>
+          </Button>
         </div>
 
-        <Button
-          size="sm"
-          onClick={handleExportLifeAudit}
-          disabled={exporting}
-          className="gradient-button text-xs gap-1.5 rounded-lg shadow-md shadow-purple-500/20"
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5" />
-          <span>Export Life Audit (.xlsx)</span>
-        </Button>
+        {/* 6 Sheets Summary Tags */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-white/5 text-[11px] text-slate-300">
+          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
+            <BookOpen className="w-3.5 h-3.5 text-purple-400" />
+            <span>1. Reflections Sheet</span>
+          </div>
+          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
+            <Shield className="w-3.5 h-3.5 text-cyan-400" />
+            <span>2. Habits Log Sheet</span>
+          </div>
+          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
+            <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <span>3. Focus Sessions Sheet</span>
+          </div>
+          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
+            <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+            <span>4. Tasks History Sheet</span>
+          </div>
+          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
+            <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
+            <span>5. Chat Logs Sheet</span>
+          </div>
+          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
+            <Video className="w-3.5 h-3.5 text-rose-400" />
+            <span>6. Media History Sheet</span>
+          </div>
+        </div>
       </div>
 
       {/* Reflection Input Form */}
