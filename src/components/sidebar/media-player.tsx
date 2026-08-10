@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Headphones, Check, Loader2, ExternalLink } from 'lucide-react';
+import { Headphones, Check, Loader2, ExternalLink, Maximize2, Minimize2, Play, Volume2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { extractYouTubeId } from '@/lib/utils';
@@ -19,6 +19,8 @@ export function MediaPlayer() {
   const [videoUrl, setVideoUrl] = useState('');
   const [activeVideoId, setActiveVideoId] = useState('5qap5aO4i9A');
   const [showCustomInput, setShowCustomInput] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [autoplayKey, setAutoplayKey] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [userId, setUserId] = useState<number>(1);
 
@@ -54,42 +56,53 @@ export function MediaPlayer() {
     }
 
     setActiveVideoId(vidId);
+    setAutoplayKey((k) => k + 1);
     saveActiveMedia(userId, videoUrl, `Custom Focus Track (${videoUrl})`);
     setShowCustomInput(false);
-    toast.success('Custom focus soundtrack synced & saved to history! 🎵');
+    toast.success('Custom focus soundtrack loaded! 🎵');
   };
 
   const handleSelectPreset = (v: typeof DEFAULT_FOCUS_VIDEOS[0]) => {
     setActiveVideoId(v.id);
+    setAutoplayKey((k) => k + 1);
     saveActiveMedia(userId, v.url, v.title);
     toast.info(`Switched focus track: ${v.title}`);
   };
 
   return (
     <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-2.5">
-      {/* Header */}
+      {/* Header with Expand & Custom Options */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-300">
           <Headphones className="w-3.5 h-3.5 text-cyan-400" />
           <span>Focus Sound & Media</span>
         </div>
         <div className="flex items-center gap-2">
-          <a
-            href={`https://www.youtube.com/watch?v=${activeVideoId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open stream on YouTube"
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            title={isExpanded ? 'Compact player size' : 'Expand player size for easier clicking'}
             className="text-[10px] text-slate-400 hover:text-cyan-300 flex items-center gap-0.5"
           >
-            <span>Open</span>
-            <ExternalLink className="w-2.5 h-2.5" />
-          </a>
+            {isExpanded ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+            <span>{isExpanded ? 'Compact' : 'Expand'}</span>
+          </button>
+
           <button
             onClick={() => setShowCustomInput(!showCustomInput)}
             className="text-[10px] text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
           >
-            {showCustomInput ? 'Hide' : '+ Custom URL'}
+            {showCustomInput ? 'Hide' : '+ URL'}
           </button>
+
+          <a
+            href={`https://www.youtube.com/watch?v=${activeVideoId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open on YouTube"
+            className="text-[10px] text-slate-400 hover:text-cyan-300 flex items-center"
+          >
+            <ExternalLink className="w-2.5 h-2.5" />
+          </a>
         </div>
       </div>
 
@@ -115,7 +128,7 @@ export function MediaPlayer() {
         <form onSubmit={handleSetCustomUrl} className="flex gap-1.5 pt-1">
           <Input
             type="text"
-            placeholder="Paste YouTube link (watch, live, shorts)..."
+            placeholder="Paste YouTube link or ID..."
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
             className="h-7 text-[11px] bg-slate-950/80 border-white/10 text-white placeholder:text-slate-500"
@@ -126,11 +139,16 @@ export function MediaPlayer() {
         </form>
       )}
 
-      {/* Embedded Iframe Player */}
-      <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-black shadow-inner flex items-center justify-center">
+      {/* Embedded Iframe Player with Adjusted Height to Prevent Title Overlap */}
+      <div
+        className={`relative w-full rounded-xl overflow-hidden border border-white/10 bg-black shadow-lg transition-all duration-300 flex items-center justify-center ${
+          isExpanded ? 'h-60' : 'h-48'
+        }`}
+      >
         {mounted ? (
           <iframe
-            src={`https://www.youtube.com/embed/${activeVideoId}?rel=0&modestbranding=1&playsinline=1`}
+            key={`${activeVideoId}-${autoplayKey}`}
+            src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
             title="HabitBot Focus Soundtrack"
             className="w-full h-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
