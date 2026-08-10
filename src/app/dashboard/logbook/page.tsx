@@ -40,7 +40,7 @@ interface ReflectionEntry {
   friction: string;
 }
 
-type TimeframeOption = 'all' | 'year' | 'month' | 'week' | 'custom';
+type TimeframeOption = 'today' | 'week' | 'month' | 'year' | 'all' | 'custom';
 
 export default function LogbookPage() {
   const [wentWell, setWentWell] = useState('');
@@ -49,8 +49,8 @@ export default function LogbookPage() {
   const [exporting, setExporting] = useState(false);
   const [userId, setUserId] = useState<number>(1);
 
-  // Timeframe and Scale Filters
-  const [timeframe, setTimeframe] = useState<TimeframeOption>('all');
+  // Timeframe and Scale Filters (Default: Today's Daily Progress)
+  const [timeframe, setTimeframe] = useState<TimeframeOption>('today');
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>('');
 
@@ -119,8 +119,14 @@ export default function LogbookPage() {
   // Helper to determine if a date is within selected timeframe
   const isDateInTimeframe = (dateStr?: string) => {
     if (!dateStr || timeframe === 'all') return true;
-    const date = new Date(dateStr);
     const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    if (timeframe === 'today') {
+      return dateStr.startsWith(todayStr);
+    }
+
+    const date = new Date(dateStr);
 
     if (timeframe === 'year') {
       const yearStart = new Date(now.getFullYear(), 0, 1);
@@ -283,7 +289,9 @@ export default function LogbookPage() {
 
       // Format filename with timeframe indicator
       const timeframeTag =
-        timeframe === 'all'
+        timeframe === 'today'
+          ? 'Today_Daily'
+          : timeframe === 'all'
           ? 'Lifetime'
           : timeframe === 'year'
           ? 'Year_2026'
@@ -345,16 +353,21 @@ export default function LogbookPage() {
               <span>Timeframe & Scale Scope:</span>
             </span>
             <span className="text-[10px] text-purple-300 font-mono">
-              {timeframe === 'all' ? 'All-Time Lifetime Records' : `Filtered: ${timeframe.toUpperCase()}`}
+              {timeframe === 'today'
+                ? "Today's Daily Progress"
+                : timeframe === 'all'
+                ? 'All-Time Lifetime Records'
+                : `Filtered: ${timeframe.toUpperCase()}`}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
             {[
-              { id: 'all', label: '🌟 All Time (Lifetime)' },
-              { id: 'year', label: '📅 This Year (2026)' },
-              { id: 'month', label: '🗓️ Last 30 Days' },
+              { id: 'today', label: "☀️ Today's Progress (Default)" },
               { id: 'week', label: '⚡ Last 7 Days' },
+              { id: 'month', label: '🗓️ Last 30 Days' },
+              { id: 'year', label: '📅 This Year (2026)' },
+              { id: 'all', label: '🌟 All Time (Lifetime)' },
               { id: 'custom', label: '⚙️ Custom Date Range' },
             ].map((opt) => (
               <button
