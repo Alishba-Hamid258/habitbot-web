@@ -34,7 +34,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { registerUser, authenticateUser, sendPasswordResetOTP, verifyOTPAndResetPassword } from '@/lib/auth-storage';
+import { registerUser, authenticateUser, sendPasswordResetOTP, verifyOTPAndResetPassword, authenticateAdminWithCode } from '@/lib/auth-storage';
 
 type TabType = 'login' | 'signup' | 'admin' | 'forgot';
 
@@ -89,6 +89,7 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [adminCode, setAdminCode] = useState('');
 
   // 2-Step OTP Forgot Password States
   const [recoveryContact, setRecoveryContact] = useState('');
@@ -222,17 +223,23 @@ export default function LoginPage() {
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim().toLowerCase() === 'admin' && password === 'admin123') {
-      setLoading(true);
-      setTimeout(() => {
-        setLoading(false);
-        authenticateUser('admin', 'admin123');
-        toast.success('👑 Welcome Creator! Admin Portal Unlocked.');
-        router.push('/admin');
-      }, 500);
-    } else {
-      toast.error('Invalid Creator Admin credentials. (Default: admin / admin123)');
+    if (!adminCode.trim()) {
+      toast.error('Please enter the Creator Master Passcode.');
+      return;
     }
+
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      const res = authenticateAdminWithCode(adminCode);
+      if (!res.success) {
+        toast.error(res.error || 'Invalid Creator Access Code. Access denied.');
+        return;
+      }
+
+      toast.success('👑 Welcome Creator! Admin Portal Unlocked.');
+      router.push('/admin');
+    }, 500);
   };
 
   const copyOTP = (code: string) => {
@@ -679,7 +686,7 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
-              {/* ADMIN TAB */}
+              {/* ADMIN / CREATOR MASTER TAB */}
               {activeTab === 'admin' && (
                 <motion.form
                   key="admin"
@@ -690,35 +697,26 @@ export default function LoginPage() {
                   onSubmit={handleAdminLogin}
                   className="space-y-4"
                 >
-                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-300 flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Creator portal: Default login is <b>admin</b> / <b>admin123</b></span>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300">Admin Username</label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <Input
-                        type="text"
-                        placeholder="admin"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-amber-500"
-                      />
+                  <div className="p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-xl text-xs text-amber-200 space-y-1">
+                    <div className="font-semibold flex items-center gap-1.5 text-amber-300">
+                      <Shield className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span>Creator Master Portal</span>
                     </div>
+                    <p className="text-[11px] text-slate-300">
+                      Private management interface for user accounts, data audits, and system configuration.
+                    </p>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-300">Admin Password</label>
+                    <label className="text-xs font-medium text-slate-300">Creator Master Passcode / PIN</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         type="password"
-                        placeholder="admin123"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-amber-500"
+                        placeholder="Enter private Master Access Code"
+                        value={adminCode}
+                        onChange={(e) => setAdminCode(e.target.value)}
+                        className="pl-9 bg-slate-900/60 border-amber-500/30 text-white placeholder:text-slate-500 focus-visible:ring-amber-500 text-xs font-mono"
                       />
                     </div>
                   </div>
@@ -726,9 +724,9 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                    className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 text-xs"
                   >
-                    {loading ? 'Authenticating...' : 'Access Creator Portal'}
+                    {loading ? 'Verifying Security Key...' : 'Unlock Creator Portal 🛡️'}
                     <Shield className="w-4 h-4" />
                   </Button>
                 </motion.form>
@@ -736,21 +734,6 @@ export default function LoginPage() {
             </AnimatePresence>
           </CardContent>
         </Card>
-
-        {/* User Guide Pill Below Card */}
-        <div className="mt-4 p-2.5 bg-slate-900/40 rounded-xl border border-white/5 flex items-center justify-between text-[11px] text-slate-400">
-          <span className="text-slate-300 font-medium flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span>Transform routines with AI coaching</span>
-          </span>
-          <button
-            onClick={() => setShowGuideModal(true)}
-            className="text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 font-semibold"
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Read Features Guide</span>
-          </button>
-        </div>
       </motion.div>
 
       {/* Interactive User Guide & Feature Tour Dialog Modal */}

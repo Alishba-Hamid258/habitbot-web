@@ -165,6 +165,48 @@ export function authenticateUser(usernameOrContact: string, password: string): {
 }
 
 /**
+ * Secret Creator Master Access Codes (Private to Creator)
+ */
+export const CREATOR_MASTER_CODES = ['HABITBOT-CREATOR-786', '786920', 'creator-admin-2026'];
+
+/**
+ * Authenticates Creator using a private security master code / PIN
+ */
+export function authenticateAdminWithCode(code: string): { success: boolean; error?: string; user?: StoredUser } {
+  const norm = code.trim();
+  const isValid = CREATOR_MASTER_CODES.some((c) => c.toLowerCase() === norm.toLowerCase());
+
+  if (!isValid) {
+    return { success: false, error: 'Invalid Creator Access Code. Access denied.' };
+  }
+
+  const users = getRegisteredUsers();
+  const adminUser = users.find((u) => u.isAdmin || u.id === 1) || {
+    id: 1,
+    username: 'Creator Admin',
+    email: 'admin@habitbot.internal',
+    password: '',
+    phone: '',
+    createdAt: new Date().toISOString().split('T')[0],
+    isAdmin: true,
+  };
+
+  localStorage.setItem(
+    ACTIVE_USER_KEY,
+    JSON.stringify({
+      id: adminUser.id,
+      username: adminUser.username,
+      email: adminUser.email,
+      phone: adminUser.phone,
+      avatar: adminUser.avatar,
+      isAdmin: true,
+    })
+  );
+
+  return { success: true, user: adminUser };
+}
+
+/**
  * Sends a 6-digit OTP code to verified Email or WhatsApp Number ONLY (Usernames disallowed for security)
  */
 export function sendPasswordResetOTP(contactInfo: string): {
