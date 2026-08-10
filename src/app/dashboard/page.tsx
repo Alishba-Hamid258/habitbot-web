@@ -304,43 +304,43 @@ export default function CoachPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto py-2 pr-1 custom-scrollbar">
+            <div className="space-y-2.5 max-h-96 overflow-y-auto py-2 pr-1 custom-scrollbar">
               {archives.map((arch) => (
                 <div
                   key={arch.id}
-                  className="p-3.5 bg-slate-900/80 hover:bg-slate-900 border border-white/5 hover:border-purple-500/30 rounded-xl transition-all space-y-2.5 flex flex-col justify-between group shadow-sm"
+                  className="p-3.5 bg-slate-900/80 hover:bg-slate-900 border border-white/5 hover:border-purple-500/30 rounded-xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group shadow-sm"
                 >
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono pb-1.5 border-b border-white/5">
-                      <span className="flex items-center gap-1 text-slate-400">
-                        <Clock className="w-3 h-3 text-purple-400" />
-                        {arch.timestamp}
-                      </span>
-                      <span className="text-purple-300 bg-purple-950/50 px-2 py-0.5 rounded border border-purple-500/20 text-[10px]">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-bold text-white truncate group-hover:text-purple-200 transition-colors">
+                        {arch.title}
+                      </h4>
+                      <span className="text-[10px] text-purple-300 bg-purple-950/60 border border-purple-500/20 px-2 py-0.5 rounded shrink-0">
                         {arch.messages.length} msgs
                       </span>
                     </div>
-                    <h4 className="text-xs font-semibold text-white mt-2 line-clamp-2 leading-snug">
-                      {arch.title}
-                    </h4>
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+                      <Clock className="w-3 h-3 text-purple-400" />
+                      <span>{arch.timestamp}</span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                     <Button
                       size="sm"
                       onClick={() => handleResumeChat(arch)}
-                      className="h-7 px-3 text-xs gradient-button gap-1.5 rounded-lg shadow-sm"
+                      className="h-8 px-3.5 text-xs gradient-button gap-1.5 rounded-lg shadow-sm"
                     >
-                      <RefreshCw className="w-3 h-3" />
+                      <RefreshCw className="w-3.5 h-3.5" />
                       <span>Resume Chat</span>
                     </Button>
 
                     <button
                       onClick={(e) => handleDeleteArchive(arch.id, e)}
-                      className="text-slate-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-950/20 transition-colors"
+                      className="p-2 text-slate-500 hover:text-red-400 rounded-lg hover:bg-red-950/20 transition-colors"
                       title="Delete session"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

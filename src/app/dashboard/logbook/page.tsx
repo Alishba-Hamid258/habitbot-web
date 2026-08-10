@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
+import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
+
 interface ReflectionEntry {
   id: string;
   date: string;
@@ -14,28 +16,16 @@ interface ReflectionEntry {
   friction: string;
 }
 
-const DEFAULT_REFLECTIONS: ReflectionEntry[] = [
-  {
-    id: '1',
-    date: '2026-08-09',
-    wentWell: 'Completed 60 minutes of deep focus without checking social media once.',
-    friction: 'Felt tired around 3 PM; need to optimize afternoon hydration.',
-  },
-  {
-    id: '2',
-    date: '2026-08-08',
-    wentWell: 'Maintained morning walk routine and hit 100% habit matrix.',
-    friction: 'Started work 20 minutes late due to unstructured morning transition.',
-  },
-];
+const DEFAULT_REFLECTIONS: ReflectionEntry[] = [];
 
 export default function LogbookPage() {
   const [wentWell, setWentWell] = useState('');
   const [friction, setFriction] = useState('');
-  const [reflections, setReflections] = useState<ReflectionEntry[]>(DEFAULT_REFLECTIONS);
+  const [reflections, setReflections] = useState<ReflectionEntry[]>([]);
   const [exporting, setExporting] = useState(false);
+  const [userId, setUserId] = useState<number>(1);
 
-  // Custom Sheet Selectors (Default: All checked)
+  // Customizable Sheet Selection states (Default: All Checked)
   const [selectedSheets, setSelectedSheets] = useState({
     reflections: true,
     habits: true,
@@ -45,13 +35,13 @@ export default function LogbookPage() {
     media: true,
   });
 
-  // Load from localStorage
+  // Load user-scoped reflections
   useEffect(() => {
-    const saved = localStorage.getItem('habitbot_reflections');
-    if (saved) {
-      try {
-        setReflections(JSON.parse(saved));
-      } catch {}
+    const active = getActiveUser();
+    if (active) {
+      setUserId(active.id);
+      const userReflections = getUserScopedData<ReflectionEntry[]>(active.id, 'reflections', DEFAULT_REFLECTIONS);
+      setReflections(userReflections);
     }
   }, []);
 
@@ -89,7 +79,7 @@ export default function LogbookPage() {
 
     const updated = [newEntry, ...reflections.filter((r) => r.date !== todayStr)];
     setReflections(updated);
-    localStorage.setItem('habitbot_reflections', JSON.stringify(updated));
+    setUserScopedData(userId, 'reflections', updated);
 
     setWentWell('');
     setFriction('');
@@ -121,97 +111,79 @@ export default function LogbookPage() {
 
       // 2. Sheet: Habits Matrix History
       if (selectedSheets.habits) {
-        const wsHabits = XLSX.utils.json_to_sheet([
-          { Date: '2026-08-10', Habit: '💧 Drink 2L Water', Status: 'Completed', Category: 'Health' },
-          { Date: '2026-08-10', Habit: '🏃 20m Morning Walk', Status: 'Completed', Category: 'Fitness' },
-          { Date: '2026-08-10', Habit: '📖 Read 10 Pages', Status: 'Completed', Category: 'Mindset' },
-          { Date: '2026-08-10', Habit: '🧘 10m Meditation', Status: 'Completed', Category: 'Mindfulness' },
-        ]);
+        const userHabits = getUserScopedData<any[]>(userId, 'habits', []);
+        const habitRows = userHabits.length > 0
+          ? userHabits.map((h) => ({
+              Habit: h.name,
+              Status: h.completed ? 'Completed (Checked)' : 'Pending',
+              Date: new Date().toISOString().split('T')[0],
+            }))
+          : [{ Habit: 'No habits configured', Status: '', Date: '' }];
+        const wsHabits = XLSX.utils.json_to_sheet(habitRows);
         XLSX.utils.book_append_sheet(wb, wsHabits, 'Habits History');
       }
 
       // 3. Sheet: Deep Work & Focus Sessions
       if (selectedSheets.focus) {
-        let focusData: any[] = [];
-        try {
-          const rawFocus = localStorage.getItem('habitbot_focus_sessions');
-          if (rawFocus) focusData = JSON.parse(rawFocus);
-        } catch {}
-        if (!focusData || focusData.length === 0) {
-          focusData = [
-            { date: '2026-08-10', mode: 'Deep Work Block 1', duration_mins: 45 },
-            { date: '2026-08-09', mode: 'System Architecture', duration_mins: 60 },
-          ];
-        }
-        const wsFocus = XLSX.utils.json_to_sheet(
-          focusData.map((f) => ({ Date: f.date, Activity: f.mode, 'Duration (Mins)': f.duration_mins }))
-        );
+        const userFocus = getUserScopedData<any[]>(userId, 'focus_sessions', []);
+        const focusRows = userFocus.length > 0
+          ? userFocus.map((f) => ({ Date: f.date, Activity: f.mode, 'Duration (Mins)': f.duration_mins }))
+          : [{ Date: 'No focus sessions', Activity: '', 'Duration (Mins)': 0 }];
+        const wsFocus = XLSX.utils.json_to_sheet(focusRows);
         XLSX.utils.book_append_sheet(wb, wsFocus, 'Deep Work Sessions');
       }
 
       // 4. Sheet: Tasks History
       if (selectedSheets.tasks) {
-        const wsTasks = XLSX.utils.json_to_sheet([
-          { Task: 'Design Next.js App Router components', Priority: 'High', EstTime: '45 mins', Status: 'Completed' },
-          { Task: 'Wire Supabase PostgreSQL database schemas', Priority: 'High', EstTime: '30 mins', Status: 'Pending' },
-          { Task: 'Review Atomic Habits chapter 4', Priority: 'Medium', EstTime: '20 mins', Status: 'Pending' },
-        ]);
+        const userTasks = getUserScopedData<any[]>(userId, 'tasks', []);
+        const taskRows = userTasks.length > 0
+          ? userTasks.map((t) => ({
+              Task: t.task,
+              Priority: t.priority,
+              EstTime: t.time,
+              Status: t.done ? 'Completed' : 'Pending',
+            }))
+          : [{ Task: 'No tasks configured', Priority: '', EstTime: '', Status: '' }];
+        const wsTasks = XLSX.utils.json_to_sheet(taskRows);
         XLSX.utils.book_append_sheet(wb, wsTasks, 'Tasks History');
       }
 
       // 5. Sheet: Chat History & Saved Archives
       if (selectedSheets.chat) {
-        let chatData: any[] = [];
-        try {
-          const rawChat = localStorage.getItem('habitbot_chat_archives');
-          if (rawChat) {
-            const sessions = JSON.parse(rawChat);
-            sessions.forEach((s: any) => {
-              s.messages?.forEach((m: any) => {
-                chatData.push({
-                  Timestamp: s.timestamp,
-                  Session: s.title,
-                  Speaker: m.role === 'assistant' ? 'HabitBot' : 'User',
-                  Message: m.content,
-                });
-              });
+        const userArchives = getUserScopedData<any[]>(userId, 'chat_archives', []);
+        const chatData: any[] = [];
+        userArchives.forEach((s: any) => {
+          s.messages?.forEach((m: any) => {
+            chatData.push({
+              Timestamp: s.timestamp,
+              Session: s.title,
+              Speaker: m.role === 'assistant' ? 'HabitBot' : 'User',
+              Message: m.content,
             });
-          }
-        } catch {}
-        if (chatData.length === 0) {
-          chatData = [
-            {
-              Timestamp: '2026-08-10',
-              Session: 'Initial Coach Session',
-              Speaker: 'HabitBot',
-              Message: 'Help user build 1% improvements every single day.',
-            },
-          ];
-        }
-        const wsChat = XLSX.utils.json_to_sheet(chatData);
+          });
+        });
+        const wsChat = XLSX.utils.json_to_sheet(
+          chatData.length > 0
+            ? chatData
+            : [{ Timestamp: '', Session: 'No archived chats', Speaker: '', Message: '' }]
+        );
         XLSX.utils.book_append_sheet(wb, wsChat, 'Chat History & Archives');
       }
 
       // 6. Sheet: Media & Custom Focus Soundtracks
       if (selectedSheets.media) {
-        let mediaData: any[] = [];
-        try {
-          const rawMedia = localStorage.getItem('habitbot_media_history');
-          if (rawMedia) mediaData = JSON.parse(rawMedia);
-        } catch {}
-        if (!mediaData || mediaData.length === 0) {
-          mediaData = [
-            {
-              date: '2026-08-10',
-              title: 'Lofi Focus Stream',
-              url: 'https://youtube.com/watch?v=jfKfPfyJRdk',
-            },
-          ];
-        }
-        const wsMedia = XLSX.utils.json_to_sheet(
-          mediaData.map((m) => ({ Date: m.date, 'Video Title': m.title, 'YouTube URL': m.url }))
-        );
-        XLSX.utils.book_append_sheet(wb, wsMedia, 'Media History');
+        const userMedia = getUserScopedData<any[]>(userId, 'media_history', []);
+        const mediaRows = userMedia.length > 0
+          ? userMedia
+          : [
+              {
+                Date: new Date().toISOString().split('T')[0],
+                MediaUrl: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
+                Title: 'Lofi Girl - Synthwave / Focus Beats',
+              },
+            ];
+        const wsMedia = XLSX.utils.json_to_sheet(mediaRows);
+        XLSX.utils.book_append_sheet(wb, wsMedia, 'Focus Media & Soundtracks');
       }
 
       // Trigger custom multi-sheet workbook download

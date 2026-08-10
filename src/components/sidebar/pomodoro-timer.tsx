@@ -6,6 +6,7 @@ import { Play, Pause, RotateCcw, Timer, Settings2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak' | 'custom';
 
@@ -61,16 +62,18 @@ export function PomodoroTimer() {
             setIsRunning(false);
             playCompletionChime();
             
-            // Log to localStorage focus history
+            // Log user-scoped focus history
             try {
-              const saved = localStorage.getItem('habitbot_focus_sessions');
-              const sessions = saved ? JSON.parse(saved) : [];
-              sessions.push({
-                date: new Date().toISOString().split('T')[0],
-                mode: customTitle,
-                duration_mins: Math.round(totalDuration / 60)
-              });
-              localStorage.setItem('habitbot_focus_sessions', JSON.stringify(sessions));
+              const active = getActiveUser();
+              if (active) {
+                const sessions = getUserScopedData<any[]>(active.id, 'focus_sessions', []);
+                sessions.push({
+                  date: new Date().toISOString().split('T')[0],
+                  mode: customTitle,
+                  duration_mins: Math.round(totalDuration / 60),
+                });
+                setUserScopedData(active.id, 'focus_sessions', sessions);
+              }
             } catch {}
 
             toast.success(`🎉 Focus session "${customTitle}" complete! (+${Math.round(totalDuration / 60)} XP)`, {

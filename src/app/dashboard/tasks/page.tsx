@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckSquare, Plus, Trash2, Sparkles, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { CheckSquare, Plus, Trash2, Sparkles, CheckCircle2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
 
 interface Task {
   id: string;
@@ -16,7 +17,7 @@ interface Task {
 }
 
 const DEFAULT_TASKS: Task[] = [
-  { id: '1', task: 'Design Next.js App Router components', priority: 'High', time: '45 mins', done: true },
+  { id: '1', task: 'Design Next.js App Router components', priority: 'High', time: '45 mins', done: false },
   { id: '2', task: 'Wire Supabase PostgreSQL database schemas', priority: 'High', time: '30 mins', done: false },
   { id: '3', task: 'Review Atomic Habits chapter 4 (Cue design)', priority: 'Medium', time: '20 mins', done: false },
   { id: '4', task: '15-minute evening review and reflection', priority: 'Low', time: '15 mins', done: false },
@@ -27,19 +28,35 @@ export default function TasksPage() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newPriority, setNewPriority] = useState<'High' | 'Medium' | 'Low'>('Medium');
   const [newTime, setNewTime] = useState('25 mins');
+  const [userId, setUserId] = useState<number>(1);
 
   const [aiGoal, setAiGoal] = useState('');
   const [aiArchitectLoading, setAiArchitectLoading] = useState(false);
 
+  useEffect(() => {
+    const active = getActiveUser();
+    if (active) {
+      setUserId(active.id);
+      const userTasks = getUserScopedData<Task[]>(active.id, 'tasks', DEFAULT_TASKS);
+      setTasks(userTasks);
+    }
+  }, []);
+
+  const saveTasks = (updated: Task[]) => {
+    setTasks(updated);
+    setUserScopedData(userId, 'tasks', updated);
+  };
+
   const toggleTask = (id: string) => {
-    setTasks((prev) => {
-      const updated = prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t));
-      const target = updated.find((t) => t.id === id);
-      if (target?.done) {
-        toast.success(`Completed: "${target.task}" (+5 XP)`, { icon: '✅' });
-      }
-      return updated;
-    });
+    const updated = tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t));
+    const target = updated.find((t) => t.id === id);
+    saveTasks(updated);
+
+    if (target?.done) {
+      toast.success(`Completed: "${target.task}" (+5 XP)`, { icon: '✅' });
+    } else {
+      toast.info(`Re-opened: "${target?.task}"`);
+    }
   };
 
   const handleAddTask = (e: React.FormEvent) => {
@@ -54,18 +71,21 @@ export default function TasksPage() {
       done: false,
     };
 
-    setTasks((prev) => [newTask, ...prev]);
+    const updated = [newTask, ...tasks];
+    saveTasks(updated);
     setNewTaskTitle('');
     toast.success('Task added successfully!');
   };
 
   const deleteTask = (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    const updated = tasks.filter((t) => t.id !== id);
+    saveTasks(updated);
     toast.info('Task deleted.');
   };
 
   const clearCompleted = () => {
-    setTasks((prev) => prev.filter((t) => !t.done));
+    const updated = tasks.filter((t) => !t.done);
+    saveTasks(updated);
     toast.info('Cleared all completed tasks.');
   };
 
@@ -84,7 +104,8 @@ export default function TasksPage() {
         { id: (Date.now() + 4).toString(), task: `Step 4: Review output & log reflection in HabitBot`, priority: 'Low', time: '10 mins', done: false },
       ];
 
-      setTasks((prev) => [...generated, ...prev]);
+      const updated = [...generated, ...tasks];
+      saveTasks(updated);
       setAiGoal('');
       toast.success(`✨ AI Task Architect broke down goal into 4 actionable steps!`);
     }, 1200);
