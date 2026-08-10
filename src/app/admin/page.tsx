@@ -2,23 +2,110 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Users, CheckSquare, Clock, MessageSquare, LogOut, Database, UserCheck } from 'lucide-react';
+import { Shield, Users, CheckSquare, Clock, MessageSquare, LogOut, Database, UserCheck, Trash2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { getRegisteredUsers, StoredUser, logoutActiveUser } from '@/lib/auth-storage';
+import { getRegisteredUsers, StoredUser, logoutActiveUser, getUserScopedData } from '@/lib/auth-storage';
 
 export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<StoredUser[]>([]);
+  const [stats, setStats] = useState({
+    totalUsers: 1,
+    totalHabits: 0,
+    totalFocusHours: 0,
+    totalTasks: 0,
+    totalChatSessions: 0,
+  });
+
+  const loadRealTelemetry = () => {
+    const regUsers = getRegisteredUsers();
+    setUsers(regUsers);
+
+    let habitsCount = 0;
+    let focusMinutes = 0;
+    let tasksCount = 0;
+    let chatCount = 0;
+
+    regUsers.forEach((u) => {
+      // 1. Habits
+      const habits = getUserScopedData<any[]>(u.id, 'habits', []);
+      habitsCount += habits.filter((h) => h.completed).length;
+
+      // 2. Focus
+      const focus = getUserScopedData<any[]>(u.id, 'focus_sessions', []);
+      focus.forEach((f) => {
+        focusMinutes += Number(f.duration_mins) || 0;
+      });
+
+      // 3. Tasks
+      const tasks = getUserScopedData<any[]>(u.id, 'tasks', []);
+      tasksCount += tasks.filter((t) => t.done).length;
+
+      // 4. Chat Archives
+      const archives = getUserScopedData<any[]>(u.id, 'chat_archives', []);
+      chatCount += archives.length;
+    });
+
+    // Also check global focus records if any
+    try {
+      const globalFocus = localStorage.getItem('habitbot_focus_sessions');
+      if (globalFocus) {
+        const gf = JSON.parse(globalFocus);
+        gf.forEach((f: any) => {
+          focusMinutes += Number(f.duration_mins) || 0;
+        });
+      }
+    } catch {}
+
+    const focusHours = Math.round((focusMinutes / 60) * 10) / 10;
+
+    setStats({
+      totalUsers: regUsers.length,
+      totalHabits: habitsCount,
+      totalFocusHours: focusHours,
+      totalTasks: tasksCount,
+      totalChatSessions: chatCount,
+    });
+  };
 
   useEffect(() => {
-    setUsers(getRegisteredUsers());
+    loadRealTelemetry();
   }, []);
 
   const handleAdminLogout = () => {
     logoutActiveUser();
     toast.info('Logged out from Creator Portal.');
     router.push('/login');
+  };
+
+  const handleResetDatabase = () => {
+    if (confirm('⚠️ Are you sure you want to reset all test data? This will clear all test users and reset telemetry to 0.')) {
+      // Clear test keys
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('habitbot_')) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+
+      // Re-initialize default admin
+      const defaultAdmin: StoredUser[] = [
+        {
+          id: 1,
+          username: 'admin',
+          password: 'admin123',
+          createdAt: new Date().toISOString().split('T')[0],
+          isAdmin: true,
+        },
+      ];
+      localStorage.setItem('habitbot_registered_users', JSON.stringify(defaultAdmin));
+
+      loadRealTelemetry();
+      toast.success('Database and telemetry reset to clean state (0 records)!');
+    }
   };
 
   return (
@@ -32,29 +119,41 @@ export default function AdminPage() {
             </span>
             <h1 className="text-2xl font-bold text-white">HabitBot Creator Admin Portal</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">Platform-wide telemetry, registered user directory, and database management</p>
+          <p className="text-xs text-slate-400 mt-1">Live real-time telemetry, registered user directory, and database management</p>
         </div>
 
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleAdminLogout}
-          className="bg-slate-900/60 border-white/10 text-slate-300 hover:text-red-400 hover:bg-red-950/20 gap-1.5 rounded-lg"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Logout</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleResetDatabase}
+            className="bg-slate-900/60 border-white/10 text-slate-400 hover:text-red-400 hover:bg-red-950/20 gap-1.5 rounded-lg text-xs"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Reset Test Data</span>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleAdminLogout}
+            className="bg-slate-900/60 border-white/10 text-slate-300 hover:text-red-400 hover:bg-red-950/20 gap-1.5 rounded-lg text-xs"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Logout</span>
+          </Button>
+        </div>
       </div>
 
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Metric Cards */}
+        {/* Real Live Metric Cards (No Fake Numbers) */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
           <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
             <div className="flex items-center justify-between text-slate-400 text-xs">
               <span>Total Users</span>
               <Users className="w-4 h-4 text-purple-400" />
             </div>
-            <div className="text-2xl font-bold text-white font-mono">{users.length} Accounts</div>
+            <div className="text-2xl font-bold text-white font-mono">{stats.totalUsers} Accounts</div>
           </div>
 
           <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
@@ -62,7 +161,7 @@ export default function AdminPage() {
               <span>Habits Tracked</span>
               <CheckSquare className="w-4 h-4 text-cyan-400" />
             </div>
-            <div className="text-2xl font-bold text-white font-mono">{users.length * 42} Logged</div>
+            <div className="text-2xl font-bold text-white font-mono">{stats.totalHabits} Logged</div>
           </div>
 
           <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
@@ -70,7 +169,7 @@ export default function AdminPage() {
               <span>Deep Work</span>
               <Clock className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="text-2xl font-bold text-white font-mono">18.5 Hours</div>
+            <div className="text-2xl font-bold text-white font-mono">{stats.totalFocusHours} Hours</div>
           </div>
 
           <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
@@ -78,7 +177,7 @@ export default function AdminPage() {
               <span>Tasks Finished</span>
               <CheckSquare className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-2xl font-bold text-white font-mono">64 Done</div>
+            <div className="text-2xl font-bold text-white font-mono">{stats.totalTasks} Done</div>
           </div>
 
           <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
@@ -86,7 +185,7 @@ export default function AdminPage() {
               <span>Chat Sessions</span>
               <MessageSquare className="w-4 h-4 text-indigo-400" />
             </div>
-            <div className="text-2xl font-bold text-white font-mono">23 Archived</div>
+            <div className="text-2xl font-bold text-white font-mono">{stats.totalChatSessions} Archived</div>
           </div>
         </div>
 
@@ -143,11 +242,11 @@ export default function AdminPage() {
         <div className="p-5 bg-gradient-to-r from-purple-950/20 via-slate-900/40 to-slate-900/60 rounded-xl border border-purple-500/20 space-y-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-purple-300">
             <Database className="w-4 h-4 text-cyan-400" />
-            <span>Cloud Database Engine: Supabase (PostgreSQL)</span>
+            <span>Live Data Tracking</span>
           </div>
 
           <p className="text-xs text-slate-300 leading-relaxed">
-            Your user database is configured for instant scale. When connected to Supabase, all registered users and their habit matrices will be synced to cloud PostgreSQL across all global server restarts!
+            All telemetry metrics are computed live from real account actions. When users complete habits, run focus sessions, or archive coaching chats, this portal reflects the exact real-time activity across your platform!
           </p>
         </div>
       </div>
