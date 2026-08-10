@@ -10,6 +10,12 @@ export interface StoredUser {
   isAdmin?: boolean;
 }
 
+export interface MediaHistoryItem {
+  Date: string;
+  Title: string;
+  MediaUrl: string;
+}
+
 const USERS_KEY = 'habitbot_registered_users';
 const ACTIVE_USER_KEY = 'habitbot_active_user_session';
 
@@ -173,6 +179,40 @@ export function addXP(userId: number, amount: number): number {
   const updated = Math.max(0, current + amount);
   setUserScopedData(userId, 'xp_ledger', updated);
   return updated;
+}
+
+/**
+ * Gets active media URL for user
+ */
+export function getActiveMediaUrl(userId: number): string {
+  return getUserScopedData<string>(userId, 'active_video', 'https://www.youtube.com/watch?v=jfKfPfyJRdk');
+}
+
+/**
+ * Saves active media URL and records in media history ledger (Synced across Library, Sidebar & Excel)
+ */
+export function saveActiveMedia(userId: number, url: string, title?: string) {
+  if (typeof window === 'undefined') return;
+  // 1. Save active video
+  setUserScopedData(userId, 'active_video', url);
+
+  // 2. Append to media history
+  const history = getUserScopedData<MediaHistoryItem[]>(userId, 'media_history', []);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const autoTitle = title || `Custom Focus Track (${todayStr})`;
+
+  const updatedHistory = [
+    {
+      Date: todayStr,
+      Title: autoTitle,
+      MediaUrl: url,
+    },
+    ...history.filter((h) => h.MediaUrl !== url),
+  ];
+  setUserScopedData(userId, 'media_history', updatedHistory);
+
+  // 3. Dispatch media sync event
+  window.dispatchEvent(new Event('habitbot_media_updated'));
 }
 
 /**

@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { extractYouTubeId } from '@/lib/utils';
 import { toast } from 'sonner';
 
+import { getActiveUser, getActiveMediaUrl, saveActiveMedia } from '@/lib/auth-storage';
+
 type LibraryTab = 'books' | 'theater' | 'customPlayer';
 
 const BOOKS = [
@@ -98,14 +100,25 @@ export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<LibraryTab>('books');
   const [customUrl, setCustomUrl] = useState('');
   const [activeVideoId, setActiveVideoId] = useState('jfKfPfyJRdk');
+  const [userId, setUserId] = useState<number>(1);
+
+  const syncMedia = () => {
+    const active = getActiveUser();
+    if (active) {
+      setUserId(active.id);
+      const url = getActiveMediaUrl(active.id);
+      if (url) {
+        setCustomUrl(url);
+        const vidId = extractYouTubeId(url);
+        if (vidId) setActiveVideoId(vidId);
+      }
+    }
+  };
 
   useEffect(() => {
-    const saved = localStorage.getItem('habitbot_active_video');
-    if (saved) {
-      setCustomUrl(saved);
-      const vidId = extractYouTubeId(saved);
-      if (vidId) setActiveVideoId(vidId);
-    }
+    syncMedia();
+    window.addEventListener('habitbot_media_updated', syncMedia);
+    return () => window.removeEventListener('habitbot_media_updated', syncMedia);
   }, []);
 
   const handleApplyCustomVideo = (e: React.FormEvent) => {
@@ -117,21 +130,8 @@ export default function LibraryPage() {
     }
 
     setActiveVideoId(vidId);
-    localStorage.setItem('habitbot_active_video', customUrl);
-
-    // Log to media history
-    try {
-      const savedHist = localStorage.getItem('habitbot_media_history');
-      const hist = savedHist ? JSON.parse(savedHist) : [];
-      hist.push({
-        date: new Date().toISOString().split('T')[0],
-        url: customUrl,
-        title: `YouTube Video (${vidId})`,
-      });
-      localStorage.setItem('habitbot_media_history', JSON.stringify(hist));
-    } catch {}
-
-    toast.success('Custom focus video loaded! Also playing continuously in the sidebar.');
+    saveActiveMedia(userId, customUrl, `Focus Study Stream (${vidId})`);
+    toast.success('Custom focus video loaded! Synced with persistent sidebar.');
   };
 
   return (

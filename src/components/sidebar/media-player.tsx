@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { extractYouTubeId } from '@/lib/utils';
 import { toast } from 'sonner';
+import { getActiveUser, getActiveMediaUrl, saveActiveMedia } from '@/lib/auth-storage';
 
 const DEFAULT_FOCUS_VIDEOS = [
-  { title: '🎧 Lofi Beats', id: 'jfKfPfyJRdk' },
-  { title: '🌧️ Heavy Rain', id: 'mPZkdNFkNps' },
-  { title: '🌌 Synthwave', id: '4xDzrJKXOOY' },
+  { title: '🎧 Lofi Beats', id: 'jfKfPfyJRdk', url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk' },
+  { title: '🌧️ Heavy Rain', id: 'mPZkdNFkNps', url: 'https://www.youtube.com/watch?v=mPZkdNFkNps' },
+  { title: '🌌 Synthwave', id: '4xDzrJKXOOY', url: 'https://www.youtube.com/watch?v=4xDzrJKXOOY' },
 ];
 
 export function MediaPlayer() {
@@ -18,18 +19,29 @@ export function MediaPlayer() {
   const [activeVideoId, setActiveVideoId] = useState('jfKfPfyJRdk');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [userId, setUserId] = useState<number>(1);
 
-  // Restore saved URL on client mount
-  useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem('habitbot_active_video');
-    if (saved) {
-      const vidId = extractYouTubeId(saved);
-      if (vidId) {
-        setActiveVideoId(vidId);
-        setVideoUrl(saved);
+  const syncMediaFromStorage = () => {
+    const active = getActiveUser();
+    if (active) {
+      setUserId(active.id);
+      const url = getActiveMediaUrl(active.id);
+      if (url) {
+        const vidId = extractYouTubeId(url);
+        if (vidId) {
+          setActiveVideoId(vidId);
+          setVideoUrl(url);
+        }
       }
     }
+  };
+
+  useEffect(() => {
+    setMounted(true);
+    syncMediaFromStorage();
+
+    window.addEventListener('habitbot_media_updated', syncMediaFromStorage);
+    return () => window.removeEventListener('habitbot_media_updated', syncMediaFromStorage);
   }, []);
 
   const handleSetCustomUrl = (e: React.FormEvent) => {
@@ -41,9 +53,15 @@ export function MediaPlayer() {
     }
 
     setActiveVideoId(vidId);
-    localStorage.setItem('habitbot_active_video', videoUrl);
+    saveActiveMedia(userId, videoUrl, `Custom Focus Track (${videoUrl})`);
     setShowCustomInput(false);
-    toast.success('Custom focus soundtrack loaded! 🎵');
+    toast.success('Custom focus soundtrack synced & saved to history! 🎵');
+  };
+
+  const handleSelectPreset = (v: typeof DEFAULT_FOCUS_VIDEOS[0]) => {
+    setActiveVideoId(v.id);
+    saveActiveMedia(userId, v.url, v.title);
+    toast.info(`Switched focus track: ${v.title}`);
   };
 
   return (
@@ -67,10 +85,7 @@ export function MediaPlayer() {
         {DEFAULT_FOCUS_VIDEOS.map((v) => (
           <button
             key={v.id}
-            onClick={() => {
-              setActiveVideoId(v.id);
-              localStorage.setItem('habitbot_active_video', `https://youtube.com/watch?v=${v.id}`);
-            }}
+            onClick={() => handleSelectPreset(v)}
             className={`py-1 px-1.5 rounded text-[10px] font-medium truncate transition-colors border ${
               activeVideoId === v.id
                 ? 'bg-cyan-950/60 text-cyan-300 border-cyan-500/40'
@@ -98,7 +113,7 @@ export function MediaPlayer() {
         </form>
       )}
 
-      {/* Embedded Iframe Player with zero SSR mismatch */}
+      {/* Embedded Iframe Player */}
       <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/50 shadow-inner flex items-center justify-center">
         {mounted ? (
           <iframe

@@ -174,15 +174,17 @@ export default function LogbookPage() {
       // 6. Sheet: Media & Custom Focus Soundtracks
       if (selectedSheets.media) {
         const userMedia = getUserScopedData<any[]>(userId, 'media_history', []);
-        const mediaRows = userMedia.length > 0
-          ? userMedia
-          : [
-              {
-                Date: new Date().toISOString().split('T')[0],
-                MediaUrl: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
-                Title: 'Lofi Girl - Synthwave / Focus Beats',
-              },
-            ];
+        const activeUrl = getUserScopedData<string>(userId, 'active_video', 'https://www.youtube.com/watch?v=jfKfPfyJRdk');
+
+        const mediaRows = [...userMedia];
+        if (!mediaRows.some((m) => m.MediaUrl === activeUrl)) {
+          mediaRows.unshift({
+            Date: new Date().toISOString().split('T')[0],
+            Title: 'Active Focus Track',
+            MediaUrl: activeUrl,
+          });
+        }
+
         const wsMedia = XLSX.utils.json_to_sheet(mediaRows);
         XLSX.utils.book_append_sheet(wb, wsMedia, 'Focus Media & Soundtracks');
       }
