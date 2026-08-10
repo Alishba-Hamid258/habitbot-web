@@ -49,7 +49,7 @@ export default function CoachPage() {
   const [showArchives, setShowArchives] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const [currentUser, setCurrentUser] = useState<{ id: number; username: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: number; username: string; avatar?: string } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -59,14 +59,20 @@ export default function CoachPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Load user-scoped archives from storage
-  useEffect(() => {
+  // Load user-scoped archives and profile from storage
+  const loadUserData = () => {
     const active = getActiveUser();
     if (active) {
       setCurrentUser(active);
       const userArchives = getUserScopedData<SavedSession[]>(active.id, 'chat_archives', []);
       setArchives(userArchives);
     }
+  };
+
+  useEffect(() => {
+    loadUserData();
+    window.addEventListener('habitbot_user_profile_updated', loadUserData);
+    return () => window.removeEventListener('habitbot_user_profile_updated', loadUserData);
   }, []);
 
   const saveArchivesToStorage = (updated: SavedSession[]) => {
@@ -413,8 +419,12 @@ export default function CoachPage() {
             </div>
 
             {m.role === 'user' && (
-              <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center shrink-0 text-slate-300">
-                <User className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center shrink-0 text-slate-300 overflow-hidden shadow-sm">
+                {currentUser?.avatar ? (
+                  <img src={currentUser.avatar} alt="User avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-4 h-4" />
+                )}
               </div>
             )}
           </motion.div>

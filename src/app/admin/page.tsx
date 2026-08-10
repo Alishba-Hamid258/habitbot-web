@@ -203,8 +203,8 @@ export default function AdminPage() {
             <table className="w-full text-xs text-left">
               <thead className="text-[11px] text-slate-400 uppercase bg-slate-950/60 border-b border-white/5">
                 <tr>
-                  <th className="px-4 py-2.5">User ID</th>
-                  <th className="px-4 py-2.5">Username</th>
+                  <th className="px-4 py-2.5">User</th>
+                  <th className="px-4 py-2.5">Recovery Contacts</th>
                   <th className="px-4 py-2.5">Joined Date</th>
                   <th className="px-4 py-2.5">Account Role</th>
                   <th className="px-4 py-2.5">Security Status</th>
@@ -213,8 +213,25 @@ export default function AdminPage() {
               <tbody className="divide-y divide-white/5">
                 {users.map((u) => (
                   <tr key={u.id} className="hover:bg-slate-950/40 transition-colors">
-                    <td className="px-4 py-3 font-mono text-purple-300 font-bold">#{u.id}</td>
-                    <td className="px-4 py-3 font-semibold text-white">{u.username}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-300 overflow-hidden shrink-0">
+                          {u.avatar ? (
+                            <img src={u.avatar} alt={u.username} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-xs font-bold font-mono">#{u.id}</span>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-white capitalize">{u.username}</div>
+                          <div className="text-[10px] font-mono text-purple-300">ID: #{u.id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-300 space-y-0.5">
+                      <div className="text-[11px] font-mono text-cyan-300">{u.email || 'No email'}</div>
+                      <div className="text-[10px] font-mono text-emerald-400">{u.phone || 'No WhatsApp'}</div>
+                    </td>
                     <td className="px-4 py-3 text-slate-400 font-mono">{u.createdAt}</td>
                     <td className="px-4 py-3">
                       {u.isAdmin ? (

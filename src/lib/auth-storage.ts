@@ -6,6 +6,9 @@ export interface StoredUser {
   id: number;
   username: string;
   password: string; // Stored securely
+  email?: string;
+  phone?: string; // WhatsApp Number
+  avatar?: string; // Base64 profile picture
   createdAt: string;
   isAdmin?: boolean;
 }
@@ -25,6 +28,8 @@ const DEFAULT_USERS: StoredUser[] = [
     id: 1,
     username: 'admin',
     password: 'admin123',
+    email: 'admin@habitbot.ai',
+    phone: '+1234567890',
     createdAt: '2026-08-01',
     isAdmin: true,
   },
@@ -50,7 +55,12 @@ export function getRegisteredUsers(): StoredUser[] {
 /**
  * Registers a new user with strictly incremental User ID (1, 2, 3, 4...)
  */
-export function registerUser(username: string, password: string): { success: boolean; error?: string; user?: StoredUser } {
+export function registerUser(
+  username: string,
+  password: string,
+  email?: string,
+  phone?: string
+): { success: boolean; error?: string; user?: StoredUser } {
   const normUser = username.trim().toLowerCase();
   
   if (normUser.length < 3) {
@@ -83,6 +93,8 @@ export function registerUser(username: string, password: string): { success: boo
     id: nextId,
     username: normUser,
     password: password,
+    email: email?.trim() || undefined,
+    phone: phone?.trim() || undefined,
     createdAt: new Date().toISOString().split('T')[0],
     isAdmin: false,
   };
@@ -96,33 +108,174 @@ export function registerUser(username: string, password: string): { success: boo
 /**
  * Authenticates user credentials
  */
-export function authenticateUser(username: string, password: string): { success: boolean; error?: string; user?: StoredUser } {
-  const normUser = username.trim().toLowerCase();
+export function authenticateUser(usernameOrContact: string, password: string): { success: boolean; error?: string; user?: StoredUser } {
+  const norm = usernameOrContact.trim().toLowerCase();
   const users = getRegisteredUsers();
 
-  const user = users.find((u) => u.username.toLowerCase() === normUser && u.password === password);
+  const user = users.find(
+    (u) =>
+      (u.username.toLowerCase() === norm ||
+        (u.email && u.email.toLowerCase() === norm) ||
+        (u.phone && u.phone.replace(/\D/g, '') === norm.replace(/\D/g, ''))) &&
+      u.password === password
+  );
+
   if (!user) {
-    return { success: false, error: 'Invalid username or password. Please try again.' };
+    return { success: false, error: 'Invalid credentials. Please verify username/email and password.' };
   }
 
   // Set active session
-  localStorage.setItem(ACTIVE_USER_KEY, JSON.stringify({
-    id: user.id,
-    username: user.username,
-    isAdmin: user.isAdmin || false,
-  }));
+  localStorage.setItem(
+    ACTIVE_USER_KEY,
+    JSON.stringify({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      isAdmin: user.isAdmin || false,
+    })
+  );
 
   return { success: true, user };
 }
 
 /**
+ * Resets password via Email, WhatsApp Phone Number, or Username
+ */
+export function resetUserPassword(
+  contactInfo: string,
+  newPassword: string
+): { success: boolean; error?: string; username?: string } {
+  const norm = contactInfo.trim().toLowerCase();
+  if (!norm) {
+    return { success: false, error: 'Please enter your Email, WhatsApp number, or Username.' };
+  }
+
+  if (newPassword.length < 6) {
+    return { success: false, error: 'New password must be at least 6 characters long.' };
+  }
+  const hasLetter = /[a-zA-Z]/.test(newPassword);
+  const hasNumberOrSymbol = /[\d\W]/.test(newPassword);
+  if (!hasLetter || !hasNumberOrSymbol) {
+    return { success: false, error: 'New password must contain letters and at least one number or symbol.' };
+  }
+
+  const users = getRegisteredUsers();
+  const index = users.findIndex(
+    (u) =>
+      u.username.toLowerCase() === norm ||
+      (u.email && u.email.toLowerCase() === norm) ||
+      (u.phone && u.phone.replace(/\D/g, '') === norm.replace(/\D/g, ''))
+  );
+
+  if (index === -1) {
+    return { success: false, error: 'No account found matching this Email / WhatsApp number / Username.' };
+  }
+
+  users[index].password = newPassword;
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+  return { success: true, username: users[index].username };
+}
+
+/**
+ * Updates active user profile (Avatar, email, phone, password)
+ */
+export function updateUserProfile(
+  userId: number,
+  updates: { avatar?: string; email?: string; phone?: string; password?: string }
+): { success: boolean; user?: StoredUser } {
+  const users = getRegisteredUsers();
+  const index = users.findIndex((u) => u.id === userId);
+  if (index === -1) return { success: false };
+
+  const updatedUser = {
+    ...users[index],
+    ...updates,
+  };
+
+  users[index] = updatedUser;
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+  // Update active session
+  const active = getActiveUser();
+  if (active && active.id === userId) {
+    localStorage.setItem(
+      ACTIVE_USER_KEY,
+      JSON.stringify({
+        id: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        avatar: updatedUser.avatar,
+        isAdmin: updatedUser.isAdmin || false,
+      })
+    );
+  }
+
+  // Dispatch live update event
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('habitbot_user_profile_updated'));
+  }
+
+  return { success: true, user: updatedUser };
+}
+
+/**
+ * Permanently deletes user account and wipes all user-scoped data
+ */
+export function deleteUserAccount(userId: number): { success: boolean; error?: string } {
+  const users = getRegisteredUsers();
+  const target = users.find((u) => u.id === userId);
+  if (!target) return { success: false, error: 'User not found.' };
+
+  // 1. Remove from registered users
+  const updatedUsers = users.filter((u) => u.id !== userId);
+  localStorage.setItem(USERS_KEY, JSON.stringify(updatedUsers));
+
+  // 2. Wipe all user-scoped keys
+  if (typeof window !== 'undefined') {
+    const keysToRemove: string[] = [];
+    const prefix = `_user_${userId}`;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.includes(prefix)) {
+        keysToRemove.push(k);
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+    localStorage.removeItem(ACTIVE_USER_KEY);
+  }
+
+  return { success: true };
+}
+
+/**
  * Gets currently logged in user session
  */
-export function getActiveUser(): { id: number; username: string; isAdmin?: boolean } | null {
+export function getActiveUser(): {
+  id: number;
+  username: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+  isAdmin?: boolean;
+} | null {
   if (typeof window === 'undefined') return null;
   try {
     const saved = localStorage.getItem(ACTIVE_USER_KEY);
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    // Also sync latest avatar from registered users
+    const users = getRegisteredUsers();
+    const latest = users.find((u) => u.id === parsed.id);
+    if (latest) {
+      parsed.avatar = latest.avatar;
+      parsed.email = latest.email;
+      parsed.phone = latest.phone;
+    }
+    return parsed;
   } catch {
     return null;
   }
