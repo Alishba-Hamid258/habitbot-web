@@ -2,7 +2,29 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, Plus, Sparkles, User, RefreshCw, Trash2, Archive, Copy, Check, Paperclip, X, Image as ImageIcon, Cpu, Clock } from 'lucide-react';
+import {
+  Bot,
+  Send,
+  Plus,
+  Sparkles,
+  User,
+  RefreshCw,
+  Trash2,
+  Archive,
+  Copy,
+  Check,
+  Paperclip,
+  X,
+  Image as ImageIcon,
+  Cpu,
+  Clock,
+  HelpCircle,
+  BookOpen,
+  CheckCircle2,
+  Headphones,
+  CheckSquare,
+  FileSpreadsheet,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -25,6 +47,15 @@ interface SavedSession {
   messages: Message[];
 }
 
+const INITIAL_MESSAGES: Message[] = [
+  {
+    id: 'welcome',
+    role: 'assistant',
+    content:
+      '👋 **Greetings! I am HabitBot**, your adaptive behavioral coach.\n\nI can help you build atomic habits, overcome procrastination, design routines, and audit your daily schedule. What goal are we conquering today?',
+  },
+];
+
 const QUICK_PROMPTS = [
   { label: '⚡ Plan My Day', prompt: 'Help me design an optimal daily plan using time-blocking and habit stacking.' },
   { label: '🧠 Beat Procrastination', prompt: 'I am struggling to start a difficult task. Guide me through the 2-Minute Rule to build momentum.' },
@@ -32,14 +63,8 @@ const QUICK_PROMPTS = [
   { label: '🎯 Habit Audit', prompt: 'Conduct a quick audit of my daily habits. Ask me 3 questions to identify friction points.' },
 ];
 
-export default function CoachPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: "👋 **Hello! I'm HabitBot**, your behavioral scientist and Atomic Habits coach.\n\nI can stream responses with **Groq** or **Google Gemini**, analyze schedule photos with Vision, and help you design peak routines. What are we optimizing today?",
-    },
-  ]);
+export default function DashboardPage() {
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<'groq' | 'gemini'>('groq');
@@ -47,6 +72,7 @@ export default function CoachPage() {
 
   const [archives, setArchives] = useState<SavedSession[]>([]);
   const [showArchives, setShowArchives] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [currentUser, setCurrentUser] = useState<{ id: number; username: string; avatar?: string } | null>(null);
@@ -59,13 +85,20 @@ export default function CoachPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Load user-scoped archives and profile from storage
+  // Load user-scoped archives and profile from storage & trigger onboarding tour for first-time login
   const loadUserData = () => {
     const active = getActiveUser();
     if (active) {
       setCurrentUser(active);
       const userArchives = getUserScopedData<SavedSession[]>(active.id, 'chat_archives', []);
       setArchives(userArchives);
+
+      // Check if user has seen onboarding tour
+      const onboardedKey = `habitbot_onboarded_user_${active.id}`;
+      const hasSeen = localStorage.getItem(onboardedKey);
+      if (!hasSeen) {
+        setShowOnboardingModal(true);
+      }
     }
   };
 
@@ -270,6 +303,16 @@ export default function CoachPage() {
           <Button
             size="sm"
             variant="outline"
+            onClick={() => setShowOnboardingModal(true)}
+            className="h-8 text-xs bg-slate-900/60 hover:bg-slate-800 border-white/10 text-cyan-300 hover:text-white gap-1.5 rounded-lg shadow-sm"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Guide</span>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setShowArchives(true)}
             className="h-8 text-xs bg-slate-900/60 hover:bg-slate-800 border-white/10 text-slate-200 gap-1.5 rounded-lg shadow-sm"
           >
@@ -287,6 +330,102 @@ export default function CoachPage() {
           </Button>
         </div>
       </div>
+
+      {/* First-Time Login / Quick Feature Tour Dialog Modal */}
+      <Dialog open={showOnboardingModal} onOpenChange={setShowOnboardingModal}>
+        <DialogContent className="max-w-2xl bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold gradient-text flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+              <span>Welcome to HabitBot, {currentUser?.username || 'Champion'}! 🎉</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              Here is your 60-second tour to get the most out of your behavioral dashboard.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
+                  <Bot className="w-4 h-4 text-purple-400" />
+                </div>
+                <span>1. Personal AI Coach & Vision</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Chat anytime for motivation and habit strategy. Click the paperclip 📎 to upload photos of schedules, workout routines, or meal charts for Gemini Vision analysis.
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+                <span>2. Habit Matrix & Streak Freeze</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Check off your daily habits in the left sidebar. Earn +10 XP per habit, level up your badge, and turn on "Freeze Streak" when traveling to protect your momentum!
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
+                  <Headphones className="w-4 h-4 text-amber-400" />
+                </div>
+                <span>3. Pomodoro Focus & Soundtracks</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Run 25-minute deep work intervals in the sidebar. Listen to built-in Lofi/Rain presets or paste any YouTube study stream to play uninterrupted across all tabs.
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
+                  <CheckSquare className="w-4 h-4 text-indigo-400" />
+                </div>
+                <span>4. AI Action Planner & Tasks</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Under the Tasks tab, let AI break down any daunting goal into 4 daily micro-actions. All tasks are permanently saved in your Master Task Database!
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 sm:col-span-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
+                  <FileSpreadsheet className="w-4 h-4 text-pink-400" />
+                </div>
+                <span>5. Evening Logbook & Excel Export</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Log your daily wins and friction points in the Logbook (+15 XP). Download a multi-sheet Excel spreadsheet of today's progress or lifetime archives with 1 click!
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3.5 bg-gradient-to-r from-purple-950/40 via-cyan-950/40 to-slate-900/60 rounded-xl border border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div>
+              <div className="font-semibold text-white">You're all set to begin! 🚀</div>
+              <div className="text-[11px] text-slate-400">You can re-open this guide anytime from the top bar.</div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => {
+                if (currentUser) {
+                  localStorage.setItem(`habitbot_onboarded_user_${currentUser.id}`, 'true');
+                }
+                setShowOnboardingModal(false);
+              }}
+              className="gradient-button text-xs px-5 py-2.5 rounded-lg shrink-0 shadow-md shadow-purple-500/20"
+            >
+              Let's Start Building Habits!
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Spacious Glass Vault Dialog Modal */}
       <Dialog open={showArchives} onOpenChange={setShowArchives}>

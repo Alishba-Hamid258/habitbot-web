@@ -40,46 +40,40 @@ type TabType = 'login' | 'signup' | 'admin' | 'forgot';
 
 const GUIDE_SECTIONS = [
   {
-    title: '1. Account Registration & User IDs',
-    icon: User,
-    color: 'text-purple-400',
-    desc: 'Each new member is assigned a strictly sequential User ID (#1 Admin, #2, #3...). All habits, focus logs, and archives are isolated to your account with zero cross-account data bleed.',
-  },
-  {
-    title: '2. Dual AI Coaching Engine',
+    title: '💬 Personal AI Behavioral Coach',
     icon: Bot,
-    color: 'text-cyan-400',
-    desc: 'Toggle between Groq (instant ultra-fast text responses) and Google Gemini (Vision Multimodal for analyzing routine schedules, workout photos, and desk setups).',
+    color: 'text-purple-400',
+    desc: 'Chat with your 24/7 accountability partner for psychological habit design, motivation, and routine audits. Upload photos of workout plans or daily schedules for instant AI analysis.',
   },
   {
-    title: '3. Daily Habit Matrix & Streak Freeze',
+    title: '🎯 Daily Habit Matrix & Gamification',
     icon: CheckCircle2,
     color: 'text-emerald-400',
-    desc: 'Track daily habits to earn +10 XP per completion and +50 XP for perfect days. Going on vacation or feeling sick? Turn on "Freeze Streak" to safeguard your streak without penalty!',
+    desc: 'Build consistent routines, earn XP with every checkmark, unlock higher mastery levels (Novice to Grandmaster), and use "Freeze Streak" to protect your streak when traveling.',
   },
   {
-    title: '4. Deep Work Pomodoro & Audio Player',
+    title: '⏱️ Deep Work Pomodoro & Audio Player',
     icon: Headphones,
     color: 'text-amber-400',
-    desc: 'Run 25-minute focus intervals with sound cues. Paste any YouTube study stream or select curated Lofi/Rain presets to play continuously in the background across all tabs.',
+    desc: 'Execute 25-minute focus blocks with sound cues. Listen to curated Lofi and rain beats, or paste your favorite YouTube soundtrack to play continuously across all tabs.',
   },
   {
-    title: '5. AI Task Architect & Master DB',
+    title: '📜 AI Action Planner & Micro-Steps',
     icon: CheckSquare,
     color: 'text-indigo-400',
-    desc: 'Enter any big goal and let the AI break it into 4 micro-steps. All created and completed tasks are permanently preserved in your Master Task Database, even if cleared from daily sprint.',
+    desc: 'Turn any daunting project into 4 actionable daily micro-actions with AI. Every action is permanently recorded in your Master Database.',
   },
   {
-    title: '6. Multi-Year Excel Life Audit',
+    title: '📓 Daily Evening Logbook & Reflections',
+    icon: BookOpen,
+    color: 'text-cyan-400',
+    desc: 'Reflect on daily wins and friction points every evening to track mindset shifts, earn +15 XP, and identify resistance patterns.',
+  },
+  {
+    title: '📊 Tailored Excel Life Audit Exporter',
     icon: FileSpreadsheet,
     color: 'text-pink-400',
-    desc: 'Export your daily progress, weekly sprints, or lifetime archives into structured 6-sheet Excel spreadsheets with 1 click.',
-  },
-  {
-    title: '7. WhatsApp & Email Password Recovery',
-    icon: Shield,
-    color: 'text-yellow-400',
-    desc: 'For top-tier security, passwords can only be reset by verified 6-digit OTP codes sent to your registered WhatsApp number or recovery Email address.',
+    desc: 'Download clean, multi-sheet Excel spreadsheets of today’s progress, weekly sprints, or full lifetime archives with a single click.',
   },
 ];
 
@@ -743,19 +737,18 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Feature Pills Below Card */}
-        <div className="mt-4 p-3 bg-slate-900/40 rounded-xl border border-white/5 flex items-center justify-between text-[11px] text-slate-400">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="text-slate-300 font-medium">Creator Demo:</span>
-            <span className="font-mono text-amber-300">admin / admin123</span>
-          </div>
+        {/* User Guide Pill Below Card */}
+        <div className="mt-4 p-2.5 bg-slate-900/40 rounded-xl border border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+          <span className="text-slate-300 font-medium flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <span>Transform routines with AI coaching</span>
+          </span>
           <button
             onClick={() => setShowGuideModal(true)}
-            className="text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1"
+            className="text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 font-semibold"
           >
-            <HelpCircle className="w-3.5 h-3.5" />
-            <span>Guide</span>
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Read Features Guide</span>
           </button>
         </div>
       </motion.div>
