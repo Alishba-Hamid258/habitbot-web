@@ -13,6 +13,7 @@ import {
   addXP,
   logTaskCompletion,
   getTaskHistory,
+  recordMasterTask,
   TaskHistoryItem,
 } from '@/lib/auth-storage';
 
@@ -69,18 +70,22 @@ export default function TasksPage() {
     const target = updated.find((t) => t.id === id);
     saveTasks(updated);
 
-    if (target?.done) {
-      addXP(userId, 5);
-      logTaskCompletion(userId, {
+    if (target) {
+      recordMasterTask(userId, {
         id: target.id,
         task: target.task,
         priority: target.priority,
         time: target.time,
+        done: target.done,
       });
       refreshHistory(userId);
-      toast.success(`Completed: "${target.task}" (+5 XP recorded to history)`, { icon: '✅' });
-    } else {
-      toast.info(`Re-opened: "${target?.task}"`);
+
+      if (target.done) {
+        addXP(userId, 5);
+        toast.success(`Completed: "${target.task}" (+5 XP saved to master DB)`, { icon: '✅' });
+      } else {
+        toast.info(`Re-opened: "${target.task}"`);
+      }
     }
   };
 
@@ -98,31 +103,50 @@ export default function TasksPage() {
 
     const updated = [newTask, ...tasks];
     saveTasks(updated);
+    recordMasterTask(userId, {
+      id: newTask.id,
+      task: newTask.task,
+      priority: newTask.priority,
+      time: newTask.time,
+      done: false,
+    });
+    refreshHistory(userId);
     setNewTaskTitle('');
-    toast.success('Task added successfully!');
+    toast.success('Task added and saved in master database!');
   };
 
   const deleteTask = (id: string) => {
+    const target = tasks.find((t) => t.id === id);
+    if (target) {
+      recordMasterTask(userId, {
+        id: target.id,
+        task: target.task,
+        priority: target.priority,
+        time: target.time,
+        archived: true,
+      });
+      refreshHistory(userId);
+    }
     const updated = tasks.filter((t) => t.id !== id);
     saveTasks(updated);
-    toast.info('Task removed from active list.');
+    toast.info('Removed from daily sprint (Permanently preserved in Master DB & Excel).');
   };
 
   const clearCompleted = () => {
-    // Preserve in history before clearing active view
     tasks.filter((t) => t.done).forEach((t) => {
-      logTaskCompletion(userId, {
+      recordMasterTask(userId, {
         id: t.id,
         task: t.task,
         priority: t.priority,
         time: t.time,
+        done: true,
       });
     });
     refreshHistory(userId);
 
     const updated = tasks.filter((t) => !t.done);
     saveTasks(updated);
-    toast.info('Cleared finished tasks. (All permanently preserved in History & Excel)!');
+    toast.info('Cleared finished tasks. All permanently preserved in Master DB & Excel!');
   };
 
   const handleAiBreakdown = (e: React.FormEvent) => {
@@ -140,8 +164,19 @@ export default function TasksPage() {
         { id: (Date.now() + 4).toString(), task: `Step 4: Review output & log reflection in HabitBot`, priority: 'Low', time: '10 mins', done: false },
       ];
 
+      generated.forEach((g) => {
+        recordMasterTask(userId, {
+          id: g.id,
+          task: g.task,
+          priority: g.priority,
+          time: g.time,
+          done: false,
+        });
+      });
+
       const updated = [...generated, ...tasks];
       saveTasks(updated);
+      refreshHistory(userId);
       setAiGoal('');
       toast.success(`✨ AI Task Architect broke down goal into 4 actionable steps!`);
     }, 1000);

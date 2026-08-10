@@ -476,44 +476,88 @@ export function saveActiveMedia(userId: number, url: string, title?: string) {
   window.dispatchEvent(new Event('habitbot_media_updated'));
 }
 
-export interface TaskHistoryItem {
+export interface MasterTaskRecord {
   id: string;
   task: string;
   priority: 'High' | 'Medium' | 'Low';
   time: string;
-  completedAt: string;
+  createdAt: string;
+  completedAt?: string;
+  status: 'Completed' | 'In Progress' | 'Archived';
+  xpEarned: number;
+}
+
+export type TaskHistoryItem = MasterTaskRecord;
+
+/**
+ * Permanently logs any created or updated task into the user's permanent master task database.
+ * Tasks are NEVER flushed or lost from this database even if deleted from the daily sprint.
+ */
+export function recordMasterTask(
+  userId: number,
+  task: {
+    id: string;
+    task: string;
+    priority: 'High' | 'Medium' | 'Low';
+    time: string;
+    done?: boolean;
+    archived?: boolean;
+  }
+) {
+  if (typeof window === 'undefined') return;
+  const master = getUserScopedData<MasterTaskRecord[]>(userId, 'tasks_master_db', []);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const existingIndex = master.findIndex((m) => m.id === task.id);
+  const status = task.done ? 'Completed' : task.archived ? 'Archived' : 'In Progress';
+  const xpEarned = task.done ? 5 : 0;
+
+  if (existingIndex >= 0) {
+    const existing = master[existingIndex];
+    master[existingIndex] = {
+      ...existing,
+      task: task.task,
+      priority: task.priority,
+      time: task.time,
+      status: task.done ? 'Completed' : task.archived ? 'Archived' : existing.status,
+      completedAt: task.done ? existing.completedAt || todayStr : existing.completedAt,
+      xpEarned: task.done ? 5 : existing.xpEarned,
+    };
+  } else {
+    master.unshift({
+      id: task.id,
+      task: task.task,
+      priority: task.priority,
+      time: task.time,
+      createdAt: todayStr,
+      completedAt: task.done ? todayStr : undefined,
+      status: status,
+      xpEarned: xpEarned,
+    });
+  }
+
+  setUserScopedData(userId, 'tasks_master_db', master);
 }
 
 /**
- * Permanently logs completed tasks into user's historical archive
+ * Legacy compatibility wrapper for logging completed tasks
  */
 export function logTaskCompletion(
   userId: number,
   task: { id: string; task: string; priority: 'High' | 'Medium' | 'Low'; time: string }
 ) {
-  if (typeof window === 'undefined') return;
-  const history = getUserScopedData<TaskHistoryItem[]>(userId, 'task_history', []);
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  const existing = history.filter((h) => h.id !== task.id);
-  const updated = [
-    {
-      id: task.id,
-      task: task.task,
-      priority: task.priority,
-      time: task.time,
-      completedAt: todayStr,
-    },
-    ...existing,
-  ];
-  setUserScopedData(userId, 'task_history', updated);
+  recordMasterTask(userId, { ...task, done: true });
 }
 
 /**
- * Gets the list of completed task history for a user
+ * Gets the entire permanent master task database for a user
  */
-export function getTaskHistory(userId: number): TaskHistoryItem[] {
-  return getUserScopedData<TaskHistoryItem[]>(userId, 'task_history', []);
+export function getTaskHistory(userId: number): MasterTaskRecord[] {
+  return getUserScopedData<MasterTaskRecord[]>(userId, 'tasks_master_db', []);
+}
+
+export function getMasterTasks(userId: number): MasterTaskRecord[] {
+  return getUserScopedData<MasterTaskRecord[]>(userId, 'tasks_master_db', []);
 }
 
 /**

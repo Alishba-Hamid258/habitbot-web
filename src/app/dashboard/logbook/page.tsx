@@ -2,12 +2,36 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Sparkles, Calendar, FileSpreadsheet, Download, CheckCircle2, Shield, Clock, CheckSquare, MessageSquare, Video, Check, Filter } from 'lucide-react';
+import {
+  BookOpen,
+  Sparkles,
+  Calendar,
+  FileSpreadsheet,
+  Download,
+  CheckCircle2,
+  Shield,
+  Clock,
+  CheckSquare,
+  MessageSquare,
+  Video,
+  Check,
+  Filter,
+  Layers,
+  Database,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
-import { getActiveUser, getUserScopedData, setUserScopedData, addXP } from '@/lib/auth-storage';
+import {
+  getActiveUser,
+  getUserScopedData,
+  setUserScopedData,
+  addXP,
+  getMasterTasks,
+  MasterTaskRecord,
+} from '@/lib/auth-storage';
 
 interface ReflectionEntry {
   id: string;
@@ -16,7 +40,7 @@ interface ReflectionEntry {
   friction: string;
 }
 
-const DEFAULT_REFLECTIONS: ReflectionEntry[] = [];
+type TimeframeOption = 'all' | 'year' | 'month' | 'week' | 'custom';
 
 export default function LogbookPage() {
   const [wentWell, setWentWell] = useState('');
@@ -24,6 +48,11 @@ export default function LogbookPage() {
   const [reflections, setReflections] = useState<ReflectionEntry[]>([]);
   const [exporting, setExporting] = useState(false);
   const [userId, setUserId] = useState<number>(1);
+
+  // Timeframe and Scale Filters
+  const [timeframe, setTimeframe] = useState<TimeframeOption>('all');
+  const [customStart, setCustomStart] = useState<string>('');
+  const [customEnd, setCustomEnd] = useState<string>('');
 
   // Customizable Sheet Selection states (Default: All Checked)
   const [selectedSheets, setSelectedSheets] = useState({
@@ -40,7 +69,7 @@ export default function LogbookPage() {
     const active = getActiveUser();
     if (active) {
       setUserId(active.id);
-      const userReflections = getUserScopedData<ReflectionEntry[]>(active.id, 'reflections', DEFAULT_REFLECTIONS);
+      const userReflections = getUserScopedData<ReflectionEntry[]>(active.id, 'reflections', []);
       setReflections(userReflections);
     }
   }, []);
@@ -87,6 +116,38 @@ export default function LogbookPage() {
     toast.success('Evening reflection saved! (+15 XP)', { icon: '📓' });
   };
 
+  // Helper to determine if a date is within selected timeframe
+  const isDateInTimeframe = (dateStr?: string) => {
+    if (!dateStr || timeframe === 'all') return true;
+    const date = new Date(dateStr);
+    const now = new Date();
+
+    if (timeframe === 'year') {
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      return date >= yearStart;
+    }
+
+    if (timeframe === 'month') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(now.getDate() - 30);
+      return date >= thirtyDaysAgo;
+    }
+
+    if (timeframe === 'week') {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      return date >= sevenDaysAgo;
+    }
+
+    if (timeframe === 'custom') {
+      if (customStart && date < new Date(customStart)) return false;
+      if (customEnd && date > new Date(customEnd + 'T23:59:59')) return false;
+      return true;
+    }
+
+    return true;
+  };
+
   const handleExportLifeAudit = () => {
     if (selectedCount === 0) {
       toast.error('Please select at least 1 sheet to include in your export.');
@@ -97,15 +158,16 @@ export default function LogbookPage() {
     try {
       const wb = XLSX.utils.book_new();
 
-      // 1. Sheet: Reflections
+      // 1. Sheet: Evening Reflections
       if (selectedSheets.reflections) {
-        const refData = reflections.map((r) => ({
+        const filteredRef = reflections.filter((r) => isDateInTimeframe(r.date));
+        const refData = filteredRef.map((r) => ({
           Date: r.date,
           'What Went Well': r.wentWell,
           'Points of Friction': r.friction,
         }));
         const wsReflections = XLSX.utils.json_to_sheet(
-          refData.length > 0 ? refData : [{ Date: 'No records', 'What Went Well': '', 'Points of Friction': '' }]
+          refData.length > 0 ? refData : [{ Date: 'No records in timeframe', 'What Went Well': '', 'Points of Friction': '' }]
         );
         XLSX.utils.book_append_sheet(wb, wsReflections, 'Evening Reflections');
       }
@@ -113,13 +175,15 @@ export default function LogbookPage() {
       // 2. Sheet: Habits Matrix History
       if (selectedSheets.habits) {
         const userHabits = getUserScopedData<any[]>(userId, 'habits', []);
-        const habitRows = userHabits.length > 0
-          ? userHabits.map((h) => ({
-              Habit: h.name,
-              Status: h.completed ? 'Completed (Checked)' : 'Pending',
-              Date: new Date().toISOString().split('T')[0],
-            }))
-          : [{ Habit: 'No habits configured', Status: '', Date: '' }];
+        const habitRows =
+          userHabits.length > 0
+            ? userHabits.map((h) => ({
+                Habit: h.name,
+                Status: h.completed ? 'Completed (Checked)' : 'Pending',
+                Frequency: 'Daily',
+                ExportDate: new Date().toISOString().split('T')[0],
+              }))
+            : [{ Habit: 'No habits configured', Status: '', Frequency: '', ExportDate: '' }];
         const wsHabits = XLSX.utils.json_to_sheet(habitRows);
         XLSX.utils.book_append_sheet(wb, wsHabits, 'Habits History');
       }
@@ -127,63 +191,65 @@ export default function LogbookPage() {
       // 3. Sheet: Deep Work & Focus Sessions
       if (selectedSheets.focus) {
         const userFocus = getUserScopedData<any[]>(userId, 'focus_sessions', []);
-        const focusRows = userFocus.length > 0
-          ? userFocus.map((f) => ({ Date: f.date, Activity: f.mode, 'Duration (Mins)': f.duration_mins }))
-          : [{ Date: 'No focus sessions', Activity: '', 'Duration (Mins)': 0 }];
+        const filteredFocus = userFocus.filter((f) => isDateInTimeframe(f.date));
+        const focusRows =
+          filteredFocus.length > 0
+            ? filteredFocus.map((f) => ({
+                Date: f.date,
+                Activity: f.mode,
+                'Duration (Mins)': f.duration_mins,
+                XPEarned: Number(f.duration_mins) || 0,
+              }))
+            : [{ Date: 'No focus sessions in timeframe', Activity: '', 'Duration (Mins)': 0, XPEarned: 0 }];
         const wsFocus = XLSX.utils.json_to_sheet(focusRows);
         XLSX.utils.book_append_sheet(wb, wsFocus, 'Deep Work Sessions');
       }
 
-      // 4. Sheet: Tasks History & Action Records
+      // 4. Sheet: Tasks History & Master Database (Preserves all created, completed, or deleted tasks)
       if (selectedSheets.tasks) {
-        const userTasks = getUserScopedData<any[]>(userId, 'tasks', []);
-        const taskHistory = getUserScopedData<any[]>(userId, 'task_history', []);
-
-        const combinedTasks: any[] = [];
-
-        // 1. Add all permanent completed historical tasks
-        taskHistory.forEach((h) => {
-          combinedTasks.push({
-            Date: h.completedAt,
-            Task: h.task,
-            Priority: h.priority,
-            EstTime: h.time,
-            Status: 'Completed',
-          });
-        });
-
-        // 2. Add active pending tasks not in history
-        userTasks
-          .filter((t) => !t.done)
-          .forEach((t) => {
-            combinedTasks.push({
-              Date: 'Pending Sprint',
-              Task: t.task,
-              Priority: t.priority,
-              EstTime: t.time,
-              Status: 'In Progress',
-            });
-          });
+        const masterTasks = getMasterTasks(userId);
+        const filteredMaster = masterTasks.filter(
+          (t) => isDateInTimeframe(t.createdAt) || isDateInTimeframe(t.completedAt)
+        );
 
         const taskRows =
-          combinedTasks.length > 0
-            ? combinedTasks
-            : [{ Date: new Date().toISOString().split('T')[0], Task: 'No tasks configured', Priority: '', EstTime: '', Status: '' }];
+          filteredMaster.length > 0
+            ? filteredMaster.map((t) => ({
+                'Created Date': t.createdAt,
+                Task: t.task,
+                Priority: t.priority,
+                'Time Allocated': t.time,
+                'Lifecycle Status': t.status,
+                'Completed Date': t.completedAt || 'N/A',
+                'XP Earned': t.status === 'Completed' ? '+5 XP' : '0 XP',
+              }))
+            : [
+                {
+                  'Created Date': new Date().toISOString().split('T')[0],
+                  Task: 'No tasks in database',
+                  Priority: '',
+                  'Time Allocated': '',
+                  'Lifecycle Status': '',
+                  'Completed Date': '',
+                  'XP Earned': '',
+                },
+              ];
 
         const wsTasks = XLSX.utils.json_to_sheet(taskRows);
-        XLSX.utils.book_append_sheet(wb, wsTasks, 'Tasks History');
+        XLSX.utils.book_append_sheet(wb, wsTasks, 'Tasks Master Database');
       }
 
       // 5. Sheet: Chat History & Saved Archives
       if (selectedSheets.chat) {
         const userArchives = getUserScopedData<any[]>(userId, 'chat_archives', []);
+        const filteredArchives = userArchives.filter((s) => isDateInTimeframe(s.timestamp));
         const chatData: any[] = [];
-        userArchives.forEach((s: any) => {
+        filteredArchives.forEach((s: any) => {
           s.messages?.forEach((m: any) => {
             chatData.push({
               Timestamp: s.timestamp,
-              Session: s.title,
-              Speaker: m.role === 'assistant' ? 'HabitBot' : 'User',
+              SessionTitle: s.title,
+              Speaker: m.role === 'assistant' ? 'HabitBot Coach' : 'User',
               Message: m.content,
             });
           });
@@ -191,7 +257,7 @@ export default function LogbookPage() {
         const wsChat = XLSX.utils.json_to_sheet(
           chatData.length > 0
             ? chatData
-            : [{ Timestamp: '', Session: 'No archived chats', Speaker: '', Message: '' }]
+            : [{ Timestamp: '', SessionTitle: 'No archived chats in timeframe', Speaker: '', Message: '' }]
         );
         XLSX.utils.book_append_sheet(wb, wsChat, 'Chat History & Archives');
       }
@@ -200,12 +266,13 @@ export default function LogbookPage() {
       if (selectedSheets.media) {
         const userMedia = getUserScopedData<any[]>(userId, 'media_history', []);
         const activeUrl = getUserScopedData<string>(userId, 'active_video', 'https://www.youtube.com/watch?v=jfKfPfyJRdk');
+        const filteredMedia = userMedia.filter((m) => isDateInTimeframe(m.Date));
 
-        const mediaRows = [...userMedia];
+        const mediaRows = [...filteredMedia];
         if (!mediaRows.some((m) => m.MediaUrl === activeUrl)) {
           mediaRows.unshift({
             Date: new Date().toISOString().split('T')[0],
-            Title: 'Active Focus Track',
+            Title: 'Current Active Focus Track',
             MediaUrl: activeUrl,
           });
         }
@@ -214,9 +281,22 @@ export default function LogbookPage() {
         XLSX.utils.book_append_sheet(wb, wsMedia, 'Focus Media & Soundtracks');
       }
 
-      // Trigger custom multi-sheet workbook download
-      XLSX.writeFile(wb, `HabitBot_Life_Audit_${new Date().toISOString().split('T')[0]}.xlsx`);
-      toast.success(`Exported ${selectedCount} selected sheet${selectedCount > 1 ? 's' : ''} to Excel! 📊`);
+      // Format filename with timeframe indicator
+      const timeframeTag =
+        timeframe === 'all'
+          ? 'Lifetime'
+          : timeframe === 'year'
+          ? 'Year_2026'
+          : timeframe === 'month'
+          ? 'Last_30_Days'
+          : timeframe === 'week'
+          ? 'Last_7_Days'
+          : 'Custom_Range';
+
+      const filename = `HabitBot_Life_Audit_${timeframeTag}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      XLSX.writeFile(wb, filename);
+      toast.success(`Exported ${selectedCount} sheet${selectedCount > 1 ? 's' : ''} (${timeframeTag}) to Excel! 📊`);
     } catch (err: any) {
       toast.error(`Export failed: ${err.message}`);
     } finally {
@@ -240,254 +320,221 @@ export default function LogbookPage() {
           <div>
             <div className="text-sm font-bold text-white flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-              <span>Tailored Life Audit Excel Export (.xlsx)</span>
+              <span>Full Life Audit & Behavioral Exporter</span>
             </div>
-            <p className="text-xs text-slate-300 mt-1">
-              Select which sheets you want to include in your download. Untick any you do not need:
+            <p className="text-xs text-slate-400 mt-0.5">
+              Exports your habits, deep work focus hours, tasks master database, chat transcripts, and reflections into structured multi-sheet Excel files.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              onClick={handleExportLifeAudit}
-              disabled={exporting || selectedCount === 0}
-              className={`gradient-button text-xs gap-1.5 px-4 py-2 rounded-xl shadow-lg shadow-purple-500/20 ${
-                selectedCount === 0 ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              <Download className="w-4 h-4" />
-              <span>{exporting ? 'Generating Excel...' : `Download ${selectedCount} Sheet${selectedCount > 1 ? 's' : ''} (.xlsx)`}</span>
-            </Button>
+          <Button
+            onClick={handleExportLifeAudit}
+            disabled={exporting || selectedCount === 0}
+            className="gradient-button text-xs font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-purple-500/20 flex items-center gap-2 shrink-0"
+          >
+            <Download className="w-4 h-4" />
+            <span>{exporting ? 'Compiling Excel...' : `Export ${selectedCount} Sheet${selectedCount > 1 ? 's' : ''}`}</span>
+          </Button>
+        </div>
+
+        {/* Timeframe Scope Selector */}
+        <div className="pt-2 border-t border-white/5 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Timeframe & Scale Scope:</span>
+            </span>
+            <span className="text-[10px] text-purple-300 font-mono">
+              {timeframe === 'all' ? 'All-Time Lifetime Records' : `Filtered: ${timeframe.toUpperCase()}`}
+            </span>
           </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {[
+              { id: 'all', label: '🌟 All Time (Lifetime)' },
+              { id: 'year', label: '📅 This Year (2026)' },
+              { id: 'month', label: '🗓️ Last 30 Days' },
+              { id: 'week', label: '⚡ Last 7 Days' },
+              { id: 'custom', label: '⚙️ Custom Date Range' },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => setTimeframe(opt.id as TimeframeOption)}
+                className={`py-1 px-2.5 rounded-lg text-[11px] font-medium transition-colors border ${
+                  timeframe === opt.id
+                    ? 'bg-cyan-950/80 text-cyan-300 border-cyan-500/40 shadow-sm'
+                    : 'bg-slate-950/40 text-slate-400 border-white/5 hover:text-slate-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {timeframe === 'custom' && (
+            <div className="flex items-center gap-2 pt-1">
+              <div className="flex items-center gap-1 text-xs text-slate-400">
+                <span>From:</span>
+                <Input
+                  type="date"
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="h-7 text-xs bg-slate-950 border-white/10 text-white w-36"
+                />
+              </div>
+              <div className="flex items-center gap-1 text-xs text-slate-400">
+                <span>To:</span>
+                <Input
+                  type="date"
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="h-7 text-xs bg-slate-950 border-white/10 text-white w-36"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Interactive Checkbox Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-white/10">
-          <button
-            onClick={() => toggleSheet('reflections')}
-            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
-              selectedSheets.reflections
-                ? 'bg-purple-950/40 border-purple-500/40 text-purple-200 shadow-sm'
-                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-3.5 h-3.5 text-purple-400" />
-              <span>1. Evening Reflections</span>
+        {/* Sheet Selection Toggles */}
+        <div className="pt-2 border-t border-white/5 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-300 font-semibold flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5 text-purple-400" />
+              <span>Select Sheets to Include:</span>
+            </span>
+            <div className="flex gap-2">
+              <button onClick={() => setAllSheets(true)} className="text-[11px] text-cyan-400 hover:underline">
+                Select All
+              </button>
+              <span className="text-slate-600">|</span>
+              <button onClick={() => setAllSheets(false)} className="text-[11px] text-slate-400 hover:underline">
+                Deselect All
+              </button>
             </div>
-            <div
-              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
-                selectedSheets.reflections
-                  ? 'bg-purple-600 border-purple-500 text-white'
-                  : 'border-slate-600 bg-slate-900'
-              }`}
-            >
-              {selectedSheets.reflections && '✓'}
-            </div>
-          </button>
+          </div>
 
-          <button
-            onClick={() => toggleSheet('habits')}
-            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
-              selectedSheets.habits
-                ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-200 shadow-sm'
-                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Shield className="w-3.5 h-3.5 text-cyan-400" />
-              <span>2. Habits Log</span>
-            </div>
-            <div
-              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
-                selectedSheets.habits
-                  ? 'bg-cyan-600 border-cyan-500 text-white'
-                  : 'border-slate-600 bg-slate-900'
-              }`}
-            >
-              {selectedSheets.habits && '✓'}
-            </div>
-          </button>
-
-          <button
-            onClick={() => toggleSheet('focus')}
-            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
-              selectedSheets.focus
-                ? 'bg-amber-950/40 border-amber-500/40 text-amber-200 shadow-sm'
-                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
-              <span>3. Focus Sessions</span>
-            </div>
-            <div
-              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
-                selectedSheets.focus
-                  ? 'bg-amber-600 border-amber-500 text-white'
-                  : 'border-slate-600 bg-slate-900'
-              }`}
-            >
-              {selectedSheets.focus && '✓'}
-            </div>
-          </button>
-
-          <button
-            onClick={() => toggleSheet('tasks')}
-            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
-              selectedSheets.tasks
-                ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200 shadow-sm'
-                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
-              <span>4. Tasks History</span>
-            </div>
-            <div
-              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
-                selectedSheets.tasks
-                  ? 'bg-emerald-600 border-emerald-500 text-white'
-                  : 'border-slate-600 bg-slate-900'
-              }`}
-            >
-              {selectedSheets.tasks && '✓'}
-            </div>
-          </button>
-
-          <button
-            onClick={() => toggleSheet('chat')}
-            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
-              selectedSheets.chat
-                ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-200 shadow-sm'
-                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
-              <span>5. Chat Logs</span>
-            </div>
-            <div
-              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
-                selectedSheets.chat
-                  ? 'bg-indigo-600 border-indigo-500 text-white'
-                  : 'border-slate-600 bg-slate-900'
-              }`}
-            >
-              {selectedSheets.chat && '✓'}
-            </div>
-          </button>
-
-          <button
-            onClick={() => toggleSheet('media')}
-            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
-              selectedSheets.media
-                ? 'bg-rose-950/40 border-rose-500/40 text-rose-200 shadow-sm'
-                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Video className="w-3.5 h-3.5 text-rose-400" />
-              <span>6. Media History</span>
-            </div>
-            <div
-              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
-                selectedSheets.media
-                  ? 'bg-rose-600 border-rose-500 text-white'
-                  : 'border-slate-600 bg-slate-900'
-              }`}
-            >
-              {selectedSheets.media && '✓'}
-            </div>
-          </button>
-        </div>
-
-        {/* Select All / Deselect All Controls */}
-        <div className="flex items-center justify-between text-[11px] pt-1">
-          <span className="text-slate-400">{selectedCount} of 6 sheets selected</span>
-          <div className="flex gap-3">
-            <button onClick={() => setAllSheets(true)} className="text-cyan-400 hover:underline">
-              Select All
-            </button>
-            <span className="text-slate-600">•</span>
-            <button onClick={() => setAllSheets(false)} className="text-slate-400 hover:underline">
-              Deselect All
-            </button>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {[
+              { key: 'reflections', label: 'Evening Reflections', icon: BookOpen, color: 'text-purple-400' },
+              { key: 'habits', label: 'Habit Matrix Logs', icon: CheckCircle2, color: 'text-cyan-400' },
+              { key: 'focus', label: 'Deep Work Sessions', icon: Clock, color: 'text-amber-400' },
+              { key: 'tasks', label: 'Tasks Master Database', icon: Database, color: 'text-emerald-400' },
+              { key: 'chat', label: 'AI Chat Vaults', icon: MessageSquare, color: 'text-indigo-400' },
+              { key: 'media', label: 'Focus Soundtracks', icon: Video, color: 'text-pink-400' },
+            ].map(({ key, label, icon: Icon, color }) => {
+              const active = selectedSheets[key as keyof typeof selectedSheets];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => toggleSheet(key as keyof typeof selectedSheets)}
+                  className={`flex items-center gap-2 p-2 rounded-lg border text-xs font-medium transition-colors text-left ${
+                    active
+                      ? 'bg-purple-950/40 border-purple-500/40 text-slate-100 shadow-sm'
+                      : 'bg-slate-950/40 border-white/5 text-slate-500 hover:text-slate-400'
+                  }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
+                      active ? 'bg-purple-600 border-purple-500 text-white' : 'border-white/20'
+                    }`}
+                  >
+                    {active && <Check className="w-3 h-3" />}
+                  </div>
+                  <Icon className={`w-3.5 h-3.5 ${color}`} />
+                  <span className="truncate">{label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Reflection Input Form */}
+      {/* Evening Reflection Card */}
       <form onSubmit={handleSaveReflection} className="p-5 bg-slate-900/60 rounded-xl border border-white/5 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="text-xs font-semibold text-purple-300 flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>Evening Reflection ({new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})</span>
+          <div className="flex items-center gap-2 text-sm font-semibold text-white">
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            <span>Daily Behavioral Reflection (+15 XP)</span>
           </div>
-          <span className="text-[10px] text-cyan-300 font-mono">+15 XP upon saving</span>
+          <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
+            <Calendar className="w-3.5 h-3.5 text-cyan-400" /> Today: {new Date().toISOString().split('T')[0]}
+          </span>
         </div>
-
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-slate-300">1. What went exceptionally well today?</label>
-          <textarea
-            rows={2}
-            placeholder="Key wins, positive habits completed, flow state moments..."
-            value={wentWell}
-            onChange={(e) => setWentWell(e.target.value)}
-            className="w-full p-3 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-slate-300">2. What was a point of friction or distraction?</label>
-          <textarea
-            rows={2}
-            placeholder="Procrastination triggers, energy slumps, unexpected blockers..."
-            value={friction}
-            onChange={(e) => setFriction(e.target.value)}
-            className="w-full p-3 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-          />
-        </div>
-
-        <Button type="submit" size="sm" className="gradient-button text-xs px-5 py-4 rounded-xl">
-          Save Daily Reflection
-        </Button>
-      </form>
-
-      {/* Reflection History Feed */}
-      <div className="space-y-3">
-        <div className="text-xs font-semibold text-slate-300">📜 Past Reflection Entries</div>
 
         <div className="space-y-3">
-          {reflections.map((r) => (
-            <motion.div
-              key={r.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-2.5"
-            >
-              <div className="flex items-center justify-between text-xs pb-1 border-b border-white/5">
-                <span className="font-mono text-purple-300 font-semibold flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-purple-400" />
-                  {r.date}
-                </span>
-                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  Reflected
-                </span>
-              </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-300">1. What went exceptionally well today?</label>
+            <textarea
+              rows={2}
+              placeholder="e.g. Completed 2 deep work sprints, hit workout habit, resisted sugar cravings..."
+              value={wentWell}
+              onChange={(e) => setWentWell(e.target.value)}
+              className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+            />
+          </div>
 
-              <div className="space-y-1 text-xs">
-                <div className="text-emerald-300 font-medium">✨ Wins & Progress:</div>
-                <div className="text-slate-300 pl-2 leading-relaxed">{r.wentWell}</div>
-              </div>
-
-              <div className="space-y-1 text-xs">
-                <div className="text-rose-300 font-medium">⚡ Friction & Blockers:</div>
-                <div className="text-slate-300 pl-2 leading-relaxed">{r.friction}</div>
-              </div>
-            </motion.div>
-          ))}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-300">2. Where did you encounter friction or resistance?</label>
+            <textarea
+              rows={2}
+              placeholder="e.g. Checked phone at 3 PM, delayed starting task 2 by 20 minutes..."
+              value={friction}
+              onChange={(e) => setFriction(e.target.value)}
+              className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+            />
+          </div>
         </div>
+
+        <div className="flex justify-end">
+          <Button type="submit" size="sm" className="gradient-button text-xs px-5 rounded-lg">
+            Save Evening Reflection
+          </Button>
+        </div>
+      </form>
+
+      {/* Historical Reflections List */}
+      <div className="space-y-3">
+        <div className="text-sm font-semibold text-white flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-cyan-400" />
+          <span>Past Reflection Entries ({reflections.length})</span>
+        </div>
+
+        {reflections.length === 0 ? (
+          <div className="p-8 text-center bg-slate-900/30 rounded-xl border border-white/5 space-y-2">
+            <BookOpen className="w-8 h-8 text-slate-600 mx-auto" />
+            <div className="text-xs text-slate-400">No reflections logged yet. Submit your first daily review above!</div>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {reflections.map((r) => (
+              <motion.div
+                key={r.id || r.date}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-2"
+              >
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-purple-300 font-semibold">{r.date}</span>
+                  <span className="text-[10px] bg-purple-950/60 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded">
+                    +15 XP Earned
+                  </span>
+                </div>
+
+                <div className="text-xs space-y-1">
+                  <div>
+                    <span className="text-emerald-400 font-medium">✨ Wins: </span>
+                    <span className="text-slate-200">{r.wentWell}</span>
+                  </div>
+                  <div>
+                    <span className="text-amber-400 font-medium">⚠️ Friction: </span>
+                    <span className="text-slate-300">{r.friction}</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
