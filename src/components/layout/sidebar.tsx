@@ -3,7 +3,29 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Bot, LogOut, Shield, User as UserIcon, Settings, Camera, Trash2, KeyRound, Mail, Phone, Check, AlertTriangle, X } from 'lucide-react';
+import {
+  Bot,
+  LogOut,
+  Shield,
+  User as UserIcon,
+  Settings,
+  Camera,
+  Trash2,
+  KeyRound,
+  Mail,
+  Phone,
+  Check,
+  AlertTriangle,
+  RotateCw,
+  ZoomIn,
+  ZoomOut,
+  Move,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -12,7 +34,13 @@ import { PomodoroTimer } from '@/components/sidebar/pomodoro-timer';
 import { HabitMatrix } from '@/components/sidebar/habit-matrix';
 import { MediaPlayer } from '@/components/sidebar/media-player';
 import { toast } from 'sonner';
-import { getActiveUser, logoutActiveUser, computeUserStats, updateUserProfile, deleteUserAccount, StoredUser } from '@/lib/auth-storage';
+import {
+  getActiveUser,
+  logoutActiveUser,
+  computeUserStats,
+  updateUserProfile,
+  deleteUserAccount,
+} from '@/lib/auth-storage';
 
 export function Sidebar() {
   const router = useRouter();
@@ -37,7 +65,19 @@ export function Sidebar() {
   const [newPassword, setNewPassword] = useState('');
   const [previewAvatar, setPreviewAvatar] = useState<string | undefined>(undefined);
 
+  // Image Adjuster / Cropper States
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const [rotation, setRotation] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const imageElementRef = useRef<HTMLImageElement | null>(null);
 
   const refreshUserData = () => {
     const active = getActiveUser();
@@ -66,13 +106,8 @@ export function Sidebar() {
     };
   }, []);
 
-  const handleLogout = () => {
-    logoutActiveUser();
-    toast.info('Logged out successfully.');
-    router.push('/login');
-  };
-
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // When a file is chosen, open the adjuster modal
+  const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -83,12 +118,137 @@ export function Sidebar() {
 
     const reader = new FileReader();
     reader.onload = () => {
-      const base64 = reader.result as string;
-      setPreviewAvatar(base64);
-      updateUserProfile(currentUser.id, { avatar: base64 });
-      toast.success('Profile photo updated! 📸');
+      const src = reader.result as string;
+      setRawImageSrc(src);
+      setZoom(1);
+      setPanX(0);
+      setPanY(0);
+      setRotation(0);
+
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        imageElementRef.current = img;
+        setShowAdjustModal(true);
+      };
     };
     reader.readAsDataURL(file);
+    // Reset file input so user can pick same file again if desired
+    e.target.value = '';
+  };
+
+  // Draw adjusted photo on live canvas
+  useEffect(() => {
+    if (!showAdjustModal || !imageElementRef.current || !previewCanvasRef.current) return;
+
+    const canvas = previewCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const size = 260;
+    canvas.width = size;
+    canvas.height = size;
+
+    ctx.clearRect(0, 0, size, size);
+
+    // Background circle clip
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+
+    // Fill dark background
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, size, size);
+
+    // Apply adjustments: translate, rotate, scale
+    ctx.translate(size / 2 + panX, size / 2 + panY);
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.scale(zoom, zoom);
+
+    const img = imageElementRef.current;
+    const aspect = img.width / img.height;
+    let drawW = size;
+    let drawH = size;
+
+    if (aspect > 1) {
+      drawW = size * aspect;
+    } else {
+      drawH = size / aspect;
+    }
+
+    ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+    ctx.restore();
+  }, [showAdjustModal, zoom, panX, panY, rotation]);
+
+  // Drag handlers for panning photo
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPanX(e.clientX - dragStart.x);
+    setPanY(e.clientY - dragStart.y);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Apply and save adjusted photo
+  const handleApplyCroppedAvatar = () => {
+    if (!imageElementRef.current) return;
+
+    // Render crisp 256x256 export
+    const exportCanvas = document.createElement('canvas');
+    const size = 256;
+    exportCanvas.width = size;
+    exportCanvas.height = size;
+    const ctx = exportCanvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, size, size);
+
+    // Map 260 preview size to 256 export
+    const scaleFactor = 256 / 260;
+    ctx.translate(size / 2 + panX * scaleFactor, size / 2 + panY * scaleFactor);
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.scale(zoom, zoom);
+
+    const img = imageElementRef.current;
+    const aspect = img.width / img.height;
+    let drawW = size;
+    let drawH = size;
+    if (aspect > 1) {
+      drawW = size * aspect;
+    } else {
+      drawH = size / aspect;
+    }
+
+    ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+    ctx.restore();
+
+    const croppedBase64 = exportCanvas.toDataURL('image/png', 0.92);
+    setPreviewAvatar(croppedBase64);
+    updateUserProfile(currentUser.id, { avatar: croppedBase64 });
+    setShowAdjustModal(false);
+    toast.success('Adjusted profile photo saved! 📸');
+  };
+
+  const handleLogout = () => {
+    logoutActiveUser();
+    toast.info('Logged out successfully.');
+    router.push('/login');
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -230,25 +390,27 @@ export function Sidebar() {
               )}
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={handleAvatarUpload}
+                onChange={handleAvatarFileSelect}
                 accept="image/*"
                 className="hidden"
               />
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                className="h-8 text-xs bg-slate-900/80 border-white/10 text-purple-300 hover:text-white gap-1.5 rounded-lg"
-              >
-                <Camera className="w-3.5 h-3.5" />
-                <span>Upload Profile Photo</span>
-              </Button>
-              <div className="text-[10px] text-slate-400">PNG, JPG, WebP up to 5MB</div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-8 text-xs bg-slate-900/80 border-white/10 text-purple-300 hover:text-white gap-1.5 rounded-lg"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Choose & Adjust Photo</span>
+                </Button>
+              </div>
+              <div className="text-[10px] text-slate-400">Supports Zoom, Pan & Rotation adjustments</div>
             </div>
           </div>
 
@@ -332,6 +494,132 @@ export function Sidebar() {
                 Permanently delete your profile and erase all habits, focus sessions, and conversation archives.
               </p>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Interactive Avatar Adjuster & Cropping Modal */}
+      <Dialog open={showAdjustModal} onOpenChange={setShowAdjustModal}>
+        <DialogContent className="max-w-md bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 shadow-2xl backdrop-blur-2xl space-y-4">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold gradient-text flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+              <span>Adjust & Position Profile Photo</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              Drag to reposition, zoom in/out, or rotate to fit your avatar perfectly.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Interactive Canvas Viewport */}
+          <div className="flex flex-col items-center justify-center p-3 bg-slate-900/80 rounded-2xl border border-white/5">
+            <div
+              className="relative w-[260px] h-[260px] rounded-full overflow-hidden border-2 border-purple-500 shadow-2xl cursor-grab active:cursor-grabbing select-none"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              title="Click and drag to reposition photo"
+            >
+              <canvas ref={previewCanvasRef} width={260} height={260} className="w-full h-full block" />
+              <div className="absolute inset-0 border-2 border-dashed border-white/20 rounded-full pointer-events-none" />
+            </div>
+
+            <div className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+              <Move className="w-3 h-3 text-cyan-400" /> Drag with mouse to position photo
+            </div>
+          </div>
+
+          {/* Controls: Zoom & Rotate & Pan Buttons */}
+          <div className="space-y-3 bg-slate-900/60 p-3.5 rounded-xl border border-white/5 text-xs">
+            {/* Zoom Slider */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-slate-300">
+                <span className="flex items-center gap-1 text-[11px]">
+                  <ZoomIn className="w-3.5 h-3.5 text-purple-400" /> Zoom Level
+                </span>
+                <span className="font-mono text-cyan-300">{Math.round(zoom * 100)}%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <ZoomOut className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.05"
+                  value={zoom}
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                />
+                <ZoomIn className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              </div>
+            </div>
+
+            {/* Quick Alignment Directional Pad & Rotate */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-slate-400 mr-1">Position:</span>
+                <button
+                  onClick={() => setPanY((prev) => prev - 10)}
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300"
+                  title="Move Up"
+                >
+                  <ChevronUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setPanY((prev) => prev + 10)}
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300"
+                  title="Move Down"
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setPanX((prev) => prev - 10)}
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300"
+                  title="Move Left"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setPanX((prev) => prev + 10)}
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300"
+                  title="Move Right"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setRotation((prev) => (prev + 90) % 360)}
+                className="h-7 text-xs bg-slate-800 border-white/10 text-slate-200 gap-1 rounded-lg"
+              >
+                <RotateCw className="w-3 h-3 text-cyan-400" />
+                <span>Rotate</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowAdjustModal(false)}
+              className="text-xs bg-slate-900 border-white/10 text-slate-300 rounded-lg"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleApplyCroppedAvatar}
+              className="gradient-button text-xs px-4 rounded-lg shadow-md shadow-purple-500/20 flex items-center gap-1.5"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>Apply & Save Avatar</span>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
