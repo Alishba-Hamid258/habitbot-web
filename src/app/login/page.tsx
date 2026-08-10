@@ -4,18 +4,90 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { Bot, Lock, User, Shield, Sparkles, ArrowRight, CheckCircle2, KeyRound, Mail, Phone, RefreshCw, ArrowLeft, Send, MessageCircle, AlertCircle, Copy, Check } from 'lucide-react';
+import {
+  Bot,
+  Lock,
+  User,
+  Shield,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  KeyRound,
+  Mail,
+  Phone,
+  RefreshCw,
+  ArrowLeft,
+  Send,
+  MessageCircle,
+  AlertCircle,
+  Copy,
+  Check,
+  BookOpen,
+  HelpCircle,
+  ChevronRight,
+  Headphones,
+  CheckSquare,
+  FileSpreadsheet,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { registerUser, authenticateUser, sendPasswordResetOTP, verifyOTPAndResetPassword } from '@/lib/auth-storage';
 
 type TabType = 'login' | 'signup' | 'admin' | 'forgot';
+
+const GUIDE_SECTIONS = [
+  {
+    title: '1. Account Registration & User IDs',
+    icon: User,
+    color: 'text-purple-400',
+    desc: 'Each new member is assigned a strictly sequential User ID (#1 Admin, #2, #3...). All habits, focus logs, and archives are isolated to your account with zero cross-account data bleed.',
+  },
+  {
+    title: '2. Dual AI Coaching Engine',
+    icon: Bot,
+    color: 'text-cyan-400',
+    desc: 'Toggle between Groq (instant ultra-fast text responses) and Google Gemini (Vision Multimodal for analyzing routine schedules, workout photos, and desk setups).',
+  },
+  {
+    title: '3. Daily Habit Matrix & Streak Freeze',
+    icon: CheckCircle2,
+    color: 'text-emerald-400',
+    desc: 'Track daily habits to earn +10 XP per completion and +50 XP for perfect days. Going on vacation or feeling sick? Turn on "Freeze Streak" to safeguard your streak without penalty!',
+  },
+  {
+    title: '4. Deep Work Pomodoro & Audio Player',
+    icon: Headphones,
+    color: 'text-amber-400',
+    desc: 'Run 25-minute focus intervals with sound cues. Paste any YouTube study stream or select curated Lofi/Rain presets to play continuously in the background across all tabs.',
+  },
+  {
+    title: '5. AI Task Architect & Master DB',
+    icon: CheckSquare,
+    color: 'text-indigo-400',
+    desc: 'Enter any big goal and let the AI break it into 4 micro-steps. All created and completed tasks are permanently preserved in your Master Task Database, even if cleared from daily sprint.',
+  },
+  {
+    title: '6. Multi-Year Excel Life Audit',
+    icon: FileSpreadsheet,
+    color: 'text-pink-400',
+    desc: 'Export your daily progress, weekly sprints, or lifetime archives into structured 6-sheet Excel spreadsheets with 1 click.',
+  },
+  {
+    title: '7. WhatsApp & Email Password Recovery',
+    icon: Shield,
+    color: 'text-yellow-400',
+    desc: 'For top-tier security, passwords can only be reset by verified 6-digit OTP codes sent to your registered WhatsApp number or recovery Email address.',
+  },
+];
 
 export default function LoginPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('login');
   const [loading, setLoading] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
   // Form states
   const [username, setUsername] = useState('');
@@ -82,7 +154,6 @@ export default function LoginPage() {
         return;
       }
 
-      // Success! Pre-fill username and switch to Login tab
       setPassword('');
       setConfirmPassword('');
       setActiveTab('login');
@@ -178,7 +249,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center p-4 overflow-hidden bg-[#090d16]">
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 py-8 overflow-x-hidden bg-[#090d16]">
       {/* Background Animated Blobs */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style={{ animationDelay: '2s' }} />
@@ -191,12 +262,12 @@ export default function LoginPage() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="relative z-10 w-full max-w-md"
       >
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <motion.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', damping: 15 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-cyan-500 p-0.5 shadow-lg shadow-purple-500/20 mb-3"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-cyan-500 p-0.5 shadow-lg shadow-purple-500/20 mb-2"
           >
             <div className="w-full h-full bg-slate-950 rounded-2xl flex items-center justify-center">
               <Bot className="w-8 h-8 text-purple-400" />
@@ -205,9 +276,19 @@ export default function LoginPage() {
           <h1 className="text-3xl font-extrabold tracking-tight gradient-text">
             HabitBot v5.0
           </h1>
-          <p className="text-sm text-slate-400 mt-1 flex items-center justify-center gap-1">
+          <p className="text-xs text-slate-400 mt-1 flex items-center justify-center gap-1">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> AI Behavioral & Performance Coach
           </p>
+
+          {/* User Guide Trigger Button */}
+          <button
+            onClick={() => setShowGuideModal(true)}
+            className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-purple-950/60 border border-purple-500/30 text-purple-300 hover:text-white hover:bg-purple-900/50 transition-all shadow-md"
+          >
+            <BookOpen className="w-3 h-3 text-cyan-400" />
+            <span>New to HabitBot? Read User Guide & Tips</span>
+            <ChevronRight className="w-3 h-3 text-purple-400" />
+          </button>
         </div>
 
         <Card className="glass-panel border border-white/10 shadow-2xl backdrop-blur-2xl">
@@ -493,7 +574,6 @@ export default function LoginPage() {
                   ) : (
                     /* STEP 2: Input OTP & Set New Password */
                     <form onSubmit={handleVerifyOTPAndReset} className="space-y-3.5">
-                      {/* OTP Delivery Banner with WhatsApp Link & Copy */}
                       {generatedOtpInfo && (
                         <div className="p-3.5 bg-gradient-to-r from-cyan-950/40 via-purple-950/40 to-slate-900/60 border border-cyan-500/30 rounded-xl space-y-2 text-xs">
                           <div className="flex items-center justify-between text-cyan-300 font-semibold">
@@ -662,7 +742,72 @@ export default function LoginPage() {
             </AnimatePresence>
           </CardContent>
         </Card>
+
+        {/* Quick Feature Pills Below Card */}
+        <div className="mt-4 p-3 bg-slate-900/40 rounded-xl border border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="text-slate-300 font-medium">Creator Demo:</span>
+            <span className="font-mono text-amber-300">admin / admin123</span>
+          </div>
+          <button
+            onClick={() => setShowGuideModal(true)}
+            className="text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Guide</span>
+          </button>
+        </div>
       </motion.div>
+
+      {/* Interactive User Guide & Feature Tour Dialog Modal */}
+      <Dialog open={showGuideModal} onOpenChange={setShowGuideModal}>
+        <DialogContent className="max-w-2xl bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold gradient-text flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-purple-400" />
+              <span>HabitBot v5.0 — Quick User Guide & Tips</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              Master the suite in 2 minutes: AI coaching, habit matrices, deep work pomodoro, and Excel life audits.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            {GUIDE_SECTIONS.map((sec, i) => {
+              const Icon = sec.icon;
+              return (
+                <div
+                  key={i}
+                  className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors"
+                >
+                  <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                    <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
+                      <Icon className={`w-4 h-4 ${sec.color}`} />
+                    </div>
+                    <span>{sec.title}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">{sec.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="p-3.5 bg-gradient-to-r from-purple-950/40 via-cyan-950/40 to-slate-900/60 rounded-xl border border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div>
+              <div className="font-semibold text-white">Ready to begin your behavioral transformation?</div>
+              <div className="text-[11px] text-slate-400">Sign in with an existing account or register in 5 seconds.</div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setShowGuideModal(false)}
+              className="gradient-button text-xs px-4 rounded-lg shrink-0"
+            >
+              Get Started
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
