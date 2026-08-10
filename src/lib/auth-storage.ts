@@ -153,5 +153,36 @@ export function setUserScopedData<T>(userId: number, key: string, data: T) {
   try {
     const scopedKey = `habitbot_${key}_user_${userId}`;
     localStorage.setItem(scopedKey, JSON.stringify(data));
+    // Dispatch custom event to notify components of live update
+    window.dispatchEvent(new Event('habitbot_data_updated'));
   } catch {}
+}
+
+/**
+ * Computes live user XP, streak, and discipline stats for active user (Starts at 0 for new account)
+ */
+export function computeUserStats(userId: number) {
+  if (typeof window === 'undefined') return { totalXP: 0, streak: 0, disciplineRate: 0 };
+
+  const habits = getUserScopedData<any[]>(userId, 'habits', []);
+  const completedHabits = habits.filter((h) => h.completed).length;
+  const isFrozen = getUserScopedData<boolean>(userId, 'is_frozen', false);
+
+  const focus = getUserScopedData<any[]>(userId, 'focus_sessions', []);
+  let focusMins = 0;
+  focus.forEach((f) => {
+    focusMins += Number(f.duration_mins) || 0;
+  });
+
+  const reflections = getUserScopedData<any[]>(userId, 'reflections', []);
+  const reflectionCount = reflections.length;
+
+  const tasks = getUserScopedData<any[]>(userId, 'tasks', []);
+  const completedTasks = tasks.filter((t) => t.done).length;
+
+  const totalXP = (completedHabits * 10) + (focusMins * 1) + (reflectionCount * 15) + (completedTasks * 5);
+  const disciplineRate = habits.length > 0 ? Math.round((completedHabits / habits.length) * 100) : 0;
+  const streak = completedHabits > 0 || isFrozen ? 1 : 0;
+
+  return { totalXP, streak, disciplineRate };
 }

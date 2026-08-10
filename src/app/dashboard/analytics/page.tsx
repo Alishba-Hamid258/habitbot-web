@@ -1,40 +1,82 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { BarChart2, Flame, Shield, Clock, Award, Sparkles, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { getActiveUser, getUserScopedData, computeUserStats } from '@/lib/auth-storage';
+import { calculateLevel } from '@/lib/xp';
 
 const WEEKLY_DATA = [
-  { day: 'Mon', habits: 4, focusMins: 45 },
-  { day: 'Tue', habits: 5, focusMins: 60 },
-  { day: 'Wed', habits: 3, focusMins: 25 },
-  { day: 'Thu', habits: 6, focusMins: 75 },
-  { day: 'Fri', habits: 4, focusMins: 50 },
-  { day: 'Sat', habits: 5, focusMins: 90 },
-  { day: 'Sun', habits: 6, focusMins: 40 },
+  { day: 'Mon', habits: 0, focusMins: 0 },
+  { day: 'Tue', habits: 0, focusMins: 0 },
+  { day: 'Wed', habits: 0, focusMins: 0 },
+  { day: 'Thu', habits: 0, focusMins: 0 },
+  { day: 'Fri', habits: 0, focusMins: 0 },
+  { day: 'Sat', habits: 0, focusMins: 0 },
+  { day: 'Sun', habits: 0, focusMins: 0 },
 ];
 
 export default function AnalyticsPage() {
   const [reportLoading, setReportLoading] = useState(false);
   const [aiReport, setAiReport] = useState<string | null>(null);
+  const [userAnalytics, setUserAnalytics] = useState({
+    streak: 0,
+    habitsCompleted: 0,
+    disciplineRate: 0,
+    focusMins: 0,
+    focusHours: 0,
+    totalXP: 0,
+  });
+
+  const loadUserAnalytics = () => {
+    const active = getActiveUser();
+    if (active) {
+      const stats = computeUserStats(active.id);
+      const habits = getUserScopedData<any[]>(active.id, 'habits', []);
+      const completedHabits = habits.filter((h) => h.completed).length;
+
+      const focus = getUserScopedData<any[]>(active.id, 'focus_sessions', []);
+      let focusMins = 0;
+      focus.forEach((f) => {
+        focusMins += Number(f.duration_mins) || 0;
+      });
+
+      setUserAnalytics({
+        streak: stats.streak,
+        habitsCompleted: completedHabits,
+        disciplineRate: stats.disciplineRate,
+        focusMins,
+        focusHours: Math.round((focusMins / 60) * 10) / 10,
+        totalXP: stats.totalXP,
+      });
+    }
+  };
+
+  useEffect(() => {
+    loadUserAnalytics();
+    window.addEventListener('habitbot_data_updated', loadUserAnalytics);
+    return () => window.removeEventListener('habitbot_data_updated', loadUserAnalytics);
+  }, []);
+
+  const xpInfo = calculateLevel(userAnalytics.totalXP);
 
   const generateReport = () => {
     setReportLoading(true);
     setTimeout(() => {
       setReportLoading(false);
       setAiReport(
-        "### 🧠 AI Weekly Mastery Audit\n\n" +
-        "**Overall Grade: A- (High Consistency)**\n\n" +
-        "1. **Peak Performance**: Your highest focus session was **Saturday (90 mins)**.\n" +
-        "2. **Habit Momentum**: You completed **33 core habits** across the last 7 days with an **85% completion rate**.\n" +
-        "3. **Friction Analysis**: Wednesday showed a slight dip in morning habits. Try implementing the *2-Minute Rule* on midweek mornings to keep friction near zero.\n" +
-        "4. **Prescription**: Maintain your 3-day active streak to unlock the *⚔️ 7-Day Warrior* milestone badge!"
+        `### 🧠 AI Weekly Mastery Audit\n\n` +
+        `**Account Level: ${xpInfo.name} (${userAnalytics.totalXP} Total XP)**\n\n` +
+        `1. **Habit Momentum**: You have completed **${userAnalytics.habitsCompleted} core habits** with an active **${userAnalytics.disciplineRate}% discipline rate**.\n` +
+        `2. **Deep Work Volume**: Total focus time logged: **${userAnalytics.focusHours} hours** (${userAnalytics.focusMins} mins).\n` +
+        `3. **Current Streak**: **${userAnalytics.streak} active days**.\n` +
+        `4. **Coaching Prescription**: Apply the *2-Minute Rule* to start small and stack new routines onto existing daily anchors!`
       );
       toast.success('AI Performance Audit generated! 📊');
-    }, 1200);
+    }, 1000);
   };
 
   return (
@@ -45,7 +87,7 @@ export default function AnalyticsPage() {
           <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
             <BarChart2 className="w-5 h-5 text-purple-400" /> Performance Analytics
           </h1>
-          <p className="text-xs text-slate-400">Track habit consistency, deep work volume, and behavioral trends</p>
+          <p className="text-xs text-slate-400">Live dynamic tracking of habit consistency, deep work volume, and behavioral milestones</p>
         </div>
 
         <Button
@@ -59,16 +101,16 @@ export default function AnalyticsPage() {
         </Button>
       </div>
 
-      {/* KPI Cards */}
+      {/* Real Live KPI Cards (Starts at 0 on new account) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
         <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
           <div className="flex items-center justify-between text-slate-400 text-xs">
             <span>Active Streak</span>
             <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">3 Days</div>
+          <div className="text-2xl font-bold text-white font-mono">{userAnalytics.streak} Days</div>
           <div className="text-[11px] text-emerald-400 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" /> +1 day from yesterday
+            <TrendingUp className="w-3 h-3" /> Live tracking
           </div>
         </div>
 
@@ -77,8 +119,8 @@ export default function AnalyticsPage() {
             <span>Habits Checked</span>
             <Shield className="w-4 h-4 text-purple-400" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">33 Completed</div>
-          <div className="text-[11px] text-slate-400">85% consistency rate</div>
+          <div className="text-2xl font-bold text-white font-mono">{userAnalytics.habitsCompleted} Completed</div>
+          <div className="text-[11px] text-slate-400">{userAnalytics.disciplineRate}% discipline rate</div>
         </div>
 
         <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
@@ -86,8 +128,8 @@ export default function AnalyticsPage() {
             <span>Deep Work</span>
             <Clock className="w-4 h-4 text-cyan-400" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">6.4 Hours</div>
-          <div className="text-[11px] text-cyan-400">385 total minutes</div>
+          <div className="text-2xl font-bold text-white font-mono">{userAnalytics.focusHours} Hours</div>
+          <div className="text-[11px] text-cyan-400">{userAnalytics.focusMins} total minutes</div>
         </div>
 
         <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
@@ -95,8 +137,8 @@ export default function AnalyticsPage() {
             <span>Mastery Tier</span>
             <Award className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">Tier 1</div>
-          <div className="text-[11px] text-purple-300">🥉 Novice Starter</div>
+          <div className="text-2xl font-bold text-white font-mono">Tier {xpInfo.level}</div>
+          <div className="text-[11px] text-purple-300 truncate">{xpInfo.name}</div>
         </div>
       </div>
 
@@ -174,7 +216,8 @@ export default function AnalyticsPage() {
 
         <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto py-2 custom-scrollbar">
           {Array.from({ length: 52 * 7 }).map((_, i) => {
-            const intensity = (i * 13) % 5;
+            const isToday = i === 52 * 7 - 1;
+            const intensity = isToday && userAnalytics.habitsCompleted > 0 ? Math.min(4, userAnalytics.habitsCompleted) : 0;
             const bgClass =
               intensity === 4
                 ? 'bg-cyan-400 shadow-sm shadow-cyan-500/50'
@@ -189,7 +232,7 @@ export default function AnalyticsPage() {
             return (
               <div
                 key={i}
-                title={`Day ${i + 1}: ${intensity > 0 ? `${intensity * 2} habits completed` : 'No activity'}`}
+                title={`Day ${i + 1}: ${intensity > 0 ? `${intensity} habits completed` : 'No activity'}`}
                 className={`w-2.5 h-2.5 rounded-sm ${bgClass} transition-colors hover:scale-125 cursor-pointer`}
               />
             );

@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { MessageSquare, BarChart2, CheckSquare, BookOpen, Library, Flame, Target } from 'lucide-react';
+import { getActiveUser, computeUserStats } from '@/lib/auth-storage';
 
 const TABS = [
   { href: '/dashboard', label: 'Coach', icon: MessageSquare },
@@ -16,6 +17,24 @@ const TABS = [
 
 export function NavTabs() {
   const pathname = usePathname();
+  const [stats, setStats] = useState({ streak: 0, disciplineRate: 0 });
+
+  const refreshStats = () => {
+    const active = getActiveUser();
+    if (active) {
+      const userStats = computeUserStats(active.id);
+      setStats({
+        streak: userStats.streak,
+        disciplineRate: userStats.disciplineRate,
+      });
+    }
+  };
+
+  useEffect(() => {
+    refreshStats();
+    window.addEventListener('habitbot_data_updated', refreshStats);
+    return () => window.removeEventListener('habitbot_data_updated', refreshStats);
+  }, []);
 
   return (
     <header className="h-16 px-6 glass-panel border-b border-white/10 flex items-center justify-between z-10 shrink-0">
@@ -48,16 +67,16 @@ export function NavTabs() {
         })}
       </nav>
 
-      {/* Top Right Quick Stats Badge */}
+      {/* Top Right Live Stats Badge (Starts at 0 for new account) */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/80 rounded-lg border border-white/5 text-xs text-amber-300 font-mono">
           <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-          <span>3d Streak</span>
+          <span>{stats.streak}d Streak</span>
         </div>
 
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/80 rounded-lg border border-white/5 text-xs text-cyan-300 font-mono">
           <Target className="w-3.5 h-3.5 text-cyan-400" />
-          <span>85% Discipline</span>
+          <span>{stats.disciplineRate}% Discipline</span>
         </div>
       </div>
     </header>

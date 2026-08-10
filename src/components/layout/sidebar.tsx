@@ -10,7 +10,7 @@ import { PomodoroTimer } from '@/components/sidebar/pomodoro-timer';
 import { HabitMatrix } from '@/components/sidebar/habit-matrix';
 import { MediaPlayer } from '@/components/sidebar/media-player';
 import { toast } from 'sonner';
-import { getActiveUser, logoutActiveUser } from '@/lib/auth-storage';
+import { getActiveUser, logoutActiveUser, computeUserStats } from '@/lib/auth-storage';
 
 export function Sidebar() {
   const router = useRouter();
@@ -18,12 +18,27 @@ export function Sidebar() {
     id: 1,
     username: 'user',
   });
+  const [totalXP, setTotalXP] = useState(0);
+
+  const refreshStats = (uid: number) => {
+    const stats = computeUserStats(uid);
+    setTotalXP(stats.totalXP);
+  };
 
   useEffect(() => {
     const active = getActiveUser();
     if (active) {
       setCurrentUser(active);
+      refreshStats(active.id);
     }
+
+    const handleUpdate = () => {
+      const u = getActiveUser();
+      if (u) refreshStats(u.id);
+    };
+
+    window.addEventListener('habitbot_data_updated', handleUpdate);
+    return () => window.removeEventListener('habitbot_data_updated', handleUpdate);
   }, []);
 
   const handleLogout = () => {
@@ -80,8 +95,8 @@ export function Sidebar() {
           </Button>
         </div>
 
-        {/* Gamification Level & XP */}
-        <XPBar totalXP={240} />
+        {/* Live Dynamic Gamification XP Bar (Starts at 0 for new user) */}
+        <XPBar totalXP={totalXP} />
 
         {/* Pomodoro Focus Timer */}
         <PomodoroTimer />
