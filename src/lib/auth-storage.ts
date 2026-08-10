@@ -19,8 +19,16 @@ export interface MediaHistoryItem {
   MediaUrl: string;
 }
 
+interface OTPRecord {
+  contact: string;
+  otp: string;
+  expiresAt: number;
+  userId: number;
+}
+
 const USERS_KEY = 'habitbot_registered_users';
 const ACTIVE_USER_KEY = 'habitbot_active_user_session';
+const OTP_STORE_KEY = 'habitbot_reset_otp_record';
 
 // Default initial users
 const DEFAULT_USERS: StoredUser[] = [
@@ -54,6 +62,7 @@ export function getRegisteredUsers(): StoredUser[] {
 
 /**
  * Registers a new user with strictly incremental User ID (1, 2, 3, 4...)
+ * Requires Email & WhatsApp number for account recovery security
  */
 export function registerUser(
   username: string,
@@ -65,6 +74,14 @@ export function registerUser(
   
   if (normUser.length < 3) {
     return { success: false, error: 'Username must be at least 3 characters long.' };
+  }
+
+  if (!email || !email.includes('@')) {
+    return { success: false, error: 'Please provide a valid Recovery Email address.' };
+  }
+
+  if (!phone || phone.replace(/\D/g, '').length < 7) {
+    return { success: false, error: 'Please provide a valid WhatsApp / Phone Number.' };
   }
 
   // Password security rules: At least 6 characters, must have letter and number/symbol
@@ -85,6 +102,12 @@ export function registerUser(
     return { success: false, error: `Username "${normUser}" is already taken. Please choose another.` };
   }
 
+  // Check email / phone uniqueness
+  const emailExists = users.some((u) => u.email && u.email.toLowerCase() === email.trim().toLowerCase());
+  if (emailExists) {
+    return { success: false, error: `Email "${email}" is already registered. Please sign in or reset password.` };
+  }
+
   // Strictly incremental ID
   const maxId = users.reduce((max, u) => (u.id > max ? u.id : max), 0);
   const nextId = maxId + 1;
@@ -93,8 +116,8 @@ export function registerUser(
     id: nextId,
     username: normUser,
     password: password,
-    email: email?.trim() || undefined,
-    phone: phone?.trim() || undefined,
+    email: email.trim().toLowerCase(),
+    phone: phone.trim(),
     createdAt: new Date().toISOString().split('T')[0],
     isAdmin: false,
   };
@@ -110,13 +133,14 @@ export function registerUser(
  */
 export function authenticateUser(usernameOrContact: string, password: string): { success: boolean; error?: string; user?: StoredUser } {
   const norm = usernameOrContact.trim().toLowerCase();
+  const digits = norm.replace(/\D/g, '');
   const users = getRegisteredUsers();
 
   const user = users.find(
     (u) =>
       (u.username.toLowerCase() === norm ||
         (u.email && u.email.toLowerCase() === norm) ||
-        (u.phone && u.phone.replace(/\D/g, '') === norm.replace(/\D/g, ''))) &&
+        (digits.length >= 7 && u.phone && u.phone.replace(/\D/g, '') === digits)) &&
       u.password === password
   );
 
@@ -141,42 +165,126 @@ export function authenticateUser(usernameOrContact: string, password: string): {
 }
 
 /**
- * Resets password via Email, WhatsApp Phone Number, or Username
+ * Sends a 6-digit OTP code to verified Email or WhatsApp Number ONLY (Usernames disallowed for security)
  */
-export function resetUserPassword(
-  contactInfo: string,
-  newPassword: string
-): { success: boolean; error?: string; username?: string } {
+export function sendPasswordResetOTP(contactInfo: string): {
+  success: boolean;
+  error?: string;
+  otp?: string;
+  phone?: string;
+  email?: string;
+  username?: string;
+} {
   const norm = contactInfo.trim().toLowerCase();
+  const digits = norm.replace(/\D/g, '');
+
   if (!norm) {
-    return { success: false, error: 'Please enter your Email, WhatsApp number, or Username.' };
+    return { success: false, error: 'Please enter your registered Email address or WhatsApp Number.' };
   }
 
-  if (newPassword.length < 6) {
-    return { success: false, error: 'New password must be at least 6 characters long.' };
-  }
-  const hasLetter = /[a-zA-Z]/.test(newPassword);
-  const hasNumberOrSymbol = /[\d\W]/.test(newPassword);
-  if (!hasLetter || !hasNumberOrSymbol) {
-    return { success: false, error: 'New password must contain letters and at least one number or symbol.' };
+  // Strict check: Disallow usernames. Must be an email (has @) or phone (has >= 7 digits)
+  const isEmail = norm.includes('@');
+  const isPhone = digits.length >= 7;
+
+  if (!isEmail && !isPhone) {
+    return {
+      success: false,
+      error: 'Security Error: Password recovery is strictly not permitted by username alone. Please enter your registered Email or WhatsApp Phone Number.',
+    };
   }
 
   const users = getRegisteredUsers();
-  const index = users.findIndex(
+  const user = users.find(
     (u) =>
-      u.username.toLowerCase() === norm ||
-      (u.email && u.email.toLowerCase() === norm) ||
-      (u.phone && u.phone.replace(/\D/g, '') === norm.replace(/\D/g, ''))
+      (isEmail && u.email && u.email.toLowerCase() === norm) ||
+      (isPhone && u.phone && u.phone.replace(/\D/g, '') === digits)
   );
 
-  if (index === -1) {
-    return { success: false, error: 'No account found matching this Email / WhatsApp number / Username.' };
+  if (!user) {
+    return {
+      success: false,
+      error: `No registered account found with ${isEmail ? 'email' : 'phone number'} "${contactInfo}".`,
+    };
   }
 
-  users[index].password = newPassword;
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  // Generate 6-digit secure OTP code
+  const generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
 
-  return { success: true, username: users[index].username };
+  const otpRecord: OTPRecord = {
+    contact: isEmail ? user.email! : user.phone!,
+    otp: generatedOTP,
+    expiresAt,
+    userId: user.id,
+  };
+
+  localStorage.setItem(OTP_STORE_KEY, JSON.stringify(otpRecord));
+
+  return {
+    success: true,
+    otp: generatedOTP,
+    email: user.email,
+    phone: user.phone,
+    username: user.username,
+  };
+}
+
+/**
+ * Verifies OTP code sent to Email/WhatsApp and sets new password
+ */
+export function verifyOTPAndResetPassword(
+  contactInfo: string,
+  enteredOTP: string,
+  newPassword: string
+): { success: boolean; error?: string; username?: string } {
+  const norm = contactInfo.trim().toLowerCase();
+  const digits = norm.replace(/\D/g, '');
+
+  if (!enteredOTP.trim()) {
+    return { success: false, error: 'Please enter the 6-digit verification code sent to your Email/WhatsApp.' };
+  }
+
+  // Check stored OTP
+  try {
+    const raw = localStorage.getItem(OTP_STORE_KEY);
+    if (!raw) {
+      return { success: false, error: 'No active OTP verification session found. Please request a new code.' };
+    }
+
+    const otpRecord: OTPRecord = JSON.parse(raw);
+    if (Date.now() > otpRecord.expiresAt) {
+      localStorage.removeItem(OTP_STORE_KEY);
+      return { success: false, error: 'Verification code has expired. Please request a new one.' };
+    }
+
+    if (otpRecord.otp !== enteredOTP.trim()) {
+      return { success: false, error: 'Invalid 6-digit verification code. Please check your WhatsApp/Email.' };
+    }
+
+    // Password validation
+    if (newPassword.length < 6) {
+      return { success: false, error: 'New password must be at least 6 characters long.' };
+    }
+    const hasLetter = /[a-zA-Z]/.test(newPassword);
+    const hasNumberOrSymbol = /[\d\W]/.test(newPassword);
+    if (!hasLetter || !hasNumberOrSymbol) {
+      return { success: false, error: 'New password must contain letters and at least one number or symbol.' };
+    }
+
+    const users = getRegisteredUsers();
+    const index = users.findIndex((u) => u.id === otpRecord.userId);
+    if (index === -1) {
+      return { success: false, error: 'User account not found.' };
+    }
+
+    users[index].password = newPassword;
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    localStorage.removeItem(OTP_STORE_KEY);
+
+    return { success: true, username: users[index].username };
+  } catch (err: any) {
+    return { success: false, error: `Verification failed: ${err.message}` };
+  }
 }
 
 /**

@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { Bot, Lock, User, Shield, Sparkles, ArrowRight, CheckCircle2, KeyRound, Mail, Phone, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Bot, Lock, User, Shield, Sparkles, ArrowRight, CheckCircle2, KeyRound, Mail, Phone, RefreshCw, ArrowLeft, Send, MessageCircle, AlertCircle, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { registerUser, authenticateUser, resetUserPassword } from '@/lib/auth-storage';
+import { registerUser, authenticateUser, sendPasswordResetOTP, verifyOTPAndResetPassword } from '@/lib/auth-storage';
 
 type TabType = 'login' | 'signup' | 'admin' | 'forgot';
 
@@ -24,10 +24,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
 
-  // Forgot password recovery states
+  // 2-Step OTP Forgot Password States
   const [recoveryContact, setRecoveryContact] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [generatedOtpInfo, setGeneratedOtpInfo] = useState<{ otp: string; contact: string; isPhone: boolean; username: string } | null>(null);
+  const [enteredOtp, setEnteredOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [copiedOtp, setCopiedOtp] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +60,14 @@ export default function LoginPage() {
       toast.error('Please fill in all required registration fields.');
       return;
     }
+    if (!email.trim() || !email.includes('@')) {
+      toast.error('Please enter a valid recovery email address.');
+      return;
+    }
+    if (!phone.trim()) {
+      toast.error('Please enter your WhatsApp / phone number for security recovery.');
+      return;
+    }
     if (password !== confirmPassword) {
       toast.error('Passwords do not match! Please verify your password.');
       return;
@@ -70,7 +82,7 @@ export default function LoginPage() {
         return;
       }
 
-      // Success! Pre-fill username and switch to Login tab so user can log in
+      // Success! Pre-fill username and switch to Login tab
       setPassword('');
       setConfirmPassword('');
       setActiveTab('login');
@@ -78,10 +90,42 @@ export default function LoginPage() {
     }, 600);
   };
 
-  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+  // Step 1: Request OTP code via Email or WhatsApp (Username not allowed)
+  const handleRequestOTP = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recoveryContact.trim() || !newPassword.trim() || !confirmNewPassword.trim()) {
-      toast.error('Please fill in all password reset fields.');
+    if (!recoveryContact.trim()) {
+      toast.error('Please enter your registered Email or WhatsApp number.');
+      return;
+    }
+
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      const res = sendPasswordResetOTP(recoveryContact);
+      if (!res.success) {
+        toast.error(res.error || 'Could not send verification code.');
+        return;
+      }
+
+      const isPhone = !recoveryContact.includes('@');
+      setGeneratedOtpInfo({
+        otp: res.otp!,
+        contact: recoveryContact,
+        isPhone,
+        username: res.username!,
+      });
+      setOtpSent(true);
+      toast.success(`📲 6-Digit OTP sent to ${isPhone ? 'WhatsApp' : 'Email'}! Code: ${res.otp}`, {
+        duration: 8000,
+      });
+    }, 600);
+  };
+
+  // Step 2: Verify OTP and update password
+  const handleVerifyOTPAndReset = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!enteredOtp.trim() || !newPassword.trim() || !confirmNewPassword.trim()) {
+      toast.error('Please fill in the 6-digit OTP and new password.');
       return;
     }
     if (newPassword !== confirmNewPassword) {
@@ -92,16 +136,19 @@ export default function LoginPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      const res = resetUserPassword(recoveryContact, newPassword);
+      const res = verifyOTPAndResetPassword(recoveryContact, enteredOtp, newPassword);
       if (!res.success) {
-        toast.error(res.error || 'Password reset failed.');
+        toast.error(res.error || 'OTP verification failed.');
         return;
       }
 
-      toast.success(`🔒 Password successfully changed for account "${res.username}"! Please sign in with your new password.`);
+      toast.success(`🔒 Password successfully updated for "${res.username}"! Please sign in now.`);
       setUsername(res.username || '');
       setPassword('');
       setRecoveryContact('');
+      setOtpSent(false);
+      setGeneratedOtpInfo(null);
+      setEnteredOtp('');
       setNewPassword('');
       setConfirmNewPassword('');
       setActiveTab('login');
@@ -121,6 +168,13 @@ export default function LoginPage() {
     } else {
       toast.error('Invalid Creator Admin credentials. (Default: admin / admin123)');
     }
+  };
+
+  const copyOTP = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedOtp(true);
+    toast.success('OTP code copied!');
+    setTimeout(() => setCopiedOtp(false), 2000);
   };
 
   return (
@@ -211,19 +265,23 @@ export default function LoginPage() {
           ) : (
             <div className="p-4 pb-0 flex items-center justify-between border-b border-white/5 m-2 mb-0">
               <button
-                onClick={() => setActiveTab('login')}
+                onClick={() => {
+                  setActiveTab('login');
+                  setOtpSent(false);
+                }}
                 className="text-xs text-purple-300 hover:text-white flex items-center gap-1 font-medium transition-colors"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
               </button>
               <span className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                <KeyRound className="w-3.5 h-3.5 text-cyan-400" /> Password Recovery
+                <KeyRound className="w-3.5 h-3.5 text-cyan-400" /> Security OTP Recovery
               </span>
             </div>
           )}
 
           <CardContent className="px-6 pb-6 pt-3">
             <AnimatePresence mode="wait">
+              {/* LOGIN TAB */}
               {activeTab === 'login' && (
                 <motion.form
                   key="login"
@@ -254,7 +312,8 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setRecoveryContact(username);
+                          setRecoveryContact('');
+                          setOtpSent(false);
                           setActiveTab('forgot');
                         }}
                         className="text-[11px] text-cyan-400 hover:text-cyan-300 hover:underline transition-colors"
@@ -285,6 +344,7 @@ export default function LoginPage() {
                 </motion.form>
               )}
 
+              {/* SIGN UP TAB */}
               {activeTab === 'signup' && (
                 <motion.form
                   key="signup"
@@ -309,32 +369,32 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
-                        <Mail className="w-3 h-3 text-cyan-400" /> Email (Recovery)
-                      </label>
-                      <Input
-                        type="email"
-                        placeholder="you@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500 text-xs"
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
+                      <Mail className="w-3 h-3 text-cyan-400" /> Recovery Email *
+                    </label>
+                    <Input
+                      type="email"
+                      required
+                      placeholder="you@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500 text-xs"
+                    />
+                  </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-emerald-400" /> WhatsApp / Phone
-                      </label>
-                      <Input
-                        type="tel"
-                        placeholder="+1 234 567 890"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500 text-xs"
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
+                      <Phone className="w-3 h-3 text-emerald-400" /> WhatsApp Phone Number *
+                    </label>
+                    <Input
+                      type="tel"
+                      required
+                      placeholder="+1 234 567 890"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500 text-xs"
+                    />
                   </div>
 
                   <div className="space-y-1">
@@ -343,7 +403,7 @@ export default function LoginPage() {
                       <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         type="password"
-                        placeholder="Min 6 chars (letters + numbers/symbols)"
+                        placeholder="Min 6 chars (letters + numbers)"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500 text-xs"
@@ -365,8 +425,9 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  <div className="text-[10px] text-slate-400 bg-slate-950/60 p-2 rounded-lg border border-white/5">
-                    <span>🔒 Password must contain min 6 chars with letters & numbers/symbols.</span>
+                  <div className="text-[10px] text-slate-400 bg-slate-950/60 p-2 rounded-lg border border-white/5 space-y-0.5">
+                    <span className="font-semibold text-purple-300">🔒 Account Security:</span>
+                    <div>• Email & WhatsApp are verified for password recovery OTPs.</div>
                   </div>
 
                   <Button
@@ -380,79 +441,171 @@ export default function LoginPage() {
                 </motion.form>
               )}
 
-              {/* FORGOT PASSWORD RECOVERY TAB */}
+              {/* FORGOT PASSWORD VIA EMAIL / WHATSAPP OTP */}
               {activeTab === 'forgot' && (
-                <motion.form
+                <motion.div
                   key="forgot"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
                   transition={{ duration: 0.2 }}
-                  onSubmit={handleResetPasswordSubmit}
                   className="space-y-3.5"
                 >
-                  <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-xs text-cyan-300 space-y-1">
-                    <div className="font-semibold flex items-center gap-1.5">
-                      <KeyRound className="w-4 h-4 text-cyan-400" /> Account Recovery
-                    </div>
-                    <p className="text-[11px] text-slate-300">
-                      Enter the <b>Email</b>, <b>WhatsApp Number</b>, or <b>Username</b> registered with your account to set a new password.
-                    </p>
-                  </div>
+                  {!otpSent ? (
+                    /* STEP 1: Enter Email or WhatsApp */
+                    <form onSubmit={handleRequestOTP} className="space-y-3.5">
+                      <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-xs text-cyan-300 space-y-1">
+                        <div className="font-semibold flex items-center gap-1.5">
+                          <Shield className="w-4 h-4 text-cyan-400" /> Secure OTP Dispatch
+                        </div>
+                        <p className="text-[11px] text-slate-300">
+                          Enter your registered <b>Email Address</b> or <b>WhatsApp Phone Number</b> to receive a 6-digit security code.
+                        </p>
+                        <div className="text-[10px] text-amber-300/90 pt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 shrink-0" />
+                          <span>Usernames cannot be used for recovery for security protection.</span>
+                        </div>
+                      </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-300">Email, WhatsApp Number, or Username</label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <Input
-                        type="text"
-                        placeholder="you@email.com or +1234567890 or username"
-                        value={recoveryContact}
-                        onChange={(e) => setRecoveryContact(e.target.value)}
-                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-cyan-500 text-xs"
-                      />
-                    </div>
-                  </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-slate-300">Registered Email or WhatsApp Number</label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <Input
+                            type="text"
+                            placeholder="you@email.com OR +1234567890"
+                            value={recoveryContact}
+                            onChange={(e) => setRecoveryContact(e.target.value)}
+                            className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-cyan-500 text-xs"
+                          />
+                        </div>
+                      </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-300">New Password</label>
-                    <div className="relative">
-                      <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <Input
-                        type="password"
-                        placeholder="Min 6 chars (letters + numbers)"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-cyan-500 text-xs"
-                      />
-                    </div>
-                  </div>
+                      <Button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 text-xs text-white"
+                      >
+                        {loading ? 'Sending OTP Code...' : '📲 Send 6-Digit OTP Code'}
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </form>
+                  ) : (
+                    /* STEP 2: Input OTP & Set New Password */
+                    <form onSubmit={handleVerifyOTPAndReset} className="space-y-3.5">
+                      {/* OTP Delivery Banner with WhatsApp Link & Copy */}
+                      {generatedOtpInfo && (
+                        <div className="p-3.5 bg-gradient-to-r from-cyan-950/40 via-purple-950/40 to-slate-900/60 border border-cyan-500/30 rounded-xl space-y-2 text-xs">
+                          <div className="flex items-center justify-between text-cyan-300 font-semibold">
+                            <span className="flex items-center gap-1.5">
+                              {generatedOtpInfo.isPhone ? (
+                                <MessageCircle className="w-4 h-4 text-emerald-400" />
+                              ) : (
+                                <Mail className="w-4 h-4 text-cyan-400" />
+                              )}
+                              Security OTP Dispatched
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono">Expires in 10m</span>
+                          </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-300">Confirm New Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <Input
-                        type="password"
-                        placeholder="Re-enter new password"
-                        value={confirmNewPassword}
-                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-cyan-500 text-xs"
-                      />
-                    </div>
-                  </div>
+                          <div className="flex items-center justify-between bg-slate-950/80 p-2.5 rounded-lg border border-white/10">
+                            <div>
+                              <div className="text-[10px] text-slate-400">Your 6-Digit Verification Code:</div>
+                              <div className="text-xl font-bold font-mono text-cyan-300 tracking-widest">
+                                {generatedOtpInfo.otp}
+                              </div>
+                            </div>
 
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 text-xs text-white"
-                  >
-                    {loading ? 'Updating Password...' : 'Verify & Reset Password'}
-                    <RefreshCw className="w-4 h-4" />
-                  </Button>
-                </motion.form>
+                            <button
+                              type="button"
+                              onClick={() => copyOTP(generatedOtpInfo.otp)}
+                              className="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md border border-white/10 flex items-center gap-1 transition-colors"
+                            >
+                              {copiedOtp ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                              <span>{copiedOtp ? 'Copied' : 'Copy'}</span>
+                            </button>
+                          </div>
+
+                          {generatedOtpInfo.isPhone && (
+                            <a
+                              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                                `*HabitBot Security Verification*\nYour 6-digit password reset code is: *${generatedOtpInfo.otp}*\n(Valid for 10 minutes)`
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center justify-center w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold gap-1.5 transition-colors shadow-md"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              <span>Open in WhatsApp</span>
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-slate-300">Enter 6-Digit Verification Code *</label>
+                        <Input
+                          type="text"
+                          maxLength={6}
+                          placeholder="e.g. 849201"
+                          value={enteredOtp}
+                          onChange={(e) => setEnteredOtp(e.target.value)}
+                          className="bg-slate-900/60 border-cyan-500/30 text-cyan-300 font-mono tracking-widest text-center text-base py-4 font-bold"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-slate-300">New Secure Password *</label>
+                        <div className="relative">
+                          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <Input
+                            type="password"
+                            placeholder="Min 6 chars (letters + numbers)"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="pl-9 bg-slate-900/60 border-white/10 text-white text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-slate-300">Confirm New Password *</label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <Input
+                            type="password"
+                            placeholder="Re-enter new password"
+                            value={confirmNewPassword}
+                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            className="pl-9 bg-slate-900/60 border-white/10 text-white text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setOtpSent(false)}
+                          className="text-xs bg-slate-900 border-white/10 text-slate-400 hover:text-white"
+                        >
+                          Change Contact
+                        </Button>
+
+                        <Button
+                          type="submit"
+                          disabled={loading}
+                          className="flex-1 gradient-button font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 text-xs"
+                        >
+                          {loading ? 'Verifying OTP...' : '🔒 Verify OTP & Reset Password'}
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </motion.div>
               )}
 
+              {/* ADMIN TAB */}
               {activeTab === 'admin' && (
                 <motion.form
                   key="admin"
