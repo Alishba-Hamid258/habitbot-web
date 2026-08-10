@@ -6,18 +6,20 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { BarChart2, Flame, Shield, Clock, Award, Sparkles, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { getActiveUser, getUserScopedData, computeUserStats } from '@/lib/auth-storage';
+import {
+  getActiveUser,
+  getUserScopedData,
+  computeUserStats,
+  DailyHabitLogRecord,
+} from '@/lib/auth-storage';
 import { calculateLevel } from '@/lib/xp';
 
-const WEEKLY_DATA = [
-  { day: 'Mon', habits: 0, focusMins: 0 },
-  { day: 'Tue', habits: 0, focusMins: 0 },
-  { day: 'Wed', habits: 0, focusMins: 0 },
-  { day: 'Thu', habits: 0, focusMins: 0 },
-  { day: 'Fri', habits: 0, focusMins: 0 },
-  { day: 'Sat', habits: 0, focusMins: 0 },
-  { day: 'Sun', habits: 0, focusMins: 0 },
-];
+interface WeeklyPoint {
+  day: string;
+  dateStr: string;
+  habits: number;
+  focusMins: number;
+}
 
 export default function AnalyticsPage() {
   const [reportLoading, setReportLoading] = useState(false);
@@ -30,6 +32,8 @@ export default function AnalyticsPage() {
     focusHours: 0,
     totalXP: 0,
   });
+  const [weeklyChartData, setWeeklyChartData] = useState<WeeklyPoint[]>([]);
+  const [heatmapDays, setHeatmapDays] = useState<{ date: string; count: number }[]>([]);
 
   const loadUserAnalytics = () => {
     const active = getActiveUser();
@@ -43,6 +47,67 @@ export default function AnalyticsPage() {
       focus.forEach((f) => {
         focusMins += Number(f.duration_mins) || 0;
       });
+
+      const history = getUserScopedData<DailyHabitLogRecord[]>(active.id, 'daily_habit_history', []);
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+
+      // 1. Calculate Real Last 7 Days Data
+      const daysLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const last7: WeeklyPoint[] = [];
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(today.getDate() - i);
+        const dStr = d.toISOString().split('T')[0];
+        const dayLabel = daysLabels[d.getDay()];
+
+        // Habits count for this day
+        let hCount = 0;
+        if (dStr === todayStr) {
+          hCount = completedHabits;
+        } else {
+          const log = history.find((h) => h.date === dStr);
+          hCount = log ? log.completedCount : 0;
+        }
+
+        // Focus minutes for this day
+        let fMins = 0;
+        focus
+          .filter((f) => f.date === dStr)
+          .forEach((f) => {
+            fMins += Number(f.duration_mins) || 0;
+          });
+
+        last7.push({
+          day: dayLabel,
+          dateStr: dStr,
+          habits: hCount,
+          focusMins: fMins,
+        });
+      }
+      setWeeklyChartData(last7);
+
+      // 2. Calculate Real 365-Day Heatmap
+      const heatmap: { date: string; count: number }[] = [];
+      const totalCells = 52 * 7; // 364 days
+
+      for (let i = totalCells - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(today.getDate() - i);
+        const dStr = d.toISOString().split('T')[0];
+
+        let count = 0;
+        if (dStr === todayStr) {
+          count = completedHabits;
+        } else {
+          const log = history.find((h) => h.date === dStr);
+          count = log ? log.completedCount : 0;
+        }
+
+        heatmap.push({ date: dStr, count });
+      }
+      setHeatmapDays(heatmap);
 
       setUserAnalytics({
         streak: stats.streak,
@@ -97,21 +162,34 @@ export default function AnalyticsPage() {
           className="gradient-button text-xs gap-1.5 rounded-lg shadow-md shadow-purple-500/20"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          {reportLoading ? 'Analyzing...' : 'Generate AI Weekly Audit'}
+          <span>{reportLoading ? 'Analyzing...' : 'Generate AI Weekly Audit'}</span>
         </Button>
       </div>
 
-      {/* Real Live KPI Cards (Starts at 0 on new account) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+      {/* AI Report Card */}
+      {aiReport && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 bg-gradient-to-r from-purple-950/40 via-slate-900/80 to-cyan-950/40 rounded-xl border border-purple-500/30 text-xs leading-relaxed space-y-2 shadow-lg"
+        >
+          <div className="flex items-center gap-2 text-purple-300 font-bold">
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span>AI Executive Coaching Audit</span>
+          </div>
+          <div className="text-slate-300 whitespace-pre-line">{aiReport}</div>
+        </motion.div>
+      )}
+
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
           <div className="flex items-center justify-between text-slate-400 text-xs">
             <span>Active Streak</span>
-            <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
+            <Flame className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-white font-mono">{userAnalytics.streak} Days</div>
-          <div className="text-[11px] text-emerald-400 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" /> Live tracking
-          </div>
+          <div className="text-[10px] text-emerald-400 font-medium">~ Live tracking</div>
         </div>
 
         <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
@@ -120,7 +198,7 @@ export default function AnalyticsPage() {
             <Shield className="w-4 h-4 text-purple-400" />
           </div>
           <div className="text-2xl font-bold text-white font-mono">{userAnalytics.habitsCompleted} Completed</div>
-          <div className="text-[11px] text-slate-400">{userAnalytics.disciplineRate}% discipline rate</div>
+          <div className="text-[10px] text-purple-300 font-medium">{userAnalytics.disciplineRate}% discipline rate</div>
         </div>
 
         <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
@@ -129,33 +207,22 @@ export default function AnalyticsPage() {
             <Clock className="w-4 h-4 text-cyan-400" />
           </div>
           <div className="text-2xl font-bold text-white font-mono">{userAnalytics.focusHours} Hours</div>
-          <div className="text-[11px] text-cyan-400">{userAnalytics.focusMins} total minutes</div>
+          <div className="text-[10px] text-cyan-300 font-medium">{userAnalytics.focusMins} total minutes</div>
         </div>
 
         <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
           <div className="flex items-center justify-between text-slate-400 text-xs">
-            <span>Mastery Tier</span>
+            <span>Mastery Level</span>
             <Award className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">Tier {xpInfo.level}</div>
-          <div className="text-[11px] text-purple-300 truncate">{xpInfo.name}</div>
+          <div className="text-2xl font-bold text-white font-mono">Level {xpInfo.level}</div>
+          <div className="text-[10px] text-amber-300 font-medium">{xpInfo.name}</div>
         </div>
       </div>
 
-      {/* AI Report Box */}
-      {aiReport && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-5 bg-gradient-to-r from-purple-950/40 via-indigo-950/40 to-slate-900/60 rounded-xl border border-purple-500/30 text-xs text-slate-200 leading-relaxed shadow-lg space-y-2"
-        >
-          <div className="whitespace-pre-line">{aiReport}</div>
-        </motion.div>
-      )}
-
-      {/* Charts Grid */}
+      {/* Visual Charts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Habit Completion Bar Chart */}
+        {/* Habit Completion Chart (Real Last 7 Days) */}
         <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-3">
           <div className="text-xs font-semibold text-purple-300 flex items-center gap-1.5">
             <Shield className="w-4 h-4 text-purple-400" />
@@ -164,20 +231,20 @@ export default function AnalyticsPage() {
 
           <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={WEEKLY_DATA}>
+              <BarChart data={weeklyChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
                 />
-                <Bar dataKey="habits" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="habits" fill="#a855f7" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Focus Minutes Chart */}
+        {/* Focus Minutes Chart (Real Last 7 Days) */}
         <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-3">
           <div className="text-xs font-semibold text-cyan-300 flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-cyan-400" />
@@ -186,10 +253,10 @@ export default function AnalyticsPage() {
 
           <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={WEEKLY_DATA}>
+              <BarChart data={weeklyChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
                 />
@@ -215,11 +282,10 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto py-2 custom-scrollbar">
-          {Array.from({ length: 52 * 7 }).map((_, i) => {
-            const isToday = i === 52 * 7 - 1;
-            const intensity = isToday && userAnalytics.habitsCompleted > 0 ? Math.min(4, userAnalytics.habitsCompleted) : 0;
+          {heatmapDays.map((d, i) => {
+            const intensity = Math.min(4, d.count);
             const bgClass =
-              intensity === 4
+              intensity >= 4
                 ? 'bg-cyan-400 shadow-sm shadow-cyan-500/50'
                 : intensity === 3
                 ? 'bg-purple-600'
@@ -232,7 +298,7 @@ export default function AnalyticsPage() {
             return (
               <div
                 key={i}
-                title={`Day ${i + 1}: ${intensity > 0 ? `${intensity} habits completed` : 'No activity'}`}
+                title={`${d.date}: ${d.count > 0 ? `${d.count} habits completed` : 'No habits logged'}`}
                 className={`w-2.5 h-2.5 rounded-sm ${bgClass} transition-colors hover:scale-125 cursor-pointer`}
               />
             );

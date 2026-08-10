@@ -560,8 +560,97 @@ export function getMasterTasks(userId: number): MasterTaskRecord[] {
   return getUserScopedData<MasterTaskRecord[]>(userId, 'tasks_master_db', []);
 }
 
+export interface DailyHabitLogRecord {
+  date: string;
+  completedCount: number;
+  totalCount: number;
+  isFrozen?: boolean;
+}
+
 /**
- * Computes live user XP, streak, and discipline stats for active user
+ * Checks for midnight rollover on the client.
+ * When the calendar day changes:
+ * 1. Archives yesterday's progress into `daily_habit_history_user_${userId}`.
+ * 2. Unchecks today's checkboxes so user gets a fresh slate for the new day.
+ */
+export function checkAndPerformDailyMidnightReset(userId: number) {
+  if (typeof window === 'undefined') return;
+  const todayStr = new Date().toISOString().split('T')[0];
+  const lastActiveDate = getUserScopedData<string>(userId, 'last_active_date', todayStr);
+
+  if (lastActiveDate !== todayStr) {
+    // 1. Record previous day's state in history ledger
+    const habits = getUserScopedData<any[]>(userId, 'habits', []);
+    const completed = habits.filter((h) => h.completed).length;
+    const isFrozen = getUserScopedData<boolean>(userId, 'is_frozen', false);
+
+    const history = getUserScopedData<DailyHabitLogRecord[]>(userId, 'daily_habit_history', []);
+    const existingIndex = history.findIndex((h) => h.date === lastActiveDate);
+
+    if (existingIndex >= 0) {
+      history[existingIndex] = {
+        date: lastActiveDate,
+        completedCount: completed,
+        totalCount: habits.length,
+        isFrozen,
+      };
+    } else {
+      history.push({
+        date: lastActiveDate,
+        completedCount: completed,
+        totalCount: habits.length,
+        isFrozen,
+      });
+    }
+    setUserScopedData(userId, 'daily_habit_history', history);
+
+    // 2. Reset daily checkmarks for the fresh new day
+    const resetHabits = habits.map((h) => ({ ...h, completed: false }));
+    setUserScopedData(userId, 'habits', resetHabits);
+    setUserScopedData(userId, 'is_frozen', false);
+    setUserScopedData(userId, 'last_active_date', todayStr);
+  }
+}
+
+/**
+ * Calculates continuous multi-day streak across consecutive calendar dates
+ */
+export function calculateUserStreak(userId: number): number {
+  if (typeof window === 'undefined') return 0;
+  const history = getUserScopedData<DailyHabitLogRecord[]>(userId, 'daily_habit_history', []);
+  const habits = getUserScopedData<any[]>(userId, 'habits', []);
+  const completedToday = habits.filter((h) => h.completed).length;
+  const isFrozenToday = getUserScopedData<boolean>(userId, 'is_frozen', false);
+
+  let streak = 0;
+  const today = new Date();
+
+  // If active or frozen today
+  if (completedToday > 0 || isFrozenToday) {
+    streak = 1;
+  }
+
+  // Count consecutive previous days backwards
+  const checkDate = new Date(today);
+  checkDate.setDate(checkDate.getDate() - 1);
+
+  while (true) {
+    const dateStr = checkDate.toISOString().split('T')[0];
+    const log = history.find((h) => h.date === dateStr);
+
+    if (log && (log.completedCount > 0 || log.isFrozen)) {
+      streak += 1;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+/**
+ * Computes live user XP, multi-day streak, and discipline stats for active user
  */
 export function computeUserStats(userId: number) {
   if (typeof window === 'undefined') return { totalXP: 0, streak: 0, disciplineRate: 0 };
@@ -570,10 +659,9 @@ export function computeUserStats(userId: number) {
 
   const habits = getUserScopedData<any[]>(userId, 'habits', []);
   const completedHabits = habits.filter((h) => h.completed).length;
-  const isFrozen = getUserScopedData<boolean>(userId, 'is_frozen', false);
+  const streak = calculateUserStreak(userId);
 
   const disciplineRate = habits.length > 0 ? Math.round((completedHabits / habits.length) * 100) : 0;
-  const streak = completedHabits > 0 || isFrozen ? 1 : 0;
 
   return { totalXP, streak, disciplineRate };
 }

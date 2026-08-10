@@ -8,7 +8,13 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 
-import { getActiveUser, getUserScopedData, setUserScopedData, addXP } from '@/lib/auth-storage';
+import {
+  getActiveUser,
+  getUserScopedData,
+  setUserScopedData,
+  addXP,
+  checkAndPerformDailyMidnightReset,
+} from '@/lib/auth-storage';
 
 interface HabitItem {
   id: string;
@@ -24,18 +30,20 @@ const DEFAULT_HABITS: HabitItem[] = [
 ];
 
 export function HabitMatrix() {
-  const [habits, setHabits] = useState<HabitItem[]>(DEFAULT_HABITS);
+  const [habits, setHabits] = useState<HabitItem[]>([]);
   const [newHabitName, setNewHabitName] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [isFrozen, setIsFrozen] = useState(false);
   const [userId, setUserId] = useState<number>(1);
 
-  // Load user-scoped habits
+  // Load user-scoped habits and trigger daily midnight reset check
   useEffect(() => {
     const active = getActiveUser();
     if (active) {
       setUserId(active.id);
-      const userHabits = getUserScopedData<HabitItem[]>(active.id, 'habits', DEFAULT_HABITS);
+      checkAndPerformDailyMidnightReset(active.id);
+      const defaultInitial = active.id === 1 ? DEFAULT_HABITS : [];
+      const userHabits = getUserScopedData<HabitItem[]>(active.id, 'habits', defaultInitial);
       setHabits(userHabits);
       const userFrozen = getUserScopedData<boolean>(active.id, 'is_frozen', false);
       setIsFrozen(userFrozen);
