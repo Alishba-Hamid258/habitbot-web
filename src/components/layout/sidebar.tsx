@@ -77,7 +77,7 @@ export function Sidebar() {
             className="h-7 text-xs text-slate-400 hover:text-red-400 hover:bg-red-950/20 px-2 gap-1 rounded-lg"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Exit</span>
+            <span>Logout</span>
           </Button>
         </div>
 

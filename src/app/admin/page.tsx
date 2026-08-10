@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Users, CheckSquare, Clock, MessageSquare, ArrowLeft, Database, Sparkles } from 'lucide-react';
+import { Shield, Users, CheckSquare, Clock, MessageSquare, LogOut, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface AdminUser {
   id: number;
@@ -22,6 +23,12 @@ const MOCK_USERS: AdminUser[] = [
 export default function AdminPage() {
   const router = useRouter();
 
+  const handleAdminLogout = () => {
+    localStorage.removeItem('habitbot_user');
+    toast.info('Logged out from Creator Portal.');
+    router.push('/login');
+  };
+
   return (
     <div className="min-h-screen bg-[#090d16] text-[#f1f5f9] p-6 sm:p-10 space-y-8">
       {/* Top Header */}
@@ -39,11 +46,11 @@ export default function AdminPage() {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => router.push('/dashboard')}
-          className="bg-slate-900/60 border-white/10 text-slate-300 hover:text-white gap-1.5 rounded-lg"
+          onClick={handleAdminLogout}
+          className="bg-slate-900/60 border-white/10 text-slate-300 hover:text-red-400 hover:bg-red-950/20 gap-1.5 rounded-lg"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Exit to Dashboard</span>
+          <LogOut className="w-4 h-4" />
+          <span>Logout</span>
         </Button>
       </div>
 
