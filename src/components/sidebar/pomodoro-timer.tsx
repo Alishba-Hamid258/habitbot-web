@@ -2,19 +2,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, Timer, Sparkles, Volume2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Timer, Settings2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
-type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
+type TimerMode = 'focus' | 'shortBreak' | 'longBreak' | 'custom';
 
-const MODE_DURATIONS: Record<TimerMode, number> = {
-  focus: 25 * 60,
-  shortBreak: 5 * 60,
-  longBreak: 15 * 60,
-};
-
-// Web Audio API Sound Synthesizer
+// Web Audio API Sound Synthesizer (Zero-latency tones)
 function playAudioTone(frequency: number, type: OscillatorType = 'sine', duration: number = 0.15) {
   try {
     const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
@@ -28,9 +23,7 @@ function playAudioTone(frequency: number, type: OscillatorType = 'sine', duratio
     gain.connect(audioCtx.destination);
     osc.start();
     osc.stop(audioCtx.currentTime + duration);
-  } catch {
-    // Audio not allowed yet or not supported
-  }
+  } catch {}
 }
 
 function playStartChime() {
@@ -48,9 +41,14 @@ function playCompletionChime() {
 
 export function PomodoroTimer() {
   const [mode, setMode] = useState<TimerMode>('focus');
-  const [timeLeft, setTimeLeft] = useState(MODE_DURATIONS.focus);
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [totalDuration, setTotalDuration] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
+  
+  // Custom adjustments
   const [customTitle, setCustomTitle] = useState('Deep Work');
+  const [customMins, setCustomMins] = useState(25);
+  const [showSettings, setShowSettings] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -62,12 +60,24 @@ export function PomodoroTimer() {
             clearInterval(timerRef.current!);
             setIsRunning(false);
             playCompletionChime();
-            toast.success(`🎉 Focus session "${customTitle}" complete! (+25 XP)`, {
+            
+            // Log to localStorage focus history
+            try {
+              const saved = localStorage.getItem('habitbot_focus_sessions');
+              const sessions = saved ? JSON.parse(saved) : [];
+              sessions.push({
+                date: new Date().toISOString().split('T')[0],
+                mode: customTitle,
+                duration_mins: Math.round(totalDuration / 60)
+              });
+              localStorage.setItem('habitbot_focus_sessions', JSON.stringify(sessions));
+            } catch {}
+
+            toast.success(`🎉 Focus session "${customTitle}" complete! (+${Math.round(totalDuration / 60)} XP)`, {
               icon: '🍅',
             });
             return 0;
           }
-          // Sound tick on last 5 seconds
           if (prev <= 6 && prev > 1) {
             playTickSound();
           }
@@ -80,24 +90,39 @@ export function PomodoroTimer() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isRunning, customTitle]);
+  }, [isRunning, customTitle, totalDuration]);
 
-  const handleModeChange = (newMode: TimerMode) => {
+  const handleModeChange = (newMode: TimerMode, durationInMins: number) => {
     setIsRunning(false);
     setMode(newMode);
-    setTimeLeft(MODE_DURATIONS[newMode]);
+    const secs = durationInMins * 60;
+    setTimeLeft(secs);
+    setTotalDuration(secs);
+    if (newMode === 'focus') setCustomTitle('Deep Work');
+    if (newMode === 'shortBreak') setCustomTitle('Short Rest');
+    if (newMode === 'longBreak') setCustomTitle('Long Rest');
+  };
+
+  const applyCustomSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    const mins = Math.max(1, Math.min(240, Number(customMins) || 25));
+    setMode('custom');
+    setIsRunning(false);
+    const secs = mins * 60;
+    setTimeLeft(secs);
+    setTotalDuration(secs);
+    setShowSettings(false);
+    toast.success(`Timer set to ${mins} mins for "${customTitle}"`);
   };
 
   const toggleTimer = () => {
-    if (!isRunning) {
-      playStartChime();
-    }
+    if (!isRunning) playStartChime();
     setIsRunning(!isRunning);
   };
 
   const resetTimer = () => {
     setIsRunning(false);
-    setTimeLeft(MODE_DURATIONS[mode]);
+    setTimeLeft(totalDuration);
   };
 
   const formatTime = (secs: number) => {
@@ -106,46 +131,82 @@ export function PomodoroTimer() {
     return `${String(mins).padStart(2, '0')}:${String(remainderSecs).padStart(2, '0')}`;
   };
 
-  const progress = ((MODE_DURATIONS[mode] - timeLeft) / MODE_DURATIONS[mode]) * 100;
+  const progress = totalDuration > 0 ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0;
 
   return (
     <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-3">
-      {/* Header */}
+      {/* Header with Settings Toggle */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-300">
           <Timer className="w-3.5 h-3.5 text-purple-400" />
           <span>Pomodoro Timer</span>
         </div>
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-mono">
-          {mode === 'focus' ? '🍅 25m Focus' : mode === 'shortBreak' ? '☕ 5m Rest' : '🌴 15m Long'}
-        </span>
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className="text-slate-400 hover:text-cyan-300 p-1 rounded transition-colors text-[10px] flex items-center gap-1"
+        >
+          <Settings2 className="w-3 h-3" />
+          <span>{showSettings ? 'Close' : 'Adjust'}</span>
+        </button>
       </div>
 
-      {/* Mode Selectors */}
+      {/* Manual Time & Name Adjustment Settings Box */}
+      {showSettings && (
+        <form onSubmit={applyCustomSettings} className="p-2.5 bg-slate-950/80 rounded-lg border border-purple-500/30 space-y-2 text-xs">
+          <div>
+            <label className="text-[10px] text-slate-400 block mb-1">Session Title / Activity</label>
+            <Input
+              type="text"
+              placeholder="e.g. Physics Study, Coding, Meditation"
+              value={customTitle}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              className="h-7 text-xs bg-slate-900 border-white/10 text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] text-slate-400 block mb-1">Duration (Minutes: 1 - 240)</label>
+            <div className="flex gap-1.5">
+              <Input
+                type="number"
+                min="1"
+                max="240"
+                value={customMins}
+                onChange={(e) => setCustomMins(Number(e.target.value))}
+                className="h-7 text-xs bg-slate-900 border-white/10 text-white"
+              />
+              <Button size="sm" type="submit" className="h-7 px-3 gradient-button text-xs gap-1">
+                <Check className="w-3 h-3" /> Set
+              </Button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* Mode Quick Selectors */}
       <div className="grid grid-cols-3 gap-1 bg-slate-950/80 p-1 rounded-lg border border-white/5 text-[11px]">
         <button
-          onClick={() => handleModeChange('focus')}
+          onClick={() => handleModeChange('focus', 25)}
           className={`py-1 rounded font-medium transition-colors ${
             mode === 'focus' ? 'bg-purple-600/30 text-purple-200 border border-purple-500/30' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Focus
+          25m Focus
         </button>
         <button
-          onClick={() => handleModeChange('shortBreak')}
+          onClick={() => handleModeChange('shortBreak', 5)}
           className={`py-1 rounded font-medium transition-colors ${
             mode === 'shortBreak' ? 'bg-cyan-600/30 text-cyan-200 border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Break
+          5m Break
         </button>
         <button
-          onClick={() => handleModeChange('longBreak')}
+          onClick={() => handleModeChange('longBreak', 15)}
           className={`py-1 rounded font-medium transition-colors ${
             mode === 'longBreak' ? 'bg-indigo-600/30 text-indigo-200 border border-indigo-500/30' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Long
+          15m Long
         </button>
       </div>
 
@@ -159,7 +220,7 @@ export function PomodoroTimer() {
         >
           {formatTime(timeLeft)}
         </motion.div>
-        <div className="text-[11px] text-slate-400 mt-0.5 truncate px-2">
+        <div className="text-[11px] text-slate-300 mt-0.5 truncate px-2 font-medium">
           🎯 {customTitle}
         </div>
       </div>
