@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Headphones, ExternalLink, Play, Check } from 'lucide-react';
+import { Headphones, Check, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { extractYouTubeId } from '@/lib/utils';
@@ -17,9 +17,11 @@ export function MediaPlayer() {
   const [videoUrl, setVideoUrl] = useState('');
   const [activeVideoId, setActiveVideoId] = useState('jfKfPfyJRdk');
   const [showCustomInput, setShowCustomInput] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Restore saved URL on client mount
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem('habitbot_active_video');
     if (saved) {
       const vidId = extractYouTubeId(saved);
@@ -96,15 +98,22 @@ export function MediaPlayer() {
         </form>
       )}
 
-      {/* Embedded Iframe Player */}
-      <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/50 shadow-inner">
-        <iframe
-          src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
-          title="HabitBot Focus Audio"
-          className="w-full h-full border-0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
+      {/* Embedded Iframe Player with zero SSR mismatch */}
+      <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/50 shadow-inner flex items-center justify-center">
+        {mounted ? (
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?enablejsapi=1`}
+            title="HabitBot Focus Audio"
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span>Loading player...</span>
+          </div>
+        )}
       </div>
     </div>
   );
