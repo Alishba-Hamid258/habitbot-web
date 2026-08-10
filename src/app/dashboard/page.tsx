@@ -303,16 +303,6 @@ export default function DashboardPage() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setShowOnboardingModal(true)}
-            className="h-8 text-xs bg-slate-900/60 hover:bg-slate-800 border-white/10 text-cyan-300 hover:text-white gap-1.5 rounded-lg shadow-sm"
-          >
-            <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Guide</span>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
             onClick={() => setShowArchives(true)}
             className="h-8 text-xs bg-slate-900/60 hover:bg-slate-800 border-white/10 text-slate-200 gap-1.5 rounded-lg shadow-sm"
           >
