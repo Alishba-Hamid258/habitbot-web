@@ -40,6 +40,7 @@ interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  fullPrompt?: string;
   imagePreview?: string;
   documentInfo?: { name: string; size: string };
 }
@@ -224,6 +225,7 @@ export default function DashboardPage() {
       id: Date.now().toString(),
       role: 'user',
       content: displayPrompt,
+      fullPrompt: payloadPrompt,
       imagePreview: attachedFile?.type === 'image' ? attachedFile.preview : undefined,
       documentInfo: attachedFile?.type === 'document' ? { name: attachedFile.name, size: attachedFile.size } : undefined,
     };
@@ -246,14 +248,14 @@ export default function DashboardPage() {
     setMessages((prev) => [...prev, { id: assistantMsgId, role: 'assistant', content: '' }]);
 
     try {
-      // Use payloadPrompt for the last message
+      // Use payloadPrompt / fullPrompt to preserve document and question context across turns
       const apiMessages = newMessages
         .filter((m) => m.role !== 'system')
         .map((m, idx, arr) => {
           if (idx === arr.length - 1) {
             return { role: m.role, content: payloadPrompt };
           }
-          return { role: m.role, content: m.content };
+          return { role: m.role, content: m.fullPrompt || m.content };
         });
 
       const res = await fetch('/api/chat', {

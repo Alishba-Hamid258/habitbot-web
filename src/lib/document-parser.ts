@@ -1,6 +1,6 @@
 /**
- * Client-side document and PDF text extractor for HabitBot
- * Extracts clean, readable text from PDF, TXT, CSV, MD, JSON, and DOCX files.
+ * Universal Client-Side Document and PDF Text Extractor for HabitBot
+ * Supports plain text, markdown, CSV, JSON, and decompresses FlateDecode PDF text streams.
  */
 
 export async function extractTextFromFile(file: File): Promise<{
@@ -14,7 +14,7 @@ export async function extractTextFromFile(file: File): Promise<{
   if (isPdf) {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const extracted = parsePdfText(arrayBuffer);
+      const extracted = await parsePdfBuffer(arrayBuffer);
       if (extracted && extracted.trim().length > 30) {
         return {
           text: extracted.slice(0, 16000),
@@ -23,7 +23,7 @@ export async function extractTextFromFile(file: File): Promise<{
         };
       }
     } catch (e) {
-      console.warn('PDF parser note: falling back to base64 document engine', e);
+      console.warn('PDF parser fallback notice:', e);
     }
 
     return {
@@ -33,7 +33,7 @@ export async function extractTextFromFile(file: File): Promise<{
     };
   }
 
-  // Plain text documents (.txt, .csv, .md, .json, .log)
+  // Plain text document formats (.txt, .csv, .md, .json, .log)
   try {
     const rawText = await file.text();
     return {
@@ -51,39 +51,83 @@ export async function extractTextFromFile(file: File): Promise<{
 }
 
 /**
- * Pure TypeScript regex-based PDF text stream extractor
+ * Parses both uncompressed and flate-compressed PDF streams
  */
-function parsePdfText(buffer: ArrayBuffer): string {
+async function parsePdfBuffer(buffer: ArrayBuffer): Promise<string> {
   const bytes = new Uint8Array(buffer);
   let rawStr = '';
 
-  // Sample or decode bytes to latin1/ascii string safely in chunks
   const chunkSize = 65536;
   for (let i = 0; i < bytes.length; i += chunkSize) {
     const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
     rawStr += String.fromCharCode.apply(null, chunk as any);
   }
 
-  const textChunks: string[] = [];
+  const collectedText: string[] = [];
 
-  // Extract from BT (Begin Text) ... ET (End Text) blocks
+  // 1. Direct BT ... ET extraction from uncompressed blocks
+  extractFromBtEt(rawStr, collectedText);
+
+  // 2. Try decompressing Deflate streams if text is minimal
+  if (collectedText.length < 5 && typeof DecompressionStream !== 'undefined') {
+    const streamRegex = /stream[\r\n]+([\s\S]*?)[\r\n]+endstream/g;
+    let streamMatch: RegExpExecArray | null;
+
+    while ((streamMatch = streamRegex.exec(rawStr)) !== null) {
+      const streamContent = streamMatch[1];
+      try {
+        const streamBytes = new Uint8Array(streamContent.length);
+        for (let j = 0; j < streamContent.length; j++) {
+          streamBytes[j] = streamContent.charCodeAt(j);
+        }
+
+        const ds = new DecompressionStream('deflate');
+        const writer = ds.writable.getWriter();
+        writer.write(streamBytes);
+        writer.close();
+
+        const response = new Response(ds.readable);
+        const decompressed = await response.text();
+        extractFromBtEt(decompressed, collectedText);
+      } catch {
+        // Stream may not be deflate or has headers; continue
+      }
+    }
+  }
+
+  // 3. Regex string literal fallback
+  if (collectedText.length < 5) {
+    const stringLiteralRegex = /\(([A-Za-z0-9 ,.?!:;'"\-\n\r]{4,})\)/g;
+    let litMatch: RegExpExecArray | null;
+    while ((litMatch = stringLiteralRegex.exec(rawStr)) !== null) {
+      const str = cleanPdfString(litMatch[1]);
+      if (str.length > 3 && !str.includes('Font') && !str.includes('Type') && !str.includes('Obj')) {
+        collectedText.push(str);
+      }
+    }
+  }
+
+  return collectedText.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+function extractFromBtEt(sourceStr: string, outList: string[]) {
   const btRegex = /BT[\s\S]*?ET/g;
   let match: RegExpExecArray | null;
 
-  while ((match = btRegex.exec(rawStr)) !== null) {
+  while ((match = btRegex.exec(sourceStr)) !== null) {
     const block = match[0];
 
-    // Match (string) Tj or 'string'
+    // (string) Tj
     const tjRegex = /\(((?:[^()\\]|\\.)*)\)\s*T[jJ*]/g;
     let tjMatch: RegExpExecArray | null;
     while ((tjMatch = tjRegex.exec(block)) !== null) {
       const decoded = cleanPdfString(tjMatch[1]);
       if (decoded.length > 1) {
-        textChunks.push(decoded);
+        outList.push(decoded);
       }
     }
 
-    // Match [(array) (of) (strings)] TJ
+    // [(array)] TJ
     const arrayTjRegex = /\[((?:[^\[\]]|\\.)*)\]\s*TJ/g;
     let arrMatch: RegExpExecArray | null;
     while ((arrMatch = arrayTjRegex.exec(block)) !== null) {
@@ -95,24 +139,10 @@ function parsePdfText(buffer: ArrayBuffer): string {
         combined += cleanPdfString(sMatch[1]);
       }
       if (combined.trim().length > 1) {
-        textChunks.push(combined);
+        outList.push(combined);
       }
     }
   }
-
-  // Fallback: search for general string literals if BT/ET was compressed or formatted
-  if (textChunks.length < 5) {
-    const stringLiteralRegex = /\(([A-Za-z0-9 ,.?!:;'"\-\n\r]{4,})\)/g;
-    let litMatch: RegExpExecArray | null;
-    while ((litMatch = stringLiteralRegex.exec(rawStr)) !== null) {
-      const str = cleanPdfString(litMatch[1]);
-      if (str.length > 3 && !str.includes('Font') && !str.includes('Type') && !str.includes('Obj')) {
-        textChunks.push(str);
-      }
-    }
-  }
-
-  return textChunks.join(' ').replace(/\s+/g, ' ').trim();
 }
 
 function cleanPdfString(str: string): string {
