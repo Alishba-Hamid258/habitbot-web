@@ -6,7 +6,7 @@ import { Play, Pause, RotateCcw, Timer, Settings2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
+import { getActiveUser, getUserScopedData, setUserScopedData, addXP } from '@/lib/auth-storage';
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak' | 'custom';
 
@@ -67,12 +67,14 @@ export function PomodoroTimer() {
               const active = getActiveUser();
               if (active) {
                 const sessions = getUserScopedData<any[]>(active.id, 'focus_sessions', []);
+                const gainedXP = Math.round(totalDuration / 60);
                 sessions.push({
                   date: new Date().toISOString().split('T')[0],
                   mode: customTitle,
-                  duration_mins: Math.round(totalDuration / 60),
+                  duration_mins: gainedXP,
                 });
                 setUserScopedData(active.id, 'focus_sessions', sessions);
+                addXP(active.id, gainedXP);
               }
             } catch {}
 

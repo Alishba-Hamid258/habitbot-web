@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 
-import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
+import { getActiveUser, getUserScopedData, setUserScopedData, addXP } from '@/lib/auth-storage';
 
 interface HabitItem {
   id: string;
@@ -53,9 +53,11 @@ export function HabitMatrix() {
       const target = updated.find((h) => h.id === id);
 
       if (target?.completed) {
+        addXP(userId, 10);
         toast.success(`Logged: ${target.name} (+10 XP)`, { icon: '🛡️' });
         // Check if all habits are complete
         if (updated.every((h) => h.completed)) {
+          addXP(userId, 50);
           confetti({
             particleCount: 100,
             spread: 70,
@@ -66,6 +68,8 @@ export function HabitMatrix() {
             icon: '🏆',
           });
         }
+      } else {
+        addXP(userId, -10);
       }
       setUserScopedData(userId, 'habits', updated);
       return updated;

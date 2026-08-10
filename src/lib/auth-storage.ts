@@ -159,28 +159,34 @@ export function setUserScopedData<T>(userId: number, key: string, data: T) {
 }
 
 /**
- * Computes live user XP, streak, and discipline stats for active user (Starts at 0 for new account)
+ * Gets permanent cumulative XP for a user (Starts at 0 for new account)
+ */
+export function getUserXP(userId: number): number {
+  return getUserScopedData<number>(userId, 'xp_ledger', 0);
+}
+
+/**
+ * Awards permanent XP to user's wallet (Earned XP is preserved forever, even when clearing tasks)
+ */
+export function addXP(userId: number, amount: number): number {
+  const current = getUserXP(userId);
+  const updated = Math.max(0, current + amount);
+  setUserScopedData(userId, 'xp_ledger', updated);
+  return updated;
+}
+
+/**
+ * Computes live user XP, streak, and discipline stats for active user
  */
 export function computeUserStats(userId: number) {
   if (typeof window === 'undefined') return { totalXP: 0, streak: 0, disciplineRate: 0 };
+
+  const totalXP = getUserXP(userId);
 
   const habits = getUserScopedData<any[]>(userId, 'habits', []);
   const completedHabits = habits.filter((h) => h.completed).length;
   const isFrozen = getUserScopedData<boolean>(userId, 'is_frozen', false);
 
-  const focus = getUserScopedData<any[]>(userId, 'focus_sessions', []);
-  let focusMins = 0;
-  focus.forEach((f) => {
-    focusMins += Number(f.duration_mins) || 0;
-  });
-
-  const reflections = getUserScopedData<any[]>(userId, 'reflections', []);
-  const reflectionCount = reflections.length;
-
-  const tasks = getUserScopedData<any[]>(userId, 'tasks', []);
-  const completedTasks = tasks.filter((t) => t.done).length;
-
-  const totalXP = (completedHabits * 10) + (focusMins * 1) + (reflectionCount * 15) + (completedTasks * 5);
   const disciplineRate = habits.length > 0 ? Math.round((completedHabits / habits.length) * 100) : 0;
   const streak = completedHabits > 0 || isFrozen ? 1 : 0;
 

@@ -6,7 +6,7 @@ import { CheckSquare, Plus, Trash2, Sparkles, CheckCircle2, Clock } from 'lucide
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
+import { getActiveUser, getUserScopedData, setUserScopedData, addXP } from '@/lib/auth-storage';
 
 interface Task {
   id: string;
@@ -53,8 +53,10 @@ export default function TasksPage() {
     saveTasks(updated);
 
     if (target?.done) {
+      addXP(userId, 5);
       toast.success(`Completed: "${target.task}" (+5 XP)`, { icon: '✅' });
     } else {
+      addXP(userId, -5);
       toast.info(`Re-opened: "${target?.task}"`);
     }
   };

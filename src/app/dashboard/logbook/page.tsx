@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
-import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
+import { getActiveUser, getUserScopedData, setUserScopedData, addXP } from '@/lib/auth-storage';
 
 interface ReflectionEntry {
   id: string;
@@ -80,6 +80,7 @@ export default function LogbookPage() {
     const updated = [newEntry, ...reflections.filter((r) => r.date !== todayStr)];
     setReflections(updated);
     setUserScopedData(userId, 'reflections', updated);
+    addXP(userId, 15);
 
     setWentWell('');
     setFriction('');
