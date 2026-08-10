@@ -282,11 +282,11 @@ export default function CoachPage() {
         </div>
       </div>
 
-      {/* Spacious Glass Vault Dialog Modal (No Overlapping/Clipping) */}
+      {/* Spacious Glass Vault Dialog Modal */}
       <Dialog open={showArchives} onOpenChange={setShowArchives}>
-        <DialogContent className="max-w-2xl bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 shadow-2xl backdrop-blur-2xl">
+        <DialogContent className="max-w-4xl w-[92vw] bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold gradient-text flex items-center gap-2">
+            <DialogTitle className="text-lg font-bold gradient-text flex items-center gap-2">
               <Archive className="w-5 h-5 text-purple-400" />
               <span>Previous Coaching Sessions Vault</span>
             </DialogTitle>
@@ -304,23 +304,23 @@ export default function CoachPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-2.5 max-h-96 overflow-y-auto py-2 pr-1 custom-scrollbar">
+            <div className="space-y-2.5 max-h-[480px] overflow-y-auto py-2 pr-1 custom-scrollbar">
               {archives.map((arch) => (
                 <div
                   key={arch.id}
-                  className="p-3.5 bg-slate-900/80 hover:bg-slate-900 border border-white/5 hover:border-purple-500/30 rounded-xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group shadow-sm"
+                  className="p-4 bg-slate-900/80 hover:bg-slate-900 border border-white/5 hover:border-purple-500/30 rounded-xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group shadow-sm"
                 >
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-bold text-white truncate group-hover:text-purple-200 transition-colors">
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-sm font-semibold text-white group-hover:text-purple-200 transition-colors leading-snug">
                         {arch.title}
                       </h4>
-                      <span className="text-[10px] text-purple-300 bg-purple-950/60 border border-purple-500/20 px-2 py-0.5 rounded shrink-0">
-                        {arch.messages.length} msgs
+                      <span className="text-[10px] font-semibold text-purple-300 bg-purple-950/70 border border-purple-500/30 px-2 py-0.5 rounded-full shrink-0">
+                        {arch.messages.length} messages
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
-                      <Clock className="w-3 h-3 text-purple-400" />
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+                      <Clock className="w-3.5 h-3.5 text-purple-400" />
                       <span>{arch.timestamp}</span>
                     </div>
                   </div>
@@ -329,7 +329,7 @@ export default function CoachPage() {
                     <Button
                       size="sm"
                       onClick={() => handleResumeChat(arch)}
-                      className="h-8 px-3.5 text-xs gradient-button gap-1.5 rounded-lg shadow-sm"
+                      className="h-8 px-4 text-xs gradient-button gap-1.5 rounded-lg shadow-sm"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       <span>Resume Chat</span>
