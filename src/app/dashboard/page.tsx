@@ -25,6 +25,7 @@ import {
   CheckSquare,
   FileSpreadsheet,
   FileText,
+  FileUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,7 +72,6 @@ const INITIAL_MESSAGES: Message[] = [
 const QUICK_PROMPTS = [
   { label: '⚡ Plan My Day', prompt: 'Help me design an optimal daily plan using time-blocking and habit stacking.' },
   { label: '🧠 Beat Procrastination', prompt: 'I am struggling to start a difficult task. Guide me through the 2-Minute Rule to build momentum.' },
-  { label: '💪 Morning Routine', prompt: 'Design a science-backed 30-minute morning routine to maximize energy and focus.' },
   { label: '🎯 Habit Audit', prompt: 'Conduct a quick audit of my daily habits. Ask me 3 questions to identify friction points.' },
 ];
 
@@ -81,6 +81,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<'groq' | 'gemini'>('groq');
   const [attachedFile, setAttachedFile] = useState<AttachedFile | null>(null);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
 
   const [archives, setArchives] = useState<SavedSession[]>([]);
   const [showArchives, setShowArchives] = useState(false);
@@ -89,7 +90,8 @@ export default function DashboardPage() {
 
   const [currentUser, setCurrentUser] = useState<{ id: number; username: string; avatar?: string } | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom of chat
@@ -127,51 +129,75 @@ export default function DashboardPage() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Dedicated Image Upload Handler
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setShowAttachmentMenu(false);
 
     const fileSizeKb = Math.round(file.size / 1024);
     const sizeStr = fileSizeKb > 1024 ? `${(fileSizeKb / 1024).toFixed(1)} MB` : `${fileSizeKb} KB`;
 
-    if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(',')[1];
+      setAttachedFile({
+        name: file.name,
+        type: 'image',
+        mimeType: file.type || 'image/png',
+        size: sizeStr,
+        preview: result,
+        base64,
+      });
+      setSelectedProvider('gemini');
+      toast.success(`Image attached: "${file.name}" (Switched to Gemini Vision 👁️)`);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Dedicated Document Upload Handler (PDF, TXT, CSV, MD, JSON, DOCX)
+  const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setShowAttachmentMenu(false);
+
+    const fileSizeKb = Math.round(file.size / 1024);
+    const sizeStr = fileSizeKb > 1024 ? `${(fileSizeKb / 1024).toFixed(1)} MB` : `${fileSizeKb} KB`;
+
+    const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+
+    if (isPdf) {
+      // Read PDF cleanly as Base64 for Google Gemini native PDF understanding
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
         const base64 = result.split(',')[1];
         setAttachedFile({
           name: file.name,
-          type: 'image',
-          mimeType: file.type,
+          type: 'document',
+          mimeType: 'application/pdf',
           size: sizeStr,
-          preview: result,
           base64,
         });
         setSelectedProvider('gemini');
-        toast.success(`Image attached: "${file.name}" (Switched to Gemini Vision 👁️)`);
+        toast.success(`PDF attached: "${file.name}" (Switched to Gemini Document Engine 📄)`);
       };
       reader.readAsDataURL(file);
     } else {
-      // Document file (.pdf, .txt, .csv, .json, .md, .docx)
+      // Plain text document formats (.txt, .csv, .md, .json)
       try {
         const textContent = await file.text();
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          const base64 = result.split(',')[1];
-          setAttachedFile({
-            name: file.name,
-            type: 'document',
-            mimeType: file.type || 'application/octet-stream',
-            size: sizeStr,
-            textData: textContent.slice(0, 16000), // Read text for analysis
-            base64,
-          });
-          toast.success(`Document attached: "${file.name}" (${sizeStr}) 📄`);
-        };
-        reader.readAsDataURL(file);
+        setAttachedFile({
+          name: file.name,
+          type: 'document',
+          mimeType: file.type || 'text/plain',
+          size: sizeStr,
+          textData: textContent.slice(0, 16000),
+        });
+        toast.success(`Document attached: "${file.name}" (${sizeStr}) 📄`);
       } catch {
-        toast.error('Could not read document file.');
+        toast.error('Could not read text from document.');
       }
     }
   };
@@ -180,19 +206,28 @@ export default function DashboardPage() {
     const query = (textToSend || input).trim();
     if ((!query && !attachedFile) || loading) return;
 
-    let userPrompt = query;
-    if (attachedFile?.type === 'document' && attachedFile.textData) {
-      userPrompt = query
-        ? `${query}\n\n[Attached Document: ${attachedFile.name}]\n\`\`\`\n${attachedFile.textData}\n\`\`\``
-        : `Please analyze this attached document (${attachedFile.name}) and provide coaching feedback, habit optimization, and actionable next steps:\n\`\`\`\n${attachedFile.textData}\n\`\`\``;
-    } else if (!userPrompt && attachedFile?.type === 'image') {
-      userPrompt = 'Please analyze this schedule/chart image and provide actionable habit coaching advice.';
+    let displayPrompt = query;
+    let payloadPrompt = query;
+
+    if (attachedFile?.type === 'document') {
+      if (attachedFile.mimeType === 'application/pdf') {
+        displayPrompt = query || `Please analyze this attached PDF document (${attachedFile.name}) and provide actionable habit coaching recommendations.`;
+        payloadPrompt = displayPrompt;
+      } else if (attachedFile.textData) {
+        displayPrompt = query || `Please analyze this attached document (${attachedFile.name}) and provide actionable habit coaching.`;
+        payloadPrompt = query
+          ? `${query}\n\n[Attached Document: ${attachedFile.name}]\n\`\`\`\n${attachedFile.textData}\n\`\`\``
+          : `Please analyze this attached document (${attachedFile.name}) and provide coaching feedback and habit optimization:\n\`\`\`\n${attachedFile.textData}\n\`\`\``;
+      }
+    } else if (!displayPrompt && attachedFile?.type === 'image') {
+      displayPrompt = 'Please analyze this schedule/chart image and provide actionable habit coaching advice.';
+      payloadPrompt = displayPrompt;
     }
 
     const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: userPrompt,
+      content: displayPrompt,
       imagePreview: attachedFile?.type === 'image' ? attachedFile.preview : undefined,
       documentInfo: attachedFile?.type === 'document' ? { name: attachedFile.name, size: attachedFile.size } : undefined,
     };
@@ -200,21 +235,38 @@ export default function DashboardPage() {
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
-    const imagePayload = attachedFile?.type === 'image' && attachedFile.base64 ? { mimeType: attachedFile.mimeType, base64: attachedFile.base64 } : undefined;
+
+    // Multimodal payload for Gemini (Image or PDF document)
+    const attachmentPayload =
+      attachedFile?.base64
+        ? { mimeType: attachedFile.mimeType, base64: attachedFile.base64 }
+        : undefined;
+
     setAttachedFile(null);
+    setShowAttachmentMenu(false);
     setLoading(true);
 
     const assistantMsgId = (Date.now() + 1).toString();
     setMessages((prev) => [...prev, { id: assistantMsgId, role: 'assistant', content: '' }]);
 
     try {
+      // Use payloadPrompt for the last message
+      const apiMessages = newMessages
+        .filter((m) => m.role !== 'system')
+        .map((m, idx, arr) => {
+          if (idx === arr.length - 1) {
+            return { role: m.role, content: payloadPrompt };
+          }
+          return { role: m.role, content: m.content };
+        });
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: newMessages.filter((m) => m.role !== 'system').map((m) => ({ role: m.role, content: m.content })),
+          messages: apiMessages,
           provider: selectedProvider,
-          image: imagePayload,
+          attachment: attachmentPayload,
         }),
       });
 
@@ -269,73 +321,61 @@ export default function DashboardPage() {
 
       const updated = [newArchive, ...archives];
       saveArchivesToStorage(updated);
-      toast.success('Current chat saved to Vault 📦');
+      toast.success('Session saved to Vault!');
     }
 
-    setMessages([
-      {
-        id: 'welcome',
-        role: 'assistant',
-        content: "👋 Ready for a fresh start! What habit or routine are we tackling?",
-      },
-    ]);
+    setMessages(INITIAL_MESSAGES);
+    setAttachedFile(null);
+    setShowAttachmentMenu(false);
   };
 
   const handleResumeChat = (session: SavedSession) => {
-    // If current conversation has substance, archive it before resuming
-    if (messages.length > 2) {
-      const firstUserMsg = messages.find((m) => m.role === 'user')?.content || 'Session';
-      const currentArchive: SavedSession = {
-        id: Date.now().toString(),
-        title: firstUserMsg.slice(0, 35) + '...',
-        timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        messages: [...messages],
-      };
-      saveArchivesToStorage([currentArchive, ...archives.filter((a) => a.id !== session.id)]);
-    } else {
-      saveArchivesToStorage(archives.filter((a) => a.id !== session.id));
-    }
-
     setMessages(session.messages);
     setShowArchives(false);
-    toast.success(`🔄 Resumed session: "${session.title}"`, { icon: '💬' });
+    toast.info(`Resumed session: "${session.title}"`);
   };
 
   const handleDeleteArchive = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const updated = archives.filter((a) => a.id !== id);
     saveArchivesToStorage(updated);
-    toast.info('Archived session deleted from vault.');
+    toast.info('Session removed from Vault.');
   };
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
-    toast.success('Copied message to clipboard!');
+    toast.success('Copied to clipboard!');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto space-y-3">
-      {/* Top Header & Engine Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
-        <div>
-          <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
-            <Bot className="w-5 h-5 text-purple-400" /> AI Habit Coach
-          </h1>
-          <p className="text-[11px] text-slate-400">Atomic Habits science with dual Groq & Gemini Vision engines</p>
+    <div className="max-w-4xl mx-auto h-[calc(100vh-6rem)] flex flex-col justify-between space-y-4">
+      {/* Top Engine & Vault Action Bar */}
+      <div className="flex items-center justify-between pb-3 border-b border-white/5">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-xl bg-purple-950/60 border border-purple-500/30 text-purple-300 shadow-sm">
+            <Bot className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-base font-bold text-white flex items-center gap-2">
+              <span>AI Habit Coach</span>
+            </h1>
+            <p className="text-[11px] text-slate-400">Atomic Habits science with dual Groq & Gemini Vision engines</p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          {/* Engine Selector Toggle */}
-          <div className="flex items-center bg-slate-900/80 p-0.5 rounded-lg border border-white/5 text-[11px]">
+        {/* Action Controls */}
+        <div className="flex items-center gap-2">
+          {/* Dual AI Engine Toggle */}
+          <div className="flex items-center bg-slate-900/80 p-1 rounded-xl border border-white/10 text-xs">
             <button
               onClick={() => setSelectedProvider('groq')}
               className={`px-2.5 py-1 rounded-md font-medium transition-colors flex items-center gap-1 ${
-                selectedProvider === 'groq' ? 'bg-purple-600/30 text-purple-200 border border-purple-500/30' : 'text-slate-400 hover:text-slate-200'
+                selectedProvider === 'groq' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Cpu className="w-3 h-3 text-purple-400" /> Groq (Fast)
+              <Cpu className="w-3 h-3" /> Groq (Fast)
             </button>
             <button
               onClick={() => setSelectedProvider('gemini')}
@@ -368,16 +408,16 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* First-Time Login / Quick Feature Tour Dialog Modal */}
+      {/* Interactive Onboarding Tour Modal */}
       <Dialog open={showOnboardingModal} onOpenChange={setShowOnboardingModal}>
         <DialogContent className="max-w-2xl bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold gradient-text flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-purple-400" />
-              <span>Welcome to HabitBot, {currentUser?.username || 'Champion'}! 🎉</span>
+              <span>Welcome to HabitBot v5.0 Pro! 👋</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-400">
-              Here is your 60-second tour to get the most out of your behavioral dashboard.
+              Here is everything you can do with your HabitBot account in 60 seconds:
             </DialogDescription>
           </DialogHeader>
 
@@ -390,7 +430,7 @@ export default function DashboardPage() {
                 <span>1. Personal AI Coach & Vision</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Chat anytime for motivation and habit strategy. Click the paperclip 📎 to upload photos of schedules, workout routines, or meal charts for Gemini Vision analysis.
+                Chat anytime for habit science and motivation. Upload schedule images or PDF documents for Google Gemini Vision analysis.
               </p>
             </div>
 
@@ -402,7 +442,7 @@ export default function DashboardPage() {
                 <span>2. Habit Matrix & Streak Freeze</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Check off your daily habits in the left sidebar. Earn +10 XP per habit, level up your badge, and turn on "Freeze Streak" when traveling to protect your momentum!
+                Check off daily habits in the sidebar to earn +10 XP. Turn on "Freeze Day" ❄️ when traveling to shield your streak without penalty!
               </p>
             </div>
 
@@ -411,10 +451,10 @@ export default function DashboardPage() {
                 <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
                   <Headphones className="w-4 h-4 text-amber-400" />
                 </div>
-                <span>3. Pomodoro Focus & Soundtracks</span>
+                <span>3. Pomodoro Focus & Audio</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Run 25-minute deep work intervals in the sidebar. Listen to built-in Lofi/Rain presets or paste any YouTube study stream to play uninterrupted across all tabs.
+                Run 25-minute deep work intervals with sound cues. Listen to Lofi Nasheed presets or upload audio/video files from your device.
               </p>
             </div>
 
@@ -423,10 +463,10 @@ export default function DashboardPage() {
                 <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
                   <CheckSquare className="w-4 h-4 text-indigo-400" />
                 </div>
-                <span>4. AI Action Planner & Tasks</span>
+                <span>4. AI Action Planner & Master DB</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Under the Tasks tab, let AI break down any daunting goal into 4 daily micro-actions. All tasks are permanently saved in your Master Task Database!
+                Under the Tasks tab, let AI break down goals into 4 micro-actions. All tasks are permanently saved in your Master Database.
               </p>
             </div>
 
@@ -438,15 +478,15 @@ export default function DashboardPage() {
                 <span>5. Evening Logbook & Excel Export</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Log your daily wins and friction points in the Logbook (+15 XP). Download a multi-sheet Excel spreadsheet of today's progress or lifetime archives with 1 click!
+                Log daily wins & friction points in the Logbook (+15 XP). Download a multi-sheet Excel spreadsheet of today's progress or lifetime archives anytime!
               </p>
             </div>
           </div>
 
-          <div className="p-3.5 bg-gradient-to-r from-purple-950/40 via-cyan-950/40 to-slate-900/60 rounded-xl border border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center justify-between pt-3 border-t border-white/10">
             <div>
-              <div className="font-semibold text-white">You're all set to begin! 🚀</div>
-              <div className="text-[11px] text-slate-400">You can re-open this guide anytime from the top bar.</div>
+              <div className="font-semibold text-white text-xs">You're all set to begin! 🚀</div>
+              <div className="text-[10px] text-slate-400">You can re-open this guide anytime from the top bar.</div>
             </div>
             <Button
               size="sm"
@@ -456,7 +496,7 @@ export default function DashboardPage() {
                 }
                 setShowOnboardingModal(false);
               }}
-              className="gradient-button text-xs px-5 py-2.5 rounded-lg shrink-0 shadow-md shadow-purple-500/20"
+              className="gradient-button text-xs px-5 py-2 rounded-lg shrink-0 shadow-md shadow-purple-500/20"
             >
               Let's Start Building Habits!
             </Button>
@@ -653,50 +693,119 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Input Form with Multi-Format Attachment Button */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSend();
-        }}
-        className="relative flex items-center gap-2 p-2 bg-slate-900/90 rounded-2xl border border-white/10 backdrop-blur-2xl shadow-xl"
-      >
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileUpload}
-          accept="image/*,.pdf,.txt,.csv,.json,.md,.docx,.doc,.xlsx"
-          className="hidden"
-        />
+      {/* Input Form with Separate Image and Document Selectors */}
+      <div className="relative">
+        {/* Floating Attachment Menu Popup */}
+        <AnimatePresence>
+          {showAttachmentMenu && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute bottom-16 left-2 z-30 p-2 bg-slate-950/95 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl flex flex-col gap-1 w-52"
+            >
+              <div className="text-[10px] font-semibold text-slate-400 px-2 py-1 uppercase tracking-wider">
+                Attach File
+              </div>
 
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          title="Upload image or document (.pdf, .txt, .csv, .md, .docx)"
-          className="p-2 rounded-xl text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors"
+              {/* Option 1: Image / Photo */}
+              <button
+                type="button"
+                onClick={() => {
+                  imageInputRef.current?.click();
+                  setShowAttachmentMenu(false);
+                }}
+                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-slate-200 hover:text-white hover:bg-purple-950/60 border border-transparent hover:border-purple-500/30 transition-all text-left group"
+              >
+                <div className="w-7 h-7 rounded-lg bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center text-cyan-300 group-hover:scale-105 transition-transform">
+                  <ImageIcon className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-white font-semibold text-xs">Image / Photo</div>
+                  <div className="text-[10px] text-slate-400 font-mono">PNG, JPG, WebP</div>
+                </div>
+              </button>
+
+              {/* Option 2: Document / PDF */}
+              <button
+                type="button"
+                onClick={() => {
+                  docInputRef.current?.click();
+                  setShowAttachmentMenu(false);
+                }}
+                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-slate-200 hover:text-white hover:bg-purple-950/60 border border-transparent hover:border-purple-500/30 transition-all text-left group"
+              >
+                <div className="w-7 h-7 rounded-lg bg-purple-950/60 border border-purple-500/30 flex items-center justify-center text-purple-300 group-hover:scale-105 transition-transform">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-white font-semibold text-xs">Document / Notes</div>
+                  <div className="text-[10px] text-slate-400 font-mono">PDF, TXT, CSV, MD</div>
+                </div>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+          className="relative flex items-center gap-2 p-2 bg-slate-900/90 rounded-2xl border border-white/10 backdrop-blur-2xl shadow-xl"
         >
-          <Paperclip className="w-4 h-4" />
-        </button>
+          {/* Hidden Image Input */}
+          <input
+            type="file"
+            ref={imageInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            className="hidden"
+          />
 
-        <Input
-          type="text"
-          placeholder="Ask HabitBot anything about your habits, routines, or focus..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={loading}
-          className="flex-1 bg-transparent border-0 text-white placeholder:text-slate-500 focus-visible:ring-0 text-xs sm:text-sm pl-1"
-        />
+          {/* Hidden Document Input */}
+          <input
+            type="file"
+            ref={docInputRef}
+            onChange={handleDocUpload}
+            accept=".pdf,.txt,.csv,.json,.md,.doc,.docx"
+            className="hidden"
+          />
 
-        <Button
-          type="submit"
-          size="sm"
-          disabled={(!input.trim() && !attachedFile) || loading}
-          className="gradient-button h-10 px-4 rounded-xl shadow-lg shadow-purple-500/20 flex items-center gap-1.5"
-        >
-          <Send className="w-4 h-4" />
-          <span className="hidden sm:inline">Send</span>
-        </Button>
-      </form>
+          {/* Pin/Paperclip Button with Popup Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
+            title="Attach an Image or Document"
+            className={`p-2 rounded-xl transition-all ${
+              showAttachmentMenu
+                ? 'bg-purple-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-cyan-400 hover:bg-slate-800'
+            }`}
+          >
+            <Paperclip className="w-4 h-4" />
+          </button>
+
+          <Input
+            type="text"
+            placeholder="Ask HabitBot anything about your habits, routines, or focus..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={loading}
+            className="flex-1 bg-transparent border-0 text-white placeholder:text-slate-500 focus-visible:ring-0 text-xs sm:text-sm pl-1"
+          />
+
+          <Button
+            type="submit"
+            size="sm"
+            disabled={(!input.trim() && !attachedFile) || loading}
+            className="gradient-button h-10 px-4 rounded-xl shadow-lg shadow-purple-500/20 flex items-center gap-1.5"
+          >
+            <Send className="w-4 h-4" />
+            <span className="hidden sm:inline">Send</span>
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

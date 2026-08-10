@@ -11,7 +11,7 @@ import { getActiveUser, getActiveMediaUrl, saveActiveMedia } from '@/lib/auth-st
 type PlayerSize = 'compact' | 'normal' | 'large';
 
 const DEFAULT_FOCUS_VIDEOS = [
-  { title: '🎧 Lofi Chill', id: 'TURbeWK2wwg', url: 'https://www.youtube.com/watch?v=TURbeWK2wwg' },
+  { title: '🎧 Lofi Nasheed', id: 'oKxaKT6Kb-A', url: 'https://www.youtube.com/watch?v=oKxaKT6Kb-A' },
   { title: '🌧️ Heavy Rain', id: 'mPZkdNFkNps', url: 'https://www.youtube.com/watch?v=mPZkdNFkNps' },
   { title: '🌌 Synthwave', id: '4xDzrJKXOOY', url: 'https://www.youtube.com/watch?v=4xDzrJKXOOY' },
   { title: '☕ Coffee Cafe', id: 'lTRiuFIWV54', url: 'https://www.youtube.com/watch?v=lTRiuFIWV54' },
@@ -19,7 +19,7 @@ const DEFAULT_FOCUS_VIDEOS = [
 
 export function MediaPlayer() {
   const [videoUrl, setVideoUrl] = useState('');
-  const [activeVideoId, setActiveVideoId] = useState('TURbeWK2wwg');
+  const [activeVideoId, setActiveVideoId] = useState('oKxaKT6Kb-A');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [playerSize, setPlayerSize] = useState<PlayerSize>('normal');
   const [autoplayKey, setAutoplayKey] = useState(0);
