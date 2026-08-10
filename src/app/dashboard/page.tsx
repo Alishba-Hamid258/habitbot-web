@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, Plus, Sparkles, User, RefreshCw, Trash2, Archive, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react';
+import { Bot, Send, Plus, Sparkles, User, RefreshCw, Trash2, Archive, ChevronDown, ChevronUp, Copy, Check, Paperclip, X, Image as ImageIcon, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  imagePreview?: string;
 }
 
 interface SavedSession {
@@ -34,15 +35,19 @@ export default function CoachPage() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "👋 **Hello! I'm HabitBot**, your behavioral scientist and Atomic Habits coach.\n\nHow can I help you level up your routines, build unbreakable consistency, or conquer procrastination today?",
+      content: "👋 **Hello! I'm HabitBot**, your behavioral scientist and Atomic Habits coach.\n\nI can stream responses with **Groq** or **Google Gemini**, analyze schedule photos with Vision, and help you design peak routines. What are we optimizing today?",
     },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<'groq' | 'gemini'>('groq');
+  const [attachedImage, setAttachedImage] = useState<{ mimeType: string; base64: string; preview: string } | null>(null);
+
   const [archives, setArchives] = useState<SavedSession[]>([]);
   const [showArchives, setShowArchives] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom of chat
@@ -65,23 +70,50 @@ export default function CoachPage() {
     localStorage.setItem('habitbot_chat_archives', JSON.stringify(updated));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload a valid image file (PNG, JPG, WebP).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(',')[1];
+      setAttachedImage({
+        mimeType: file.type,
+        base64,
+        preview: result,
+      });
+      // Auto-switch to Gemini for Vision
+      setSelectedProvider('gemini');
+      toast.success('Image attached! Switched engine to Google Gemini Vision 👁️');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSend = async (textToSend?: string) => {
     const query = (textToSend || input).trim();
-    if (!query || loading) return;
+    if ((!query && !attachedImage) || loading) return;
 
     const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: query,
+      content: query || 'Analyze this image and give actionable habit/routine advice.',
+      imagePreview: attachedImage?.preview,
     };
 
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
+    const imagePayload = attachedImage ? { mimeType: attachedImage.mimeType, base64: attachedImage.base64 } : undefined;
+    setAttachedImage(null);
     setLoading(true);
 
     const assistantMsgId = (Date.now() + 1).toString();
-    // Optimistically add empty assistant message to stream into
     setMessages((prev) => [...prev, { id: assistantMsgId, role: 'assistant', content: '' }]);
 
     try {
@@ -89,7 +121,9 @@ export default function CoachPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: newMessages.filter((m) => m.role !== 'system'),
+          messages: newMessages.filter((m) => m.role !== 'system').map((m) => ({ role: m.role, content: m.content })),
+          provider: selectedProvider,
+          image: imagePayload,
         }),
       });
 
@@ -113,14 +147,14 @@ export default function CoachPage() {
           );
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantMsgId
             ? {
                 ...m,
                 content:
-                  "⚠️ *Connection note*: Make sure your `GROQ_API_KEY` is added in `.env.local` to enable live LLM streaming. You can still test all local habit mechanics!",
+                  `⚠️ *Engine note*: Make sure your \`${selectedProvider === 'gemini' ? 'GEMINI_API_KEY' : 'GROQ_API_KEY'}\` is set in \`.env.local\` or Vercel settings.`,
               }
             : m
         )
@@ -131,7 +165,6 @@ export default function CoachPage() {
   };
 
   const handleNewChat = () => {
-    // If conversation has messages beyond welcome, archive it
     if (messages.length > 2) {
       const firstUserMsg = messages.find((m) => m.role === 'user')?.content || 'Session';
       const sessionTitle = firstUserMsg.slice(0, 30) + (firstUserMsg.length > 30 ? '...' : '');
@@ -152,13 +185,12 @@ export default function CoachPage() {
       {
         id: 'welcome',
         role: 'assistant',
-        content: "👋 Ready for a fresh start! What habit or goal are we focusing on today?",
+        content: "👋 Ready for a fresh start! What habit or routine are we tackling?",
       },
     ]);
   };
 
   const handleResumeChat = (session: SavedSession) => {
-    // Save current before resuming
     if (messages.length > 2) {
       const firstUserMsg = messages.find((m) => m.role === 'user')?.content || 'Session';
       const currentArchive: SavedSession = {
@@ -192,17 +224,37 @@ export default function CoachPage() {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto space-y-4">
-      {/* Top Header & Actions Bar */}
+    <div className="flex flex-col h-full max-w-4xl mx-auto space-y-3">
+      {/* Top Header & Engine Selector */}
       <div className="flex items-center justify-between pb-2 border-b border-white/5">
         <div>
           <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
             <Bot className="w-5 h-5 text-purple-400" /> AI Habit Coach
           </h1>
-          <p className="text-xs text-slate-400">Powered by Atomic Habits behavioral science</p>
+          <p className="text-[11px] text-slate-400">Atomic Habits science with dual Groq & Gemini Vision engines</p>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Engine Selector Toggle */}
+          <div className="flex items-center bg-slate-900/80 p-0.5 rounded-lg border border-white/5 text-[11px]">
+            <button
+              onClick={() => setSelectedProvider('groq')}
+              className={`px-2.5 py-1 rounded-md font-medium transition-colors flex items-center gap-1 ${
+                selectedProvider === 'groq' ? 'bg-purple-600/30 text-purple-200 border border-purple-500/30' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Cpu className="w-3 h-3 text-purple-400" /> Groq (Fast)
+            </button>
+            <button
+              onClick={() => setSelectedProvider('gemini')}
+              className={`px-2.5 py-1 rounded-md font-medium transition-colors flex items-center gap-1 ${
+                selectedProvider === 'gemini' ? 'bg-cyan-600/30 text-cyan-200 border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Sparkles className="w-3 h-3 text-cyan-400" /> Gemini Vision
+            </button>
+          </div>
+
           <Button
             size="sm"
             variant="outline"
@@ -225,7 +277,7 @@ export default function CoachPage() {
         </div>
       </div>
 
-      {/* Expandable Previous Sessions Archive */}
+      {/* Expandable Vault */}
       <AnimatePresence>
         {showArchives && (
           <motion.div
@@ -279,7 +331,7 @@ export default function CoachPage() {
         )}
       </AnimatePresence>
 
-      {/* Quick Prompt Chips (Visible when conversation is short) */}
+      {/* Quick Prompt Chips */}
       {messages.length <= 2 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {QUICK_PROMPTS.map((p, idx) => (
@@ -295,8 +347,8 @@ export default function CoachPage() {
         </div>
       )}
 
-      {/* Scrollable Message History Area */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar min-h-[350px]">
+      {/* Message History */}
+      <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar min-h-[340px]">
         {messages.map((m) => (
           <motion.div
             key={m.id}
@@ -319,6 +371,12 @@ export default function CoachPage() {
                   : 'bg-slate-900/90 border border-white/10 text-slate-200 rounded-tl-sm backdrop-blur-xl'
               }`}
             >
+              {m.imagePreview && (
+                <div className="mb-2.5 rounded-lg overflow-hidden border border-white/20 max-w-xs">
+                  <img src={m.imagePreview} alt="Attached context" className="w-full h-auto object-cover" />
+                </div>
+              )}
+
               <div className="prose prose-invert prose-xs sm:prose-sm max-w-none break-words">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {m.content}
@@ -352,7 +410,7 @@ export default function CoachPage() {
             </div>
             <div className="p-3.5 bg-slate-900/80 rounded-2xl border border-white/10 text-xs text-slate-400 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-              <span>HabitBot is formulating actionable advice...</span>
+              <span>HabitBot ({selectedProvider === 'gemini' ? 'Gemini Vision' : 'Groq'}) is formulating advice...</span>
             </div>
           </div>
         )}
@@ -360,7 +418,18 @@ export default function CoachPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Fixed Bottom Input Form */}
+      {/* Image Preview Floating Pill */}
+      {attachedImage && (
+        <div className="flex items-center gap-2 p-2 bg-slate-900/90 border border-purple-500/30 rounded-xl max-w-fit shadow-lg">
+          <ImageIcon className="w-4 h-4 text-cyan-400" />
+          <span className="text-xs text-slate-200">Image attached for Gemini Vision</span>
+          <button onClick={() => setAttachedImage(null)} className="text-slate-400 hover:text-red-400 p-0.5">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Input Form with Attachment Button */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -368,19 +437,36 @@ export default function CoachPage() {
         }}
         className="relative flex items-center gap-2 p-2 bg-slate-900/90 rounded-2xl border border-white/10 backdrop-blur-2xl shadow-xl"
       >
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleImageUpload}
+          accept="image/*"
+          className="hidden"
+        />
+
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          title="Upload habit chart / schedule image for Gemini Vision"
+          className="p-2 rounded-xl text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors"
+        >
+          <Paperclip className="w-4 h-4" />
+        </button>
+
         <Input
           type="text"
           placeholder="Ask HabitBot anything about your habits, routines, or focus..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={loading}
-          className="flex-1 bg-transparent border-0 text-white placeholder:text-slate-500 focus-visible:ring-0 text-xs sm:text-sm pl-3"
+          className="flex-1 bg-transparent border-0 text-white placeholder:text-slate-500 focus-visible:ring-0 text-xs sm:text-sm pl-1"
         />
 
         <Button
           type="submit"
           size="sm"
-          disabled={!input.trim() || loading}
+          disabled={(!input.trim() && !attachedImage) || loading}
           className="gradient-button h-10 px-4 rounded-xl shadow-lg shadow-purple-500/20 flex items-center gap-1.5"
         >
           <Send className="w-4 h-4" />
