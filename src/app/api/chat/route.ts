@@ -14,8 +14,8 @@ export async function POST(req: Request) {
     const userQuery = typeof lastMessage.content === 'string' ? lastMessage.content : '';
     const mediaPayload = attachment || image;
 
-    // 1. Topic Guardrail Check
-    if (!isOnTopic(userQuery) && !mediaPayload) {
+    // 1. Topic Guardrail Check (passes if media attached, or ongoing conversation, or on-topic)
+    if (!isOnTopic(userQuery, Boolean(mediaPayload), messages.length)) {
       const redirectText = "I'm **HabitBot**, your specialized AI habit and high-performance coach! 🎯\n\nI can help you build atomic habits, beat procrastination, optimize morning/evening routines, and design daily productivity systems. How can I help you level up your daily routine today?";
       return new Response(redirectText, {
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -25,34 +25,33 @@ export async function POST(req: Request) {
     const groqKey = process.env.GROQ_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
 
-    // 2. Multimodal File/Image (Images, PDFs) or Explicit Gemini Request -> Route to Google Gemini API
-    if ((mediaPayload || provider === 'gemini') && geminiKey) {
+    // 2. Multimodal Request (Images, PDF) or Explicit Gemini Request
+    if ((mediaPayload || provider === 'gemini') && geminiKey && geminiKey.startsWith('AIzaSy')) {
       try {
         return await callGeminiStream(messages, geminiKey, mediaPayload, 'gemini-1.5-flash');
       } catch (geminiErr: any) {
-        console.error('Gemini error, attempting Groq fallback if text-only:', geminiErr);
-        if (!mediaPayload && groqKey) {
+        console.error('Gemini stream error, falling back to Groq:', geminiErr);
+        if (groqKey) {
           return await callGroqStream(messages, groqKey);
         }
-        return NextResponse.json({ error: geminiErr.message }, { status: 500 });
       }
     }
 
-    // 3. Fast Streaming with Groq API (for text messages)
-    if (groqKey && provider !== 'gemini') {
+    // 3. Fast Streaming with Groq API (High Performance Llama 3.3 Engine)
+    if (groqKey) {
       try {
         return await callGroqStream(messages, groqKey);
       } catch (groqErr: any) {
         console.error('Groq error, attempting Gemini fallback:', groqErr);
-        if (geminiKey) {
+        if (geminiKey && geminiKey.startsWith('AIzaSy')) {
           return await callGeminiStream(messages, geminiKey, mediaPayload, 'gemini-1.5-flash');
         }
         return NextResponse.json({ error: groqErr.message }, { status: 500 });
       }
     }
 
-    // 4. If only Gemini key is configured
-    if (geminiKey) {
+    // 4. If Gemini key is available
+    if (geminiKey && geminiKey.startsWith('AIzaSy')) {
       return await callGeminiStream(messages, geminiKey, mediaPayload, 'gemini-1.5-flash');
     }
 

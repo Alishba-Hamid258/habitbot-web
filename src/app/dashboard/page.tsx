@@ -34,6 +34,7 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
+import { extractTextFromFile } from '@/lib/document-parser';
 
 interface Message {
   id: string;
@@ -165,40 +166,37 @@ export default function DashboardPage() {
     const fileSizeKb = Math.round(file.size / 1024);
     const sizeStr = fileSizeKb > 1024 ? `${(fileSizeKb / 1024).toFixed(1)} MB` : `${fileSizeKb} KB`;
 
-    const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+    try {
+      const { text, isPdf } = await extractTextFromFile(file);
 
-    if (isPdf) {
-      // Read PDF cleanly as Base64 for Google Gemini native PDF understanding
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64 = result.split(',')[1];
-        setAttachedFile({
-          name: file.name,
-          type: 'document',
-          mimeType: 'application/pdf',
-          size: sizeStr,
-          base64,
-        });
-        setSelectedProvider('gemini');
-        toast.success(`PDF attached: "${file.name}" (Switched to Gemini Document Engine 📄)`);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      // Plain text document formats (.txt, .csv, .md, .json)
-      try {
-        const textContent = await file.text();
+      if (isPdf) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          const base64 = result.split(',')[1];
+          setAttachedFile({
+            name: file.name,
+            type: 'document',
+            mimeType: 'application/pdf',
+            size: sizeStr,
+            textData: text,
+            base64,
+          });
+          toast.success(`PDF attached: "${file.name}" (${sizeStr}) 📄`);
+        };
+        reader.readAsDataURL(file);
+      } else {
         setAttachedFile({
           name: file.name,
           type: 'document',
           mimeType: file.type || 'text/plain',
           size: sizeStr,
-          textData: textContent.slice(0, 16000),
+          textData: text,
         });
         toast.success(`Document attached: "${file.name}" (${sizeStr}) 📄`);
-      } catch {
-        toast.error('Could not read text from document.');
       }
+    } catch {
+      toast.error('Could not process document file.');
     }
   };
 
@@ -210,15 +208,13 @@ export default function DashboardPage() {
     let payloadPrompt = query;
 
     if (attachedFile?.type === 'document') {
-      if (attachedFile.mimeType === 'application/pdf') {
-        displayPrompt = query || `Please analyze this attached PDF document (${attachedFile.name}) and provide actionable habit coaching recommendations.`;
-        payloadPrompt = displayPrompt;
-      } else if (attachedFile.textData) {
-        displayPrompt = query || `Please analyze this attached document (${attachedFile.name}) and provide actionable habit coaching.`;
-        payloadPrompt = query
-          ? `${query}\n\n[Attached Document: ${attachedFile.name}]\n\`\`\`\n${attachedFile.textData}\n\`\`\``
-          : `Please analyze this attached document (${attachedFile.name}) and provide coaching feedback and habit optimization:\n\`\`\`\n${attachedFile.textData}\n\`\`\``;
-      }
+      displayPrompt = query || `Summarize and analyze this document (${attachedFile.name}) and provide actionable habit takeaways.`;
+      
+      const docText = attachedFile.textData && attachedFile.textData.length > 20
+        ? `\n\n--- Document Text (${attachedFile.name}) ---\n${attachedFile.textData}\n--- End Document Content ---`
+        : `\n\n[Attached Document: ${attachedFile.name}]`;
+
+      payloadPrompt = `${displayPrompt}${docText}`;
     } else if (!displayPrompt && attachedFile?.type === 'image') {
       displayPrompt = 'Please analyze this schedule/chart image and provide actionable habit coaching advice.';
       payloadPrompt = displayPrompt;
