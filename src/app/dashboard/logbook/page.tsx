@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Sparkles, Calendar, FileSpreadsheet, Download, CheckCircle2, Shield, Clock, CheckSquare, MessageSquare, Video } from 'lucide-react';
+import { BookOpen, Sparkles, Calendar, FileSpreadsheet, Download, CheckCircle2, Shield, Clock, CheckSquare, MessageSquare, Video, Check, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -35,6 +35,16 @@ export default function LogbookPage() {
   const [reflections, setReflections] = useState<ReflectionEntry[]>(DEFAULT_REFLECTIONS);
   const [exporting, setExporting] = useState(false);
 
+  // Custom Sheet Selectors (Default: All checked)
+  const [selectedSheets, setSelectedSheets] = useState({
+    reflections: true,
+    habits: true,
+    focus: true,
+    tasks: true,
+    chat: true,
+    media: true,
+  });
+
   // Load from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('habitbot_reflections');
@@ -44,6 +54,23 @@ export default function LogbookPage() {
       } catch {}
     }
   }, []);
+
+  const toggleSheet = (key: keyof typeof selectedSheets) => {
+    setSelectedSheets((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const setAllSheets = (val: boolean) => {
+    setSelectedSheets({
+      reflections: val,
+      habits: val,
+      focus: val,
+      tasks: val,
+      chat: val,
+      media: val,
+    });
+  };
+
+  const selectedCount = Object.values(selectedSheets).filter(Boolean).length;
 
   const handleSaveReflection = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,109 +97,126 @@ export default function LogbookPage() {
   };
 
   const handleExportLifeAudit = () => {
+    if (selectedCount === 0) {
+      toast.error('Please select at least 1 sheet to include in your export.');
+      return;
+    }
+
     setExporting(true);
     try {
       const wb = XLSX.utils.book_new();
 
       // 1. Sheet: Reflections
-      const refData = reflections.map((r) => ({
-        Date: r.date,
-        'What Went Well': r.wentWell,
-        'Points of Friction': r.friction,
-      }));
-      const wsReflections = XLSX.utils.json_to_sheet(
-        refData.length > 0 ? refData : [{ Date: 'No records', 'What Went Well': '', 'Points of Friction': '' }]
-      );
-      XLSX.utils.book_append_sheet(wb, wsReflections, 'Evening Reflections');
+      if (selectedSheets.reflections) {
+        const refData = reflections.map((r) => ({
+          Date: r.date,
+          'What Went Well': r.wentWell,
+          'Points of Friction': r.friction,
+        }));
+        const wsReflections = XLSX.utils.json_to_sheet(
+          refData.length > 0 ? refData : [{ Date: 'No records', 'What Went Well': '', 'Points of Friction': '' }]
+        );
+        XLSX.utils.book_append_sheet(wb, wsReflections, 'Evening Reflections');
+      }
 
       // 2. Sheet: Habits Matrix History
-      const wsHabits = XLSX.utils.json_to_sheet([
-        { Date: '2026-08-10', Habit: '💧 Drink 2L Water', Status: 'Completed', Category: 'Health' },
-        { Date: '2026-08-10', Habit: '🏃 20m Morning Walk', Status: 'Completed', Category: 'Fitness' },
-        { Date: '2026-08-10', Habit: '📖 Read 10 Pages', Status: 'Completed', Category: 'Mindset' },
-        { Date: '2026-08-10', Habit: '🧘 10m Meditation', Status: 'Completed', Category: 'Mindfulness' },
-      ]);
-      XLSX.utils.book_append_sheet(wb, wsHabits, 'Habits History');
+      if (selectedSheets.habits) {
+        const wsHabits = XLSX.utils.json_to_sheet([
+          { Date: '2026-08-10', Habit: '💧 Drink 2L Water', Status: 'Completed', Category: 'Health' },
+          { Date: '2026-08-10', Habit: '🏃 20m Morning Walk', Status: 'Completed', Category: 'Fitness' },
+          { Date: '2026-08-10', Habit: '📖 Read 10 Pages', Status: 'Completed', Category: 'Mindset' },
+          { Date: '2026-08-10', Habit: '🧘 10m Meditation', Status: 'Completed', Category: 'Mindfulness' },
+        ]);
+        XLSX.utils.book_append_sheet(wb, wsHabits, 'Habits History');
+      }
 
       // 3. Sheet: Deep Work & Focus Sessions
-      let focusData: any[] = [];
-      try {
-        const rawFocus = localStorage.getItem('habitbot_focus_sessions');
-        if (rawFocus) focusData = JSON.parse(rawFocus);
-      } catch {}
-      if (!focusData || focusData.length === 0) {
-        focusData = [
-          { date: '2026-08-10', mode: 'Deep Work Block 1', duration_mins: 45 },
-          { date: '2026-08-09', mode: 'System Architecture', duration_mins: 60 },
-        ];
+      if (selectedSheets.focus) {
+        let focusData: any[] = [];
+        try {
+          const rawFocus = localStorage.getItem('habitbot_focus_sessions');
+          if (rawFocus) focusData = JSON.parse(rawFocus);
+        } catch {}
+        if (!focusData || focusData.length === 0) {
+          focusData = [
+            { date: '2026-08-10', mode: 'Deep Work Block 1', duration_mins: 45 },
+            { date: '2026-08-09', mode: 'System Architecture', duration_mins: 60 },
+          ];
+        }
+        const wsFocus = XLSX.utils.json_to_sheet(
+          focusData.map((f) => ({ Date: f.date, Activity: f.mode, 'Duration (Mins)': f.duration_mins }))
+        );
+        XLSX.utils.book_append_sheet(wb, wsFocus, 'Deep Work Sessions');
       }
-      const wsFocus = XLSX.utils.json_to_sheet(
-        focusData.map((f) => ({ Date: f.date, Activity: f.mode, 'Duration (Mins)': f.duration_mins }))
-      );
-      XLSX.utils.book_append_sheet(wb, wsFocus, 'Deep Work Sessions');
 
       // 4. Sheet: Tasks History
-      const wsTasks = XLSX.utils.json_to_sheet([
-        { Task: 'Design Next.js App Router components', Priority: 'High', EstTime: '45 mins', Status: 'Completed' },
-        { Task: 'Wire Supabase PostgreSQL database schemas', Priority: 'High', EstTime: '30 mins', Status: 'Pending' },
-        { Task: 'Review Atomic Habits chapter 4', Priority: 'Medium', EstTime: '20 mins', Status: 'Pending' },
-      ]);
-      XLSX.utils.book_append_sheet(wb, wsTasks, 'Tasks History');
+      if (selectedSheets.tasks) {
+        const wsTasks = XLSX.utils.json_to_sheet([
+          { Task: 'Design Next.js App Router components', Priority: 'High', EstTime: '45 mins', Status: 'Completed' },
+          { Task: 'Wire Supabase PostgreSQL database schemas', Priority: 'High', EstTime: '30 mins', Status: 'Pending' },
+          { Task: 'Review Atomic Habits chapter 4', Priority: 'Medium', EstTime: '20 mins', Status: 'Pending' },
+        ]);
+        XLSX.utils.book_append_sheet(wb, wsTasks, 'Tasks History');
+      }
 
       // 5. Sheet: Chat History & Saved Archives
-      let chatData: any[] = [];
-      try {
-        const rawChat = localStorage.getItem('habitbot_chat_archives');
-        if (rawChat) {
-          const sessions = JSON.parse(rawChat);
-          sessions.forEach((s: any) => {
-            s.messages?.forEach((m: any) => {
-              chatData.push({
-                Timestamp: s.timestamp,
-                Session: s.title,
-                Speaker: m.role === 'assistant' ? 'HabitBot' : 'User',
-                Message: m.content,
+      if (selectedSheets.chat) {
+        let chatData: any[] = [];
+        try {
+          const rawChat = localStorage.getItem('habitbot_chat_archives');
+          if (rawChat) {
+            const sessions = JSON.parse(rawChat);
+            sessions.forEach((s: any) => {
+              s.messages?.forEach((m: any) => {
+                chatData.push({
+                  Timestamp: s.timestamp,
+                  Session: s.title,
+                  Speaker: m.role === 'assistant' ? 'HabitBot' : 'User',
+                  Message: m.content,
+                });
               });
             });
-          });
+          }
+        } catch {}
+        if (chatData.length === 0) {
+          chatData = [
+            {
+              Timestamp: '2026-08-10',
+              Session: 'Initial Coach Session',
+              Speaker: 'HabitBot',
+              Message: 'Help user build 1% improvements every single day.',
+            },
+          ];
         }
-      } catch {}
-      if (chatData.length === 0) {
-        chatData = [
-          {
-            Timestamp: '2026-08-10',
-            Session: 'Initial Coach Session',
-            Speaker: 'HabitBot',
-            Message: 'Help user build 1% improvements every single day.',
-          },
-        ];
+        const wsChat = XLSX.utils.json_to_sheet(chatData);
+        XLSX.utils.book_append_sheet(wb, wsChat, 'Chat History & Archives');
       }
-      const wsChat = XLSX.utils.json_to_sheet(chatData);
-      XLSX.utils.book_append_sheet(wb, wsChat, 'Chat History & Archives');
 
       // 6. Sheet: Media & Custom Focus Soundtracks
-      let mediaData: any[] = [];
-      try {
-        const rawMedia = localStorage.getItem('habitbot_media_history');
-        if (rawMedia) mediaData = JSON.parse(rawMedia);
-      } catch {}
-      if (!mediaData || mediaData.length === 0) {
-        mediaData = [
-          {
-            date: '2026-08-10',
-            title: 'Lofi Focus Stream',
-            url: 'https://youtube.com/watch?v=jfKfPfyJRdk',
-          },
-        ];
+      if (selectedSheets.media) {
+        let mediaData: any[] = [];
+        try {
+          const rawMedia = localStorage.getItem('habitbot_media_history');
+          if (rawMedia) mediaData = JSON.parse(rawMedia);
+        } catch {}
+        if (!mediaData || mediaData.length === 0) {
+          mediaData = [
+            {
+              date: '2026-08-10',
+              title: 'Lofi Focus Stream',
+              url: 'https://youtube.com/watch?v=jfKfPfyJRdk',
+            },
+          ];
+        }
+        const wsMedia = XLSX.utils.json_to_sheet(
+          mediaData.map((m) => ({ Date: m.date, 'Video Title': m.title, 'YouTube URL': m.url }))
+        );
+        XLSX.utils.book_append_sheet(wb, wsMedia, 'Media History');
       }
-      const wsMedia = XLSX.utils.json_to_sheet(
-        mediaData.map((m) => ({ Date: m.date, 'Video Title': m.title, 'YouTube URL': m.url }))
-      );
-      XLSX.utils.book_append_sheet(wb, wsMedia, 'Media History');
 
-      // Trigger multi-sheet workbook download
+      // Trigger custom multi-sheet workbook download
       XLSX.writeFile(wb, `HabitBot_Life_Audit_${new Date().toISOString().split('T')[0]}.xlsx`);
-      toast.success('Complete 6-Sheet Life Audit Excel workbook downloaded! 📊');
+      toast.success(`Exported ${selectedCount} selected sheet${selectedCount > 1 ? 's' : ''} to Excel! 📊`);
     } catch (err: any) {
       toast.error(`Export failed: ${err.message}`);
     } finally {
@@ -185,59 +229,190 @@ export default function LogbookPage() {
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-purple-400" /> Logbook, Reflections & Life Audit
+          <BookOpen className="w-5 h-5 text-purple-400" /> Logbook, Reflections & Custom Export
         </h1>
-        <p className="text-xs text-slate-400">Daily evening reflections, behavioral insights, and complete 6-sheet Excel backups</p>
+        <p className="text-xs text-slate-400">Daily evening reflections, behavioral insights, and tailored Excel data backups</p>
       </div>
 
-      {/* Multi-Sheet Life Audit Exporter Banner Card */}
-      <div className="p-5 bg-gradient-to-r from-purple-950/30 via-slate-900/60 to-cyan-950/30 rounded-xl border border-purple-500/20 space-y-3 shadow-lg">
+      {/* Customizable Life Audit Exporter Banner Card */}
+      <div className="p-5 bg-gradient-to-r from-purple-950/30 via-slate-900/60 to-cyan-950/30 rounded-xl border border-purple-500/20 space-y-4 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="text-sm font-bold text-white flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-              <span>Full Life Audit Data Export (.xlsx)</span>
+              <span>Tailored Life Audit Excel Export (.xlsx)</span>
             </div>
             <p className="text-xs text-slate-300 mt-1">
-              Exports your entire HabitBot journey into a formatted multi-sheet Excel spreadsheet.
+              Select which sheets you want to include in your download. Untick any you do not need:
             </p>
           </div>
 
-          <Button
-            onClick={handleExportLifeAudit}
-            disabled={exporting}
-            className="gradient-button text-xs gap-1.5 px-4 py-2 rounded-xl shadow-lg shadow-purple-500/20 shrink-0"
-          >
-            <Download className="w-4 h-4" />
-            <span>{exporting ? 'Generating Excel...' : 'Download Life Audit (.xlsx)'}</span>
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              onClick={handleExportLifeAudit}
+              disabled={exporting || selectedCount === 0}
+              className={`gradient-button text-xs gap-1.5 px-4 py-2 rounded-xl shadow-lg shadow-purple-500/20 ${
+                selectedCount === 0 ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              <Download className="w-4 h-4" />
+              <span>{exporting ? 'Generating Excel...' : `Download ${selectedCount} Sheet${selectedCount > 1 ? 's' : ''} (.xlsx)`}</span>
+            </Button>
+          </div>
         </div>
 
-        {/* 6 Sheets Summary Tags */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-white/5 text-[11px] text-slate-300">
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
-            <BookOpen className="w-3.5 h-3.5 text-purple-400" />
-            <span>1. Reflections Sheet</span>
-          </div>
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
-            <Shield className="w-3.5 h-3.5 text-cyan-400" />
-            <span>2. Habits Log Sheet</span>
-          </div>
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
-            <Clock className="w-3.5 h-3.5 text-amber-400" />
-            <span>3. Focus Sessions Sheet</span>
-          </div>
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
-            <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
-            <span>4. Tasks History Sheet</span>
-          </div>
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
-            <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
-            <span>5. Chat Logs Sheet</span>
-          </div>
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950/40 rounded-lg border border-white/5">
-            <Video className="w-3.5 h-3.5 text-rose-400" />
-            <span>6. Media History Sheet</span>
+        {/* Interactive Checkbox Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-white/10">
+          <button
+            onClick={() => toggleSheet('reflections')}
+            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+              selectedSheets.reflections
+                ? 'bg-purple-950/40 border-purple-500/40 text-purple-200 shadow-sm'
+                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-3.5 h-3.5 text-purple-400" />
+              <span>1. Evening Reflections</span>
+            </div>
+            <div
+              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
+                selectedSheets.reflections
+                  ? 'bg-purple-600 border-purple-500 text-white'
+                  : 'border-slate-600 bg-slate-900'
+              }`}
+            >
+              {selectedSheets.reflections && '✓'}
+            </div>
+          </button>
+
+          <button
+            onClick={() => toggleSheet('habits')}
+            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+              selectedSheets.habits
+                ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-200 shadow-sm'
+                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Shield className="w-3.5 h-3.5 text-cyan-400" />
+              <span>2. Habits Log</span>
+            </div>
+            <div
+              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
+                selectedSheets.habits
+                  ? 'bg-cyan-600 border-cyan-500 text-white'
+                  : 'border-slate-600 bg-slate-900'
+              }`}
+            >
+              {selectedSheets.habits && '✓'}
+            </div>
+          </button>
+
+          <button
+            onClick={() => toggleSheet('focus')}
+            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+              selectedSheets.focus
+                ? 'bg-amber-950/40 border-amber-500/40 text-amber-200 shadow-sm'
+                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <span>3. Focus Sessions</span>
+            </div>
+            <div
+              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
+                selectedSheets.focus
+                  ? 'bg-amber-600 border-amber-500 text-white'
+                  : 'border-slate-600 bg-slate-900'
+              }`}
+            >
+              {selectedSheets.focus && '✓'}
+            </div>
+          </button>
+
+          <button
+            onClick={() => toggleSheet('tasks')}
+            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+              selectedSheets.tasks
+                ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200 shadow-sm'
+                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+              <span>4. Tasks History</span>
+            </div>
+            <div
+              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
+                selectedSheets.tasks
+                  ? 'bg-emerald-600 border-emerald-500 text-white'
+                  : 'border-slate-600 bg-slate-900'
+              }`}
+            >
+              {selectedSheets.tasks && '✓'}
+            </div>
+          </button>
+
+          <button
+            onClick={() => toggleSheet('chat')}
+            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+              selectedSheets.chat
+                ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-200 shadow-sm'
+                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
+              <span>5. Chat Logs</span>
+            </div>
+            <div
+              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
+                selectedSheets.chat
+                  ? 'bg-indigo-600 border-indigo-500 text-white'
+                  : 'border-slate-600 bg-slate-900'
+              }`}
+            >
+              {selectedSheets.chat && '✓'}
+            </div>
+          </button>
+
+          <button
+            onClick={() => toggleSheet('media')}
+            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+              selectedSheets.media
+                ? 'bg-rose-950/40 border-rose-500/40 text-rose-200 shadow-sm'
+                : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-60 hover:opacity-100'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Video className="w-3.5 h-3.5 text-rose-400" />
+              <span>6. Media History</span>
+            </div>
+            <div
+              className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] font-bold ${
+                selectedSheets.media
+                  ? 'bg-rose-600 border-rose-500 text-white'
+                  : 'border-slate-600 bg-slate-900'
+              }`}
+            >
+              {selectedSheets.media && '✓'}
+            </div>
+          </button>
+        </div>
+
+        {/* Select All / Deselect All Controls */}
+        <div className="flex items-center justify-between text-[11px] pt-1">
+          <span className="text-slate-400">{selectedCount} of 6 sheets selected</span>
+          <div className="flex gap-3">
+            <button onClick={() => setAllSheets(true)} className="text-cyan-400 hover:underline">
+              Select All
+            </button>
+            <span className="text-slate-600">•</span>
+            <button onClick={() => setAllSheets(false)} className="text-slate-400 hover:underline">
+              Deselect All
+            </button>
           </div>
         </div>
       </div>
