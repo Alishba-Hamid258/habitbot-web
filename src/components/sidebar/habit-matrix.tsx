@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckSquare, Plus, Trash2, Snowflake, ShieldCheck, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
+
+import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
 
 interface HabitItem {
   id: string;
@@ -26,6 +28,24 @@ export function HabitMatrix() {
   const [newHabitName, setNewHabitName] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [isFrozen, setIsFrozen] = useState(false);
+  const [userId, setUserId] = useState<number>(1);
+
+  // Load user-scoped habits
+  useEffect(() => {
+    const active = getActiveUser();
+    if (active) {
+      setUserId(active.id);
+      const userHabits = getUserScopedData<HabitItem[]>(active.id, 'habits', DEFAULT_HABITS);
+      setHabits(userHabits);
+      const userFrozen = getUserScopedData<boolean>(active.id, 'is_frozen', false);
+      setIsFrozen(userFrozen);
+    }
+  }, []);
+
+  const saveHabits = (updated: HabitItem[]) => {
+    setHabits(updated);
+    setUserScopedData(userId, 'habits', updated);
+  };
 
   const toggleHabit = (id: string) => {
     setHabits((prev) => {
@@ -47,6 +67,7 @@ export function HabitMatrix() {
           });
         }
       }
+      setUserScopedData(userId, 'habits', updated);
       return updated;
     });
   };
@@ -60,14 +81,16 @@ export function HabitMatrix() {
       name: newHabitName.trim(),
       completed: false,
     };
-    setHabits((prev) => [...prev, newHabit]);
+    const updated = [...habits, newHabit];
+    saveHabits(updated);
     setNewHabitName('');
     setShowAddForm(false);
     toast.success(`Habit "${newHabit.name}" added to daily matrix!`);
   };
 
   const removeHabit = (id: string, name: string) => {
-    setHabits((prev) => prev.filter((h) => h.id !== id));
+    const updated = habits.filter((h) => h.id !== id);
+    saveHabits(updated);
     toast.info(`Removed "${name}" from matrix.`);
   };
 
@@ -75,6 +98,7 @@ export function HabitMatrix() {
   const toggleFreezeDay = () => {
     if (!isFrozen) {
       setIsFrozen(true);
+      setUserScopedData(userId, 'is_frozen', true);
       // Snow animation effect
       confetti({
         particleCount: 60,
@@ -92,6 +116,7 @@ export function HabitMatrix() {
       });
     } else {
       setIsFrozen(false);
+      setUserScopedData(userId, 'is_frozen', false);
       toast.info('☀️ Streak Unfrozen. Back to active daily tracking!', {
         icon: '🔥',
       });

@@ -10,6 +10,7 @@ import { PomodoroTimer } from '@/components/sidebar/pomodoro-timer';
 import { HabitMatrix } from '@/components/sidebar/habit-matrix';
 import { MediaPlayer } from '@/components/sidebar/media-player';
 import { toast } from 'sonner';
+import { getActiveUser, logoutActiveUser } from '@/lib/auth-storage';
 
 export function Sidebar() {
   const router = useRouter();
@@ -19,16 +20,14 @@ export function Sidebar() {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem('habitbot_user');
-    if (saved) {
-      try {
-        setCurrentUser(JSON.parse(saved));
-      } catch {}
+    const active = getActiveUser();
+    if (active) {
+      setCurrentUser(active);
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('habitbot_user');
+    logoutActiveUser();
     toast.info('Logged out successfully.');
     router.push('/login');
   };
@@ -66,7 +65,7 @@ export function Sidebar() {
             </div>
             <div>
               <div className="text-xs font-semibold text-white capitalize">{currentUser.username}</div>
-              <div className="text-[10px] font-mono text-slate-400">ID: #{currentUser.id}</div>
+              <div className="text-[10px] font-mono text-cyan-300">ID: #{currentUser.id}</div>
             </div>
           </div>
 

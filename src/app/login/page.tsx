@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { Bot, Lock, User, Shield, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Bot, Lock, User, Shield, Sparkles, ArrowRight, CheckCircle2, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { registerUser, authenticateUser } from '@/lib/auth-storage';
 
 type TabType = 'login' | 'signup' | 'admin';
 
@@ -24,48 +25,50 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {
-      toast.error('Please fill in all fields.');
+      toast.error('Please enter your username and password.');
       return;
     }
 
     setLoading(true);
-    // Simulate auth / check credentials
     setTimeout(() => {
       setLoading(false);
-      localStorage.setItem('habitbot_user', JSON.stringify({
-        id: 1,
-        username: username.trim().toLowerCase(),
-      }));
-      toast.success(`Welcome back, ${username}! 🚀`);
+      const res = authenticateUser(username, password);
+      if (!res.success) {
+        toast.error(res.error || 'Invalid credentials.');
+        return;
+      }
+
+      toast.success(`Welcome back, ${res.user?.username}! (ID: #${res.user?.id}) 🚀`);
       router.push('/dashboard');
-    }, 800);
+    }, 500);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim() || !confirmPassword.trim()) {
-      toast.error('Please fill in all fields.');
+      toast.error('Please fill in all registration fields.');
       return;
     }
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match!');
-      return;
-    }
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters.');
+      toast.error('Passwords do not match! Please verify your password.');
       return;
     }
 
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      localStorage.setItem('habitbot_user', JSON.stringify({
-        id: Math.floor(Math.random() * 900) + 10,
-        username: username.trim().toLowerCase(),
-      }));
-      toast.success('Account created successfully! Welcome to HabitBot 🎉');
-      router.push('/dashboard');
-    }, 800);
+      const res = registerUser(username, password);
+      if (!res.success) {
+        toast.error(res.error || 'Registration failed.');
+        return;
+      }
+
+      // Success! Pre-fill username and switch to Login tab so user can log in
+      setPassword('');
+      setConfirmPassword('');
+      setActiveTab('login');
+      toast.success(`🎉 Account created for "${res.user?.username}" (Assigned User ID: #${res.user?.id})! Please sign in now.`);
+    }, 600);
   };
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -74,22 +77,18 @@ export default function LoginPage() {
       setLoading(true);
       setTimeout(() => {
         setLoading(false);
-        localStorage.setItem('habitbot_user', JSON.stringify({
-          id: 1,
-          username: 'admin',
-          isAdmin: true
-        }));
+        authenticateUser('admin', 'admin123');
         toast.success('👑 Welcome Creator! Admin Portal Unlocked.');
         router.push('/admin');
-      }, 700);
+      }, 500);
     } else {
-      toast.error('Invalid Creator Admin credentials. (Use admin / admin123)');
+      toast.error('Invalid Creator Admin credentials. (Default: admin / admin123)');
     }
   };
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center p-4 overflow-hidden bg-[#090d16]">
-      {/* Background Animated Gradient Blobs */}
+      {/* Background Animated Blobs */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style={{ animationDelay: '2s' }} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-900/10 rounded-full blur-3xl pointer-events-none" />
@@ -190,7 +189,7 @@ export default function LoginPage() {
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         type="text"
-                        placeholder="e.g. alex"
+                        placeholder="Enter your username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500"
@@ -217,7 +216,7 @@ export default function LoginPage() {
                     disabled={loading}
                     className="w-full gradient-button font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
                   >
-                    {loading ? 'Logging in...' : 'Sign In to HabitBot'}
+                    {loading ? 'Verifying...' : 'Sign In to HabitBot'}
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </motion.form>
@@ -231,37 +230,37 @@ export default function LoginPage() {
                   exit={{ opacity: 0, x: 10 }}
                   transition={{ duration: 0.2 }}
                   onSubmit={handleSignup}
-                  className="space-y-4"
+                  className="space-y-3.5"
                 >
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <label className="text-xs font-medium text-slate-300">Choose Username</label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         type="text"
-                        placeholder="e.g. warrior101"
+                        placeholder="Unique username (min 3 chars)"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500"
+                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500 text-xs"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <label className="text-xs font-medium text-slate-300">Create Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         type="password"
-                        placeholder="Min. 6 characters"
+                        placeholder="Min 6 chars (letters + numbers/symbols)"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500"
+                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500 text-xs"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <label className="text-xs font-medium text-slate-300">Confirm Password</label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -270,9 +269,15 @@ export default function LoginPage() {
                         placeholder="Re-enter password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500"
+                        className="pl-9 bg-slate-900/60 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-purple-500 text-xs"
                       />
                     </div>
+                  </div>
+
+                  <div className="text-[10px] text-slate-400 bg-slate-950/60 p-2 rounded-lg border border-white/5 space-y-0.5">
+                    <div className="font-semibold text-slate-300">🔒 Password Security Requirements:</div>
+                    <div>• Minimum 6 characters</div>
+                    <div>• Must contain letters and at least 1 number or symbol</div>
                   </div>
 
                   <Button
@@ -280,7 +285,7 @@ export default function LoginPage() {
                     disabled={loading}
                     className="w-full gradient-button font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
                   >
-                    {loading ? 'Creating Account...' : 'Create Free Account'}
+                    {loading ? 'Registering...' : 'Create Account & Assign ID'}
                     <CheckCircle2 className="w-4 h-4" />
                   </Button>
                 </motion.form>

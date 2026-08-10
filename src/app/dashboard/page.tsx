@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
 
 interface Message {
   id: string;
@@ -47,6 +48,8 @@ export default function CoachPage() {
   const [showArchives, setShowArchives] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const [currentUser, setCurrentUser] = useState<{ id: number; username: string } | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -55,19 +58,21 @@ export default function CoachPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Load saved archives from localStorage
+  // Load user-scoped archives from storage
   useEffect(() => {
-    const saved = localStorage.getItem('habitbot_chat_archives');
-    if (saved) {
-      try {
-        setArchives(JSON.parse(saved));
-      } catch {}
+    const active = getActiveUser();
+    if (active) {
+      setCurrentUser(active);
+      const userArchives = getUserScopedData<SavedSession[]>(active.id, 'chat_archives', []);
+      setArchives(userArchives);
     }
   }, []);
 
   const saveArchivesToStorage = (updated: SavedSession[]) => {
     setArchives(updated);
-    localStorage.setItem('habitbot_chat_archives', JSON.stringify(updated));
+    if (currentUser) {
+      setUserScopedData(currentUser.id, 'chat_archives', updated);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
