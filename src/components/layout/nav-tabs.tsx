@@ -9,10 +9,10 @@ import { getActiveUser, computeUserStats } from '@/lib/auth-storage';
 
 const TABS = [
   { href: '/dashboard', label: 'Coach', icon: MessageSquare },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart2 },
   { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/dashboard/logbook', label: 'Logbook', icon: BookOpen },
   { href: '/dashboard/library', label: 'Library', icon: Library },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart2 },
 ];
 
 export function NavTabs() {

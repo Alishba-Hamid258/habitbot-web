@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Library, BookOpen, Film, Video, ExternalLink, Play, Check, Sparkles, AlertCircle } from 'lucide-react';
+import { Library, BookOpen, Film, Video, ExternalLink, Play, Check, Sparkles, AlertCircle, Upload, FileAudio, FileVideo, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { extractYouTubeId } from '@/lib/utils';
@@ -99,15 +99,24 @@ const MASTERCLASSES = [
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<LibraryTab>('books');
   const [customUrl, setCustomUrl] = useState('');
-  const [activeVideoId, setActiveVideoId] = useState('jfKfPfyJRdk');
+  const [activeVideoId, setActiveVideoId] = useState('TURbeWK2wwg');
   const [userId, setUserId] = useState<number>(1);
+
+  // Local device media file state for large player
+  const [localMedia, setLocalMedia] = useState<{
+    url: string;
+    name: string;
+    isVideo: boolean;
+  } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const syncMedia = () => {
     const active = getActiveUser();
     if (active) {
       setUserId(active.id);
       const url = getActiveMediaUrl(active.id);
-      if (url) {
+      if (url && !url.startsWith('blob:') && !url.startsWith('device:')) {
         setCustomUrl(url);
         const vidId = extractYouTubeId(url);
         if (vidId) setActiveVideoId(vidId);
@@ -125,17 +134,43 @@ export default function LibraryPage() {
     e.preventDefault();
     const vidId = extractYouTubeId(customUrl);
     if (!vidId) {
-      toast.error('Please enter a valid YouTube video link.');
+      toast.error('Please enter a valid YouTube video link or 11-digit ID.');
       return;
     }
 
+    setLocalMedia(null);
     setActiveVideoId(vidId);
     saveActiveMedia(userId, customUrl, `Focus Study Stream (${vidId})`);
     toast.success('Custom focus video loaded! Synced with persistent sidebar.');
   };
 
+  const handleDeviceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isVideo = file.type.startsWith('video');
+    const objectUrl = URL.createObjectURL(file);
+
+    setLocalMedia({
+      url: objectUrl,
+      name: file.name,
+      isVideo,
+    });
+    saveActiveMedia(userId, `device://${file.name}`, `Device Media: ${file.name}`);
+    toast.success(`Loaded "${file.name}" from your device! 🎧`, { icon: isVideo ? '🎬' : '🎵' });
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* Hidden File Input for Device Files */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleDeviceUpload}
+        accept="audio/*,video/*"
+        className="hidden"
+      />
+
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
@@ -233,14 +268,17 @@ export default function LibraryPage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <div className="text-xs font-semibold text-cyan-300">🎥 Curated Habit & High-Performance Masterclasses</div>
+          <div className="text-xs font-semibold text-purple-300">🎥 High-Impact Behavioral Lectures & Animations</div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {MASTERCLASSES.map((v, i) => (
-              <div key={i} className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-2.5">
+              <div
+                key={i}
+                className="p-3 bg-slate-900/60 border border-white/5 hover:border-purple-500/30 rounded-xl space-y-2 group transition-all"
+              >
                 <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-black">
                   <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${v.id}`}
+                    src={`https://www.youtube.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1`}
                     title={v.title}
                     className="w-full h-full border-0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -258,28 +296,40 @@ export default function LibraryPage() {
         </motion.div>
       )}
 
-      {/* TAB 3: CUSTOM MEDIA PLAYER */}
+      {/* TAB 3: CUSTOM MEDIA PLAYER WITH LOCAL DEVICE UPLOAD */}
       {activeTab === 'customPlayer' && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <div className="p-5 bg-slate-900/60 rounded-xl border border-white/5 space-y-4">
-            <div>
-              <div className="text-sm font-semibold text-white flex items-center gap-2">
-                <Video className="w-4 h-4 text-purple-400" />
-                <span>Distraction-Free Focus Media Player</span>
+          <div className="p-5 bg-slate-900/60 rounded-xl border border-white/5 space-y-4 shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-white flex items-center gap-2">
+                  <Video className="w-4 h-4 text-purple-400" />
+                  <span>Distraction-Free Focus Media Player</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Paste any YouTube study stream OR upload music and video files directly from your computer/phone!
+                </p>
               </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Paste any YouTube study stream, binaural focus beats, or habit lecture. It will play here <b>and</b> keep playing uninterrupted in the sidebar across all tabs!
-              </p>
+
+              {/* Upload Local File Button */}
+              <Button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shrink-0 shadow-md shadow-emerald-500/20"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Device Audio / Video</span>
+              </Button>
             </div>
 
             <form onSubmit={handleApplyCustomVideo} className="flex gap-2">
               <Input
                 type="text"
-                placeholder="https://www.youtube.com/watch?v=..."
+                placeholder="https://www.youtube.com/watch?v=... OR 11-digit video ID"
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
                 className="flex-1 bg-slate-950/80 border-white/10 text-white text-xs"
@@ -289,23 +339,46 @@ export default function LibraryPage() {
               </Button>
             </form>
 
-            {/* Video Player Display */}
-            {activeVideoId && (
-              <div className="space-y-2 pt-2">
-                <div className="relative aspect-video max-w-2xl mx-auto rounded-xl overflow-hidden border border-white/10 bg-black shadow-2xl">
-                  <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?autoplay=1&enablejsapi=1`}
-                    title="Custom Focus Stream"
-                    className="w-full h-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-                <div className="text-center text-xs text-emerald-400 font-medium">
-                  ✅ Active in Global Sidebar — You can switch to Coach, Tasks, or Analytics and this soundtrack continues playing!
-                </div>
+            {/* Video / Audio Player Display */}
+            <div className="space-y-2 pt-2">
+              <div className="relative aspect-video max-w-2xl mx-auto rounded-xl overflow-hidden border border-white/10 bg-black shadow-2xl flex items-center justify-center">
+                {localMedia ? (
+                  localMedia.isVideo ? (
+                    <video
+                      src={localMedia.url}
+                      controls
+                      autoPlay
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="space-y-4 text-center p-6 bg-gradient-to-b from-slate-900 to-slate-950 w-full h-full flex flex-col items-center justify-center">
+                      <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-lg">
+                        <FileAudio className="w-8 h-8 animate-pulse" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">{localMedia.name}</h4>
+                        <p className="text-xs text-emerald-400 font-mono mt-0.5">Playing Local Audio File from Device</p>
+                      </div>
+                      <audio src={localMedia.url} controls autoPlay className="w-full max-w-md" />
+                    </div>
+                  )
+                ) : (
+                  activeVideoId && (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                      title="Custom Focus Stream"
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  )
+                )}
               </div>
-            )}
+
+              <div className="text-center text-xs text-emerald-400 font-medium">
+                ✅ Active in Global Workspace — Keep your focus soundtrack running while you work!
+              </div>
+            </div>
           </div>
         </motion.div>
       )}
