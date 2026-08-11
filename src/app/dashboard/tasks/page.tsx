@@ -123,19 +123,16 @@ export default function TasksPage() {
     refreshHistory(userId);
 
     setNewTaskTitle('');
-    toast.success(`Task "${newTask.task}" added to sprint & master DB!`);
   };
 
   const deleteTask = (id: string) => {
     const updated = tasks.filter((t) => t.id !== id);
     saveTasks(updated);
-    toast.info('Task removed from active sprint (preserved in master DB)');
   };
 
   const clearCompleted = () => {
     const updated = tasks.filter((t) => !t.done);
     saveTasks(updated);
-    toast.info('Completed sprint tasks archived.');
   };
 
   // High to Low Priority Sorting

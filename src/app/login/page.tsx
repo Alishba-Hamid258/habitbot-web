@@ -28,6 +28,7 @@ import {
   Headphones,
   CheckSquare,
   FileSpreadsheet,
+  FileText,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,42 +39,42 @@ import { registerUser, authenticateUser, sendPasswordResetOTP, verifyOTPAndReset
 
 type TabType = 'login' | 'signup' | 'admin' | 'forgot';
 
-const GUIDE_SECTIONS = [
+const WHY_HABITBOT_SECTIONS = [
   {
-    title: '💬 Personal AI Behavioral Coach',
+    title: '🧠 1. Science-Backed Behavioral Transformation',
     icon: Bot,
     color: 'text-purple-400',
-    desc: 'Chat with your 24/7 accountability partner for psychological habit design, motivation, and routine audits. Upload photos of workout plans or daily schedules for instant AI analysis.',
+    desc: 'Based on James Clear’s Atomic Habits system. Stop relying on fleeting motivation and build automatic 2-minute daily rituals that compound into massive results.',
   },
   {
-    title: '🎯 Daily Habit Matrix & Gamification',
-    icon: CheckCircle2,
+    title: '📄 2. AI Document, Book & PDF Coach',
+    icon: FileText,
+    color: 'text-cyan-400',
+    desc: 'Upload any habit book, study guide, work checklist, or PDF handout. HabitBot instantly parses full chapters and translates them into actionable daily micro-routines.',
+  },
+  {
+    title: '👁️ 3. Image Vision & Quote OCR',
+    icon: Sparkles,
     color: 'text-emerald-400',
-    desc: 'Build consistent routines, earn XP with every checkmark, unlock higher mastery levels (Novice to Grandmaster), and use "Freeze Streak" to protect your streak when traveling.',
+    desc: 'Snap a picture of your workout schedule, motivational poster, or handwritten notes. Built-in OCR and Vision extract the text and coach you directly on your photo.',
   },
   {
-    title: '⏱️ Deep Work Pomodoro & Audio Player',
+    title: '🎧 4. Deep Work Pomodoro & Ambient Media',
     icon: Headphones,
     color: 'text-amber-400',
-    desc: 'Execute 25-minute focus blocks with sound cues. Listen to curated Lofi and rain beats, or paste your favorite YouTube soundtrack to play continuously across all tabs.',
+    desc: 'Eliminate distractions with 25-minute focus intervals. Listen to curated Lofi tracks (including Lofi Nasheed & Heavy Rain), paste any YouTube link, or upload your own device audio/video files.',
   },
   {
-    title: '📜 AI Action Planner & Micro-Steps',
+    title: '📋 5. AI Action Sprints & Manual Task Reordering',
     icon: CheckSquare,
     color: 'text-indigo-400',
-    desc: 'Turn any daunting project into 4 actionable daily micro-actions with AI. Every action is permanently recorded in your Master Database.',
+    desc: 'Break big goals into 4 clear micro-tasks. Reorder tasks with smooth Up/Down swap arrows, sort High-to-Low, and earn permanent XP balance in your Master Database.',
   },
   {
-    title: '📓 Daily Evening Logbook & Reflections',
-    icon: BookOpen,
-    color: 'text-cyan-400',
-    desc: 'Reflect on daily wins and friction points every evening to track mindset shifts, earn +15 XP, and identify resistance patterns.',
-  },
-  {
-    title: '📊 Tailored Excel Life Audit Exporter',
+    title: '📊 6. Permanent Daily Logbook & Excel Life Audit',
     icon: FileSpreadsheet,
     color: 'text-pink-400',
-    desc: 'Download clean, multi-sheet Excel spreadsheets of today’s progress, weekly sprints, or full lifetime archives with a single click.',
+    desc: 'Track streak milestones, protect your habits with Freeze Day ❄️ when traveling, and download clean multi-sheet Excel (.xlsx) spreadsheets of your lifetime progress anytime.',
   },
 ];
 
@@ -281,13 +282,13 @@ export default function LoginPage() {
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> AI Behavioral & Performance Coach
           </p>
 
-          {/* User Guide Trigger Button */}
+          {/* Why Use HabitBot Feature Highlights Button */}
           <button
             onClick={() => setShowGuideModal(true)}
-            className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-purple-950/60 border border-purple-500/30 text-purple-300 hover:text-white hover:bg-purple-900/50 transition-all shadow-md"
+            className="mt-2.5 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-semibold bg-purple-950/70 border border-purple-500/30 text-purple-300 hover:text-white hover:bg-purple-900/60 transition-all shadow-md"
           >
-            <BookOpen className="w-3 h-3 text-cyan-400" />
-            <span>New to HabitBot? Read User Guide & Tips</span>
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Why Use HabitBot? Read Features & Capabilities</span>
             <ChevronRight className="w-3 h-3 text-purple-400" />
           </button>
         </div>
@@ -736,21 +737,21 @@ export default function LoginPage() {
         </Card>
       </motion.div>
 
-      {/* Interactive User Guide & Feature Tour Dialog Modal */}
+      {/* Why Choose HabitBot Feature Tour Dialog Modal */}
       <Dialog open={showGuideModal} onOpenChange={setShowGuideModal}>
         <DialogContent className="max-w-2xl bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold gradient-text flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-purple-400" />
-              <span>HabitBot v5.0 — Quick User Guide & Tips</span>
+              <Sparkles className="w-5 h-5 text-purple-400" />
+              <span>Why Choose HabitBot v5.0 Pro Suite?</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-400">
-              Master the suite in 2 minutes: AI coaching, habit matrices, deep work pomodoro, and Excel life audits.
+              Transforming ambitious aspirations into automatic daily atomic habits with cutting-edge behavioral AI.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            {GUIDE_SECTIONS.map((sec, i) => {
+            {WHY_HABITBOT_SECTIONS.map((sec, i) => {
               const Icon = sec.icon;
               return (
                 <div

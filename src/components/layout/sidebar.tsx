@@ -30,6 +30,8 @@ import {
   Headphones,
   CheckSquare,
   FileSpreadsheet,
+  FileText,
+  Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -677,77 +679,89 @@ export function Sidebar() {
           </div>
         </DialogContent>
       </Dialog>
-      {/* Interactive HabitBot User Guide Modal */}
+      {/* Interactive HabitBot Inside User Guide Modal */}
       <Dialog open={showGuideModal} onOpenChange={setShowGuideModal}>
         <DialogContent className="max-w-2xl bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold gradient-text flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-purple-400" />
-              <span>HabitBot v5.0 — Quick User Guide & Tips</span>
+              <span>HabitBot v5.0 — How to Use Your Workspace</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-400">
-              Master your behavioral dashboard in 60 seconds.
+              Master every tool in your high-performance behavioral dashboard.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5">
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
+              <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
+                  <FileText className="w-4 h-4 text-cyan-400" />
+                </div>
+                <span>1. PDF & Document Habit Coach</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Click 📎 Paperclip to attach any PDF book, handout, or notes. HabitBot parses full multi-page chapters and extracts custom actionable drills.
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
               <div className="flex items-center gap-2 text-xs font-semibold text-white">
                 <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
                   <Bot className="w-4 h-4 text-purple-400" />
                 </div>
-                <span>1. Personal AI Coach & Vision</span>
+                <span>2. Image OCR & Gemini Vision</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Chat anytime for habit science and motivation. Upload schedule or workout photos for Google Gemini Vision analysis.
+                Attach quote posters, workout charts, or handwritten notes. In-browser OCR reads quotes instantly while Gemini Vision analyzes image layout.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                </div>
-                <span>2. Habit Matrix & Streak Freeze</span>
-              </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                Check off daily habits in the sidebar to earn +10 XP. Turn on "Freeze Day" ❄️ when traveling to shield your streak without penalty!
-              </p>
-            </div>
-
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5">
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
               <div className="flex items-center gap-2 text-xs font-semibold text-white">
                 <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
                   <Headphones className="w-4 h-4 text-amber-400" />
                 </div>
-                <span>3. Pomodoro Focus & Audio</span>
+                <span>3. Ambient Media & Device Audio</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Run 25-minute deep work intervals with sound cues. Listen to Lofi/Rain presets or paste your favorite YouTube soundtrack.
+                Listen to curated lofi presets (Lofi Nasheed & Heavy Rain), paste any YouTube link, or upload your own local audio/video files from your device.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5">
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
               <div className="flex items-center gap-2 text-xs font-semibold text-white">
                 <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
                   <CheckSquare className="w-4 h-4 text-indigo-400" />
                 </div>
-                <span>4. AI Action Planner & Master DB</span>
+                <span>4. Task Sprints & Swap Order</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Under the Tasks tab, let AI break down goals into 4 micro-actions. All tasks are permanently saved in your Master Database.
+                Generate 4 micro-tasks with AI. Reorder tasks with ⬆️/⬇️ swap buttons, sort High-to-Low, and earn +5 XP per checkmark with fair uncheck balance.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 sm:col-span-2">
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
+              <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+                <span>5. Habit Matrix & Streak Freeze</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Check off daily habits in the sidebar (+10 XP). Toggle "Freeze Day" ❄️ during rest or travel days to shield your streak without penalties!
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
               <div className="flex items-center gap-2 text-xs font-semibold text-white">
                 <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
                   <FileSpreadsheet className="w-4 h-4 text-pink-400" />
                 </div>
-                <span>5. Evening Logbook & Excel Export</span>
+                <span>6. Logbook & 5-Sheet Excel Audit</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Log daily wins & friction points in the Logbook (+15 XP). Download a multi-sheet Excel spreadsheet of today's progress or lifetime archives anytime!
+                Log daily wins & friction points (+15 XP) and export your full lifetime habits, tasks, media history, and streaks into an organized Excel (.xlsx) file!
               </p>
             </div>
           </div>
