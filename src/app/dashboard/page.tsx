@@ -743,8 +743,51 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              <div className="prose prose-invert prose-xs sm:prose-sm max-w-none break-words">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <div className="text-xs sm:text-sm text-slate-200 break-words">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-200 last:mb-0">{children}</p>,
+                    h1: ({ children }) => (
+                      <h1 className="text-base font-bold text-white mt-4 mb-2.5 flex items-center gap-2 border-b border-white/10 pb-1.5">
+                        {children}
+                      </h1>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="text-sm font-bold text-purple-300 mt-4 mb-2 flex items-center gap-2">
+                        {children}
+                      </h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="text-xs font-bold text-cyan-300 mt-3.5 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
+                        {children}
+                      </h3>
+                    ),
+                    ul: ({ children }) => <ul className="my-3 space-y-2 pl-4 list-disc marker:text-purple-400">{children}</ul>,
+                    ol: ({ children }) => <ol className="my-3 space-y-2 pl-4 list-decimal marker:text-cyan-400">{children}</ol>,
+                    li: ({ children }) => <li className="leading-relaxed text-slate-200 pl-0.5">{children}</li>,
+                    strong: ({ children }) => (
+                      <strong className="font-semibold text-white bg-purple-950/50 px-1.5 py-0.5 rounded border border-purple-500/20 text-[12px] sm:text-[13px]">
+                        {children}
+                      </strong>
+                    ),
+                    blockquote: ({ children }) => (
+                      <blockquote className="my-3.5 pl-3.5 border-l-2 border-purple-400 bg-purple-950/30 py-2 pr-3 rounded-r-xl text-slate-300 italic shadow-sm">
+                        {children}
+                      </blockquote>
+                    ),
+                    code: ({ inline, children }: any) =>
+                      inline ? (
+                        <code className="bg-slate-950/80 text-cyan-300 px-1.5 py-0.5 rounded text-[11px] font-mono border border-white/10">
+                          {children}
+                        </code>
+                      ) : (
+                        <pre className="my-3.5 p-3.5 bg-slate-950 rounded-xl overflow-x-auto text-[11px] font-mono border border-white/10 text-cyan-200">
+                          {children}
+                        </pre>
+                      ),
+                  }}
+                >
                   {m.content}
                 </ReactMarkdown>
               </div>
