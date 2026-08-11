@@ -91,9 +91,6 @@ export default function DashboardPage() {
   const [showArchives, setShowArchives] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
-  const [showKeyModal, setShowKeyModal] = useState(false);
-  const [userGroqKey, setUserGroqKey] = useState('');
-  const [userGeminiKey, setUserGeminiKey] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [currentUser, setCurrentUser] = useState<{ id: number; username: string; avatar?: string } | null>(null);
@@ -123,12 +120,6 @@ export default function DashboardPage() {
       if (savedActiveMessages && savedActiveMessages.length > 1) {
         setMessages(savedActiveMessages);
       }
-
-      // Load custom API keys if saved by user
-      const savedGroq = localStorage.getItem('habitbot_groq_key') || '';
-      const savedGemini = localStorage.getItem('habitbot_gemini_key') || '';
-      if (savedGroq) setUserGroqKey(savedGroq);
-      if (savedGemini) setUserGeminiKey(savedGemini);
 
       // Check if user has seen onboarding tour
       const onboardedKey = `habitbot_onboarded_user_${active.id}`;
@@ -349,8 +340,6 @@ export default function DashboardPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(userGroqKey ? { 'x-groq-key': userGroqKey.trim() } : {}),
-          ...(userGeminiKey ? { 'x-gemini-key': userGeminiKey.trim() } : {}),
         },
         body: JSON.stringify({
           messages: apiMessages,
@@ -435,23 +424,24 @@ export default function DashboardPage() {
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
-    toast.success('Copied to clipboard!');
+    toast.success('Copied coaching advice to clipboard!');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-6rem)] flex flex-col justify-between space-y-4">
-      {/* Top Engine & Vault Action Bar */}
-      <div className="flex items-center justify-between pb-3 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-purple-950/60 border border-purple-500/30 text-purple-300 shadow-sm">
-            <Bot className="w-5 h-5" />
+    <div className="flex flex-col h-[calc(100vh-5.5rem)] max-w-5xl mx-auto gap-3">
+      {/* Dynamic Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-2xl border border-white/5 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 p-0.5 shadow-lg shadow-purple-500/20 shrink-0">
+            <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center">
+              <Bot className="w-5 h-5 text-purple-400" />
+            </div>
           </div>
           <div>
             <h1 className="text-base font-bold text-white flex items-center gap-2">
               <span>AI Habit Coach</span>
             </h1>
-            <p className="text-[11px] text-slate-400">Atomic Habits science with dual Groq & Gemini Vision engines</p>
           </div>
         </div>
 
@@ -476,17 +466,6 @@ export default function DashboardPage() {
               <Sparkles className="w-3 h-3 text-cyan-400" /> Gemini Vision
             </button>
           </div>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowKeyModal(true)}
-            title="AI Engine Keys Configuration"
-            className="h-8 text-xs bg-slate-900/60 hover:bg-slate-800 border-white/10 text-cyan-300 gap-1 rounded-lg shadow-sm"
-          >
-            <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">Keys</span>
-          </Button>
 
           <Button
             size="sm"
@@ -682,74 +661,6 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* AI Key Settings Modal */}
-      <Dialog open={showKeyModal} onOpenChange={setShowKeyModal}>
-        <DialogContent className="max-w-md bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 shadow-2xl backdrop-blur-2xl space-y-4">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold gradient-text flex items-center gap-2">
-              <KeyRound className="w-5 h-5 text-purple-400" />
-              <span>AI Engine API Keys</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs text-slate-400">
-              Manage your Groq and Gemini API keys directly in the browser.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3 pt-1">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
-                <span>⚡ Groq API Key (Fast Coaching)</span>
-                <span className="text-[10px] text-emerald-400 font-mono">Recommended</span>
-              </label>
-              <Input
-                type="password"
-                value={userGroqKey}
-                onChange={(e) => setUserGroqKey(e.target.value)}
-                placeholder="gsk_..."
-                className="bg-slate-900/80 border-white/10 text-white font-mono text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
-                <span>👁️ Google Gemini API Key (Vision & Multi-modal)</span>
-                <span className="text-[10px] text-slate-400 font-mono">Optional</span>
-              </label>
-              <Input
-                type="password"
-                value={userGeminiKey}
-                onChange={(e) => setUserGeminiKey(e.target.value)}
-                placeholder="AIzaSy..."
-                className="bg-slate-900/80 border-white/10 text-white font-mono text-xs"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowKeyModal(false)}
-              className="text-xs bg-slate-900/60 border-white/10 text-slate-300"
-            >
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => {
-                localStorage.setItem('habitbot_groq_key', userGroqKey.trim());
-                localStorage.setItem('habitbot_gemini_key', userGeminiKey.trim());
-                setShowKeyModal(false);
-                toast.success('AI keys saved and active! 🚀');
-              }}
-              className="gradient-button text-xs px-5 rounded-lg shadow-md shadow-purple-500/20"
-            >
-              Save & Apply Keys
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
 

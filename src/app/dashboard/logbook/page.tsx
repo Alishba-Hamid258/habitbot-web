@@ -116,38 +116,46 @@ export default function LogbookPage() {
     toast.success('Evening reflection saved! (+15 XP)', { icon: '📓' });
   };
 
-  // Helper to determine if a date is within selected timeframe
+  // Helper to determine if a date or timestamp is within selected timeframe
   const isDateInTimeframe = (dateStr?: string) => {
     if (!dateStr || timeframe === 'all') return true;
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = now.toISOString().split('T')[0]; // e.g. "2026-08-11"
+    const todayMonthDay = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); // e.g. "Aug 11"
 
     if (timeframe === 'today') {
-      return dateStr.startsWith(todayStr);
+      if (dateStr.startsWith(todayStr)) return true;
+      if (dateStr.includes(todayMonthDay)) return true;
+      const parsed = new Date(dateStr);
+      if (!isNaN(parsed.getTime())) {
+        return parsed.toISOString().split('T')[0] === todayStr || parsed.toDateString() === now.toDateString();
+      }
+      return false;
     }
 
     const date = new Date(dateStr);
+    const isValidDate = !isNaN(date.getTime());
 
     if (timeframe === 'year') {
       const yearStart = new Date(now.getFullYear(), 0, 1);
-      return date >= yearStart;
+      return isValidDate ? date >= yearStart : true;
     }
 
     if (timeframe === 'month') {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(now.getDate() - 30);
-      return date >= thirtyDaysAgo;
+      return isValidDate ? date >= thirtyDaysAgo : true;
     }
 
     if (timeframe === 'week') {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(now.getDate() - 7);
-      return date >= sevenDaysAgo;
+      return isValidDate ? date >= sevenDaysAgo : true;
     }
 
     if (timeframe === 'custom') {
-      if (customStart && date < new Date(customStart)) return false;
-      if (customEnd && date > new Date(customEnd + 'T23:59:59')) return false;
+      if (customStart && isValidDate && date < new Date(customStart)) return false;
+      if (customEnd && isValidDate && date > new Date(customEnd + 'T23:59:59')) return false;
       return true;
     }
 
@@ -245,25 +253,58 @@ export default function LogbookPage() {
         XLSX.utils.book_append_sheet(wb, wsTasks, 'Tasks Master Database');
       }
 
-      // 5. Sheet: Chat History & Saved Archives
+      // 5. Sheet: Chat History & Saved Archives (Syncs active chat + vault sessions)
       if (selectedSheets.chat) {
         const userArchives = getUserScopedData<any[]>(userId, 'chat_archives', []);
-        const filteredArchives = userArchives.filter((s) => isDateInTimeframe(s.timestamp));
+        const activeChatMsgs = getUserScopedData<any[]>(userId, 'active_chat_messages', []);
+
+        const allSessions = [...userArchives];
+        // If active chat has user messages and isn't already duplicated in archives
+        if (activeChatMsgs && activeChatMsgs.length > 1) {
+          const firstUser = activeChatMsgs.find((m) => m.role === 'user')?.content || 'Current Active Session';
+          const activeTitle = firstUser.slice(0, 38) + (firstUser.length > 38 ? '...' : '');
+          if (!allSessions.some((s) => s.title === activeTitle)) {
+            allSessions.unshift({
+              id: 'active_current',
+              title: `(Active) ${activeTitle}`,
+              timestamp: new Date().toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              messages: activeChatMsgs,
+            });
+          }
+        }
+
+        const filteredArchives = allSessions.filter((s) => isDateInTimeframe(s.timestamp));
         const chatData: any[] = [];
+
         filteredArchives.forEach((s: any) => {
           s.messages?.forEach((m: any) => {
-            chatData.push({
-              Timestamp: s.timestamp,
-              SessionTitle: s.title,
-              Speaker: m.role === 'assistant' ? 'HabitBot Coach' : 'User',
-              Message: m.content,
-            });
+            if (m.content) {
+              chatData.push({
+                'Date / Time': s.timestamp || new Date().toISOString().split('T')[0],
+                'Session Title': s.title || 'Habit Coaching',
+                Speaker: m.role === 'assistant' ? 'HabitBot AI Coach 🤖' : 'User 👤',
+                'Message Content': m.content,
+              });
+            }
           });
         });
+
         const wsChat = XLSX.utils.json_to_sheet(
           chatData.length > 0
             ? chatData
-            : [{ Timestamp: '', SessionTitle: 'No archived chats in timeframe', Speaker: '', Message: '' }]
+            : [
+                {
+                  'Date / Time': new Date().toISOString().split('T')[0],
+                  'Session Title': 'No conversations recorded in timeframe',
+                  Speaker: '',
+                  'Message Content': '',
+                },
+              ]
         );
         XLSX.utils.book_append_sheet(wb, wsChat, 'Chat History & Archives');
       }
