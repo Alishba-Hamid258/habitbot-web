@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bot,
   LogOut,
@@ -32,6 +32,8 @@ import {
   FileSpreadsheet,
   FileText,
   Upload,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,6 +53,7 @@ import {
 
 export function Sidebar() {
   const router = useRouter();
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     id: number;
     username: string;
@@ -102,15 +105,43 @@ export function Sidebar() {
   useEffect(() => {
     refreshUserData();
 
+    // Check saved collapsed state
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('habitbot_sidebar_collapsed');
+      if (saved === 'true') {
+        setIsCollapsed(true);
+      }
+    }
+
     const handleUpdate = () => {
       refreshUserData();
     };
 
+    const handleOpenSidebar = () => {
+      setIsCollapsed(false);
+      localStorage.setItem('habitbot_sidebar_collapsed', 'false');
+      window.dispatchEvent(new Event('habitbot_sidebar_state_changed'));
+    };
+
+    const handleToggleSidebar = () => {
+      setIsCollapsed((prev) => {
+        const next = !prev;
+        localStorage.setItem('habitbot_sidebar_collapsed', String(next));
+        window.dispatchEvent(new Event('habitbot_sidebar_state_changed'));
+        return next;
+      });
+    };
+
     window.addEventListener('habitbot_data_updated', handleUpdate);
     window.addEventListener('habitbot_user_profile_updated', handleUpdate);
+    window.addEventListener('habitbot_open_sidebar', handleOpenSidebar);
+    window.addEventListener('habitbot_toggle_sidebar', handleToggleSidebar);
+
     return () => {
       window.removeEventListener('habitbot_data_updated', handleUpdate);
       window.removeEventListener('habitbot_user_profile_updated', handleUpdate);
+      window.removeEventListener('habitbot_open_sidebar', handleOpenSidebar);
+      window.removeEventListener('habitbot_toggle_sidebar', handleToggleSidebar);
     };
   }, []);
 
@@ -298,42 +329,65 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="w-80 h-full flex flex-col glass-panel border-r border-white/10 bg-[#0b1120]/90 backdrop-blur-2xl z-20">
-        {/* Header Brand */}
-        <div className="p-4 border-b border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-500 p-0.5 flex items-center justify-center shadow-md shadow-purple-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center">
-                <Bot className="w-5 h-5 text-purple-400" />
+      <AnimatePresence initial={false}>
+        {!isCollapsed && (
+          <motion.aside
+            key="habitbot-sidebar"
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 320, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="w-80 h-full flex flex-col glass-panel border-r border-white/10 bg-[#0b1120]/90 backdrop-blur-2xl z-20 overflow-hidden shrink-0"
+          >
+            {/* Header Brand */}
+            <div className="p-4 border-b border-white/5 flex items-center justify-between min-w-[320px]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-500 p-0.5 flex items-center justify-center shadow-md shadow-purple-500/20">
+                  <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center">
+                    <Bot className="w-5 h-5 text-purple-400" />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-base font-bold gradient-text leading-tight">HabitBot</h2>
+                  <p className="text-[10px] text-slate-400 font-mono">v5.0 Pro Suite</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {/* Guide Button Placed Right Beside HabitBot v5.0 Pro Suite */}
+                <button
+                  onClick={() => setShowGuideModal(true)}
+                  className="px-2.5 py-1 bg-purple-950/70 hover:bg-purple-900/90 border border-purple-500/40 text-purple-300 hover:text-white rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm shadow-purple-500/10"
+                  title="Open HabitBot Quick User Guide & Tips"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Guide</span>
+                </button>
+
+                {currentUser.isAdmin && (
+                  <span className="text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Shield className="w-3 h-3 text-amber-400" /> Admin
+                  </span>
+                )}
+
+                {/* Close / Collapse Sidebar Button */}
+                <button
+                  onClick={() => {
+                    setIsCollapsed(true);
+                    localStorage.setItem('habitbot_sidebar_collapsed', 'true');
+                    window.dispatchEvent(new Event('habitbot_sidebar_state_changed'));
+                    toast.info('Sidebar closed (Click "Open Sidebar" to re-open anytime)');
+                  }}
+                  className="p-1.5 hover:bg-slate-800/80 text-slate-400 hover:text-white rounded-lg transition-colors"
+                  title="Close Sidebar"
+                >
+                  <PanelLeftClose className="w-4 h-4" />
+                </button>
               </div>
             </div>
-            <div>
-              <h2 className="text-base font-bold gradient-text leading-tight">HabitBot</h2>
-              <p className="text-[10px] text-slate-400 font-mono">v5.0 Pro Suite</p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Guide Button Placed Right Beside HabitBot v5.0 Pro Suite */}
-            <button
-              onClick={() => setShowGuideModal(true)}
-              className="px-2.5 py-1 bg-purple-950/70 hover:bg-purple-900/90 border border-purple-500/40 text-purple-300 hover:text-white rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm shadow-purple-500/10"
-              title="Open HabitBot Quick User Guide & Tips"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Guide</span>
-            </button>
-
-            {currentUser.isAdmin && (
-              <span className="text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Shield className="w-3 h-3 text-amber-400" /> Admin
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Scrollable Workspace Body */}
-        <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5 custom-scrollbar">
+            {/* Scrollable Workspace Body */}
+            <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5 custom-scrollbar min-w-[320px]">
           {/* User Profile Card with Avatar & Settings */}
           <div className="p-3 bg-slate-900/60 rounded-xl border border-white/5 flex items-center justify-between group">
             <button
@@ -383,7 +437,39 @@ export function Sidebar() {
           {/* Focus Audio & Media Player */}
           <MediaPlayer />
         </div>
-      </aside>
+      </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Open Sidebar Button when Collapsed */}
+      <AnimatePresence>
+        {isCollapsed && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, x: -10 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.8, x: -10 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => {
+              setIsCollapsed(false);
+              localStorage.setItem('habitbot_sidebar_collapsed', 'false');
+              window.dispatchEvent(new Event('habitbot_sidebar_state_changed'));
+              toast.success('Sidebar opened! 🚀');
+            }}
+            className="fixed bottom-5 left-5 z-40 p-2.5 sm:p-3 rounded-2xl bg-slate-900/95 hover:bg-purple-950/90 border border-purple-500/40 text-purple-300 hover:text-white shadow-2xl shadow-purple-500/20 backdrop-blur-2xl flex items-center gap-2.5 transition-all group cursor-pointer"
+            title="Open HabitBot Sidebar"
+          >
+            <div className="w-7 h-7 rounded-xl bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300 group-hover:bg-purple-600/50">
+              <PanelLeftOpen className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-left pr-1">
+              <div className="text-xs font-bold text-white flex items-center gap-1">
+                <span>Open Sidebar</span>
+              </div>
+              <div className="text-[10px] text-purple-300 font-mono">HabitBot v5.0</div>
+            </div>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* User Profile & Account Settings Dialog Modal */}
       <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>

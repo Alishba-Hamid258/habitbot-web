@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { MessageSquare, BarChart2, CheckSquare, BookOpen, Library, Flame, Target } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, BarChart2, CheckSquare, BookOpen, Library, Flame, Target, PanelLeftOpen } from 'lucide-react';
 import { getActiveUser, computeUserStats } from '@/lib/auth-storage';
 
 const TABS = [
@@ -18,6 +18,7 @@ const TABS = [
 export function NavTabs() {
   const pathname = usePathname();
   const [stats, setStats] = useState({ streak: 0, disciplineRate: 0, isAtRisk: false });
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const refreshStats = () => {
     const active = getActiveUser();
@@ -31,16 +32,52 @@ export function NavTabs() {
     }
   };
 
+  const checkSidebarState = () => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('habitbot_sidebar_collapsed') === 'true';
+      setIsSidebarCollapsed(saved);
+    }
+  };
+
   useEffect(() => {
     refreshStats();
+    checkSidebarState();
+
     window.addEventListener('habitbot_data_updated', refreshStats);
-    return () => window.removeEventListener('habitbot_data_updated', refreshStats);
+    window.addEventListener('habitbot_sidebar_state_changed', checkSidebarState);
+
+    return () => {
+      window.removeEventListener('habitbot_data_updated', refreshStats);
+      window.removeEventListener('habitbot_sidebar_state_changed', checkSidebarState);
+    };
   }, []);
 
   return (
-    <header className="h-16 px-6 glass-panel border-b border-white/10 flex items-center justify-between z-10 shrink-0">
-      {/* Navigation Tabs */}
-      <nav className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-white/5">
+    <header className="h-16 px-4 sm:px-6 glass-panel border-b border-white/10 flex items-center justify-between z-10 shrink-0">
+      {/* Navigation Tabs with Open Sidebar Trigger */}
+      <div className="flex items-center gap-2 min-w-0">
+        <AnimatePresence>
+          {isSidebarCollapsed && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9, x: -10 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9, x: -10 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => {
+                localStorage.setItem('habitbot_sidebar_collapsed', 'false');
+                window.dispatchEvent(new Event('habitbot_open_sidebar'));
+                window.dispatchEvent(new Event('habitbot_sidebar_state_changed'));
+              }}
+              className="px-2.5 py-1.5 bg-purple-950/70 hover:bg-purple-900/90 border border-purple-500/30 text-purple-300 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm group shrink-0 cursor-pointer"
+              title="Open HabitBot Sidebar"
+            >
+              <PanelLeftOpen className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline">Open Sidebar</span>
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        <nav className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-white/5 overflow-x-auto custom-scrollbar">
         {TABS.map((tab) => {
           const isActive = pathname === tab.href;
           const Icon = tab.icon;
@@ -66,7 +103,8 @@ export function NavTabs() {
             </Link>
           );
         })}
-      </nav>
+        </nav>
+      </div>
 
       {/* Top Right Live Stats Badge with Streak At-Risk Shield */}
       <div className="flex items-center gap-2">
