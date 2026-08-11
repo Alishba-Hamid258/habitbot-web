@@ -162,8 +162,7 @@ export default function DashboardPage() {
         preview: result,
         base64,
       });
-      setSelectedProvider('gemini');
-      toast.success(`Image attached: "${file.name}" (Switched to Gemini Vision 👁️)`);
+      toast.success(`Image attached: "${file.name}" 🖼️`);
     };
     reader.readAsDataURL(file);
   };

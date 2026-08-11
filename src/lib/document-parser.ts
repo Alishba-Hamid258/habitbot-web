@@ -1,12 +1,14 @@
 /**
- * Universal Client-Side Document and PDF Text Extractor for HabitBot
- * Supports plain text, markdown, CSV, JSON, and decompresses FlateDecode PDF text streams.
+ * Universal High-Fidelity Document & PDF Text Extractor for HabitBot
+ * Powered by Mozilla PDF.js engine via unpdf for complete extraction of stories,
+ * paragraphs, handouts, and coaching exercises.
  */
 
 export async function extractTextFromFile(file: File): Promise<{
   text: string;
   isPdf: boolean;
   charCount: number;
+  totalPages?: number;
 }> {
   const fileName = file.name.toLowerCase();
   const isPdf = fileName.endsWith('.pdf') || file.type === 'application/pdf';
@@ -14,16 +16,22 @@ export async function extractTextFromFile(file: File): Promise<{
   if (isPdf) {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const extracted = await parsePdfBuffer(arrayBuffer);
-      if (extracted && extracted.trim().length > 30) {
+      const { extractText } = await import('unpdf');
+      const result = await extractText(new Uint8Array(arrayBuffer), { mergePages: true });
+
+      const rawText = Array.isArray(result.text) ? result.text.join('\n\n') : (result.text || '');
+      const cleanText = rawText.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+
+      if (cleanText.length > 20) {
         return {
-          text: extracted.slice(0, 16000),
+          text: cleanText.slice(0, 32000), // Provide up to 32k characters for deep document context
           isPdf: true,
-          charCount: extracted.length,
+          charCount: cleanText.length,
+          totalPages: result.totalPages || 1,
         };
       }
     } catch (e) {
-      console.warn('PDF parser fallback notice:', e);
+      console.warn('unpdf parser notice:', e);
     }
 
     return {
@@ -37,7 +45,7 @@ export async function extractTextFromFile(file: File): Promise<{
   try {
     const rawText = await file.text();
     return {
-      text: rawText.slice(0, 16000),
+      text: rawText.slice(0, 32000),
       isPdf: false,
       charCount: rawText.length,
     };
@@ -48,109 +56,4 @@ export async function extractTextFromFile(file: File): Promise<{
       charCount: 0,
     };
   }
-}
-
-/**
- * Parses both uncompressed and flate-compressed PDF streams
- */
-async function parsePdfBuffer(buffer: ArrayBuffer): Promise<string> {
-  const bytes = new Uint8Array(buffer);
-  let rawStr = '';
-
-  const chunkSize = 65536;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
-    rawStr += String.fromCharCode.apply(null, chunk as any);
-  }
-
-  const collectedText: string[] = [];
-
-  // 1. Direct BT ... ET extraction from uncompressed blocks
-  extractFromBtEt(rawStr, collectedText);
-
-  // 2. Try decompressing Deflate streams if text is minimal
-  if (collectedText.length < 5 && typeof DecompressionStream !== 'undefined') {
-    const streamRegex = /stream[\r\n]+([\s\S]*?)[\r\n]+endstream/g;
-    let streamMatch: RegExpExecArray | null;
-
-    while ((streamMatch = streamRegex.exec(rawStr)) !== null) {
-      const streamContent = streamMatch[1];
-      try {
-        const streamBytes = new Uint8Array(streamContent.length);
-        for (let j = 0; j < streamContent.length; j++) {
-          streamBytes[j] = streamContent.charCodeAt(j);
-        }
-
-        const ds = new DecompressionStream('deflate');
-        const writer = ds.writable.getWriter();
-        writer.write(streamBytes);
-        writer.close();
-
-        const response = new Response(ds.readable);
-        const decompressed = await response.text();
-        extractFromBtEt(decompressed, collectedText);
-      } catch {
-        // Stream may not be deflate or has headers; continue
-      }
-    }
-  }
-
-  // 3. Regex string literal fallback
-  if (collectedText.length < 5) {
-    const stringLiteralRegex = /\(([A-Za-z0-9 ,.?!:;'"\-\n\r]{4,})\)/g;
-    let litMatch: RegExpExecArray | null;
-    while ((litMatch = stringLiteralRegex.exec(rawStr)) !== null) {
-      const str = cleanPdfString(litMatch[1]);
-      if (str.length > 3 && !str.includes('Font') && !str.includes('Type') && !str.includes('Obj')) {
-        collectedText.push(str);
-      }
-    }
-  }
-
-  return collectedText.join(' ').replace(/\s+/g, ' ').trim();
-}
-
-function extractFromBtEt(sourceStr: string, outList: string[]) {
-  const btRegex = /BT[\s\S]*?ET/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = btRegex.exec(sourceStr)) !== null) {
-    const block = match[0];
-
-    // (string) Tj
-    const tjRegex = /\(((?:[^()\\]|\\.)*)\)\s*T[jJ*]/g;
-    let tjMatch: RegExpExecArray | null;
-    while ((tjMatch = tjRegex.exec(block)) !== null) {
-      const decoded = cleanPdfString(tjMatch[1]);
-      if (decoded.length > 1) {
-        outList.push(decoded);
-      }
-    }
-
-    // [(array)] TJ
-    const arrayTjRegex = /\[((?:[^\[\]]|\\.)*)\]\s*TJ/g;
-    let arrMatch: RegExpExecArray | null;
-    while ((arrMatch = arrayTjRegex.exec(block)) !== null) {
-      const inner = arrMatch[1];
-      const innerStrRegex = /\(((?:[^()\\]|\\.)*)\)/g;
-      let sMatch: RegExpExecArray | null;
-      let combined = '';
-      while ((sMatch = innerStrRegex.exec(inner)) !== null) {
-        combined += cleanPdfString(sMatch[1]);
-      }
-      if (combined.trim().length > 1) {
-        outList.push(combined);
-      }
-    }
-  }
-}
-
-function cleanPdfString(str: string): string {
-  return str
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\r')
-    .replace(/\\t/g, '\t')
-    .replace(/\\([()\\])/g, '$1')
-    .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
-    .trim();
 }
