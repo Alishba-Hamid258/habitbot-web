@@ -22,8 +22,12 @@ export async function POST(req: Request) {
       });
     }
 
-    const groqKey = process.env.GROQ_API_KEY;
-    const geminiKey = process.env.GEMINI_API_KEY;
+    // Read keys from request headers (if configured in UI) or Vercel environment variables
+    const customGroqKey = req.headers.get('x-groq-key');
+    const customGeminiKey = req.headers.get('x-gemini-key');
+
+    const groqKey = customGroqKey || process.env.GROQ_API_KEY;
+    const geminiKey = customGeminiKey || process.env.GEMINI_API_KEY;
 
     // 2. Multimodal Request (Images, PDF) or Explicit Gemini Request
     if ((mediaPayload || provider === 'gemini') && geminiKey && geminiKey.startsWith('AIzaSy')) {
@@ -32,7 +36,7 @@ export async function POST(req: Request) {
       } catch (geminiErr: any) {
         console.error('Gemini stream error, falling back to Groq:', geminiErr);
         if (groqKey) {
-          return await callGroqStream(messages, groqKey);
+          return await callGroqStream(messages, groqKey, 'llama-3.3-70b-versatile');
         }
       }
     }
@@ -40,7 +44,7 @@ export async function POST(req: Request) {
     // 3. Fast Streaming with Groq API (High Performance Llama 3.3 Engine)
     if (groqKey) {
       try {
-        return await callGroqStream(messages, groqKey);
+        return await callGroqStream(messages, groqKey, 'llama-3.3-70b-versatile');
       } catch (groqErr: any) {
         console.error('Groq error, attempting Gemini fallback:', groqErr);
         if (geminiKey && geminiKey.startsWith('AIzaSy')) {
@@ -56,7 +60,7 @@ export async function POST(req: Request) {
     }
 
     // 5. Fallback placeholder if no keys are found
-    const fallbackText = "🤖 **HabitBot AI Coach Connected!**\n\nTo activate real-time AI responses, please provide your `GROQ_API_KEY` or `GEMINI_API_KEY` in `.env.local` or Vercel Environment Variables.\n\n*Atomic Habits Tip*: Focus on small 1% improvements every single day. Consistency beats intensity!";
+    const fallbackText = "🤖 **HabitBot AI Coach Connected!**\n\nTo activate real-time AI responses on your Vercel deployment:\n1. Open your **Vercel Project Dashboard** ➡️ **Settings** ➡️ **Environment Variables**.\n2. Add `GROQ_API_KEY` (or `GEMINI_API_KEY`).\n3. Click **Redeploy** in Vercel!\n\nOr click **⚙️ Key Settings** in the top bar to connect your key instantly!";
     return new Response(fallbackText, {
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });

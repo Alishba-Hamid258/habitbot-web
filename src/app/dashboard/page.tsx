@@ -26,6 +26,7 @@ import {
   FileSpreadsheet,
   FileText,
   FileUp,
+  KeyRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,6 +89,9 @@ export default function DashboardPage() {
   const [archives, setArchives] = useState<SavedSession[]>([]);
   const [showArchives, setShowArchives] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [userGroqKey, setUserGroqKey] = useState('');
+  const [userGeminiKey, setUserGeminiKey] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [currentUser, setCurrentUser] = useState<{ id: number; username: string; avatar?: string } | null>(null);
@@ -108,6 +112,12 @@ export default function DashboardPage() {
       setCurrentUser(active);
       const userArchives = getUserScopedData<SavedSession[]>(active.id, 'chat_archives', []);
       setArchives(userArchives);
+
+      // Load custom API keys if saved by user
+      const savedGroq = localStorage.getItem('habitbot_groq_key') || '';
+      const savedGemini = localStorage.getItem('habitbot_gemini_key') || '';
+      if (savedGroq) setUserGroqKey(savedGroq);
+      if (savedGemini) setUserGeminiKey(savedGemini);
 
       // Check if user has seen onboarding tour
       const onboardedKey = `habitbot_onboarded_user_${active.id}`;
@@ -260,7 +270,11 @@ export default function DashboardPage() {
 
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(userGroqKey ? { 'x-groq-key': userGroqKey.trim() } : {}),
+          ...(userGeminiKey ? { 'x-gemini-key': userGeminiKey.trim() } : {}),
+        },
         body: JSON.stringify({
           messages: apiMessages,
           provider: selectedProvider,
@@ -384,6 +398,17 @@ export default function DashboardPage() {
               <Sparkles className="w-3 h-3 text-cyan-400" /> Gemini Vision
             </button>
           </div>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowKeyModal(true)}
+            title="AI Engine Keys Configuration"
+            className="h-8 text-xs bg-slate-900/60 hover:bg-slate-800 border-white/10 text-cyan-300 gap-1 rounded-lg shadow-sm"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">Keys</span>
+          </Button>
 
           <Button
             size="sm"
@@ -567,6 +592,74 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Key Settings Modal */}
+      <Dialog open={showKeyModal} onOpenChange={setShowKeyModal}>
+        <DialogContent className="max-w-md bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 shadow-2xl backdrop-blur-2xl space-y-4">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold gradient-text flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-purple-400" />
+              <span>AI Engine API Keys</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              Manage your Groq and Gemini API keys directly in the browser.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 pt-1">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                <span>⚡ Groq API Key (Fast Coaching)</span>
+                <span className="text-[10px] text-emerald-400 font-mono">Recommended</span>
+              </label>
+              <Input
+                type="password"
+                value={userGroqKey}
+                onChange={(e) => setUserGroqKey(e.target.value)}
+                placeholder="gsk_..."
+                className="bg-slate-900/80 border-white/10 text-white font-mono text-xs"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                <span>👁️ Google Gemini API Key (Vision & Multi-modal)</span>
+                <span className="text-[10px] text-slate-400 font-mono">Optional</span>
+              </label>
+              <Input
+                type="password"
+                value={userGeminiKey}
+                onChange={(e) => setUserGeminiKey(e.target.value)}
+                placeholder="AIzaSy..."
+                className="bg-slate-900/80 border-white/10 text-white font-mono text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowKeyModal(false)}
+              className="text-xs bg-slate-900/60 border-white/10 text-slate-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                localStorage.setItem('habitbot_groq_key', userGroqKey.trim());
+                localStorage.setItem('habitbot_gemini_key', userGeminiKey.trim());
+                setShowKeyModal(false);
+                toast.success('AI keys saved and active! 🚀');
+              }}
+              className="gradient-button text-xs px-5 rounded-lg shadow-md shadow-purple-500/20"
+            >
+              Save & Apply Keys
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 

@@ -11,10 +11,10 @@ import {
   Clock,
   History,
   Calendar,
-  Shuffle,
-  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
   Flame,
-  Layers,
+  ArrowUpDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,8 +38,6 @@ interface Task {
   done: boolean;
 }
 
-type SortFilter = 'default' | 'high-to-low' | 'random';
-
 const DEFAULT_TASKS: Task[] = [
   { id: '1', task: 'Design Next.js App Router components', priority: 'High', time: '45 mins', done: false },
   { id: '2', task: 'Wire Supabase PostgreSQL database schemas', priority: 'High', time: '30 mins', done: false },
@@ -55,7 +53,7 @@ export default function TasksPage() {
   const [newTime, setNewTime] = useState('25 mins');
   const [userId, setUserId] = useState<number>(1);
   const [showHistory, setShowHistory] = useState(false);
-  const [activeSort, setActiveSort] = useState<SortFilter>('default');
+  const [isSortedHighToLow, setIsSortedHighToLow] = useState(false);
 
   const [aiGoal, setAiGoal] = useState('');
   const [aiArchitectLoading, setAiArchitectLoading] = useState(false);
@@ -140,19 +138,24 @@ export default function TasksPage() {
 
   // High to Low Priority Sorting
   const handleSortHighToLow = () => {
-    setActiveSort('high-to-low');
     const priorityWeight = { High: 3, Medium: 2, Low: 1 };
     const sorted = [...tasks].sort((a, b) => priorityWeight[b.priority] - priorityWeight[a.priority]);
     saveTasks(sorted);
+    setIsSortedHighToLow(true);
     toast.success('Tasks sorted: High 🔴 ➡️ Medium 🟡 ➡️ Low 🟢 Priority!');
   };
 
-  // Random Placement / Shuffle Tasks
-  const handleRandomShuffle = () => {
-    setActiveSort('random');
-    const shuffled = [...tasks].sort(() => Math.random() - 0.5);
-    saveTasks(shuffled);
-    toast.success('Randomized task placement! 🔀');
+  // Move / Swap Task Position Up or Down as per User Preference
+  const moveTask = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= tasks.length) return;
+
+    const updated = [...tasks];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    saveTasks(updated);
+    setIsSortedHighToLow(false);
   };
 
   // AI Breakdown Engine
@@ -370,34 +373,20 @@ export default function TasksPage() {
             <span>Active Sprint Tasks ({completedCount} / {tasks.length} Completed)</span>
           </div>
 
-          {/* Alignment & Random Placement Action Buttons */}
+          {/* High to Low Alignment Button & Clear Finished */}
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleSortHighToLow}
               title="Align tasks from High to Low priority"
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border ${
-                activeSort === 'high-to-low'
+              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border ${
+                isSortedHighToLow
                   ? 'bg-purple-600 text-white border-purple-400 shadow-md'
                   : 'bg-slate-950/60 text-slate-300 hover:text-white border-white/10'
               }`}
             >
               <Flame className="w-3.5 h-3.5 text-red-400" />
               <span>High to Low</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleRandomShuffle}
-              title="Randomly shuffle task placement"
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border ${
-                activeSort === 'random'
-                  ? 'bg-cyan-600 text-white border-cyan-400 shadow-md'
-                  : 'bg-slate-950/60 text-slate-300 hover:text-white border-white/10'
-              }`}
-            >
-              <Shuffle className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Random Shuffle</span>
             </button>
 
             {completedCount > 0 && (
@@ -422,7 +411,7 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* Active Tasks List — Formatted: Name (Left) | Time (Mid) | Priority (Right) */}
+      {/* Active Tasks List — Formatted: Name (Left), Time (Below Name), Priority & Swap Arrows (Right) */}
       <div className="space-y-2">
         {tasks.length === 0 ? (
           <div className="p-8 text-center bg-slate-900/30 rounded-xl border border-white/5 space-y-2">
@@ -431,7 +420,7 @@ export default function TasksPage() {
           </div>
         ) : (
           <AnimatePresence>
-            {tasks.map((t) => (
+            {tasks.map((t, idx) => (
               <motion.div
                 key={t.id}
                 layout
@@ -444,11 +433,11 @@ export default function TasksPage() {
                     : 'bg-slate-900/60 border-white/5 hover:border-purple-500/30 shadow-sm'
                 }`}
               >
-                {/* LEFT: Radio Checkbox + Task Name */}
-                <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* LEFT: Radio Checkbox + Task Name (Line 1) + Time (Line 2 Below Name) */}
+                <div className="flex items-start gap-3 min-w-0 flex-1">
                   <button
                     onClick={() => toggleTask(t.id)}
-                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border shrink-0 ${
+                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border shrink-0 mt-0.5 ${
                       t.done
                         ? 'bg-emerald-500 border-emerald-400 text-white'
                         : 'border-white/30 hover:border-purple-400'
@@ -457,29 +446,27 @@ export default function TasksPage() {
                     {t.done && <CheckSquare className="w-3.5 h-3.5" />}
                   </button>
 
-                  <span
-                    className={`text-xs sm:text-sm font-medium truncate ${
-                      t.done ? 'line-through text-slate-500' : 'text-slate-200'
-                    }`}
-                    title={t.task}
-                  >
-                    {t.task}
-                  </span>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    {/* Line 1: Task Title */}
+                    <div
+                      className={`text-xs sm:text-sm font-medium leading-snug break-words ${
+                        t.done ? 'line-through text-slate-500' : 'text-slate-200'
+                      }`}
+                    >
+                      {t.task}
+                    </div>
+
+                    {/* Line 2: Estimated Time Below Task Name */}
+                    <div className="flex items-center gap-1.5 text-[11px] text-cyan-300 font-mono">
+                      <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
+                      <span>{t.time}</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* MID: Task Estimated Time */}
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono px-3 py-1 bg-slate-950/60 rounded-lg border border-white/5 shrink-0 hidden sm:flex">
-                  <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>{t.time}</span>
-                </div>
-
-                {/* RIGHT: Priority Badge & Delete Action */}
-                <div className="flex items-center gap-2 shrink-0">
-                  {/* Time indicator for mobile screens */}
-                  <span className="text-[10px] text-slate-400 font-mono sm:hidden flex items-center gap-1">
-                    <Clock className="w-2.5 h-2.5" /> {t.time}
-                  </span>
-
+                {/* RIGHT: Priority Badge, Swap Up/Down Controls & Delete */}
+                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  {/* Priority Badge */}
                   <span
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 shadow-sm ${
                       t.priority === 'High'
@@ -501,9 +488,32 @@ export default function TasksPage() {
                     <span>{t.priority}</span>
                   </span>
 
+                  {/* Manual Swap Up / Down Buttons */}
+                  <div className="flex flex-col bg-slate-950/70 p-0.5 rounded-lg border border-white/5 opacity-80 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      disabled={idx === 0}
+                      onClick={() => moveTask(idx, 'up')}
+                      className="p-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors"
+                      title="Move task up"
+                    >
+                      <ChevronUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={idx === tasks.length - 1}
+                      onClick={() => moveTask(idx, 'down')}
+                      className="p-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors"
+                      title="Move task down"
+                    >
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Delete Button */}
                   <button
                     onClick={() => deleteTask(t.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-950/30 text-slate-500 hover:text-red-400 transition-all ml-1"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-950/30 text-slate-500 hover:text-red-400 transition-all ml-0.5"
                     title="Delete task"
                   >
                     <Trash2 className="w-4 h-4" />
