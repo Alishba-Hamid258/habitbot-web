@@ -3,10 +3,11 @@ import { SYSTEM_PROMPT } from './prompts';
 export interface ChatPayloadMessage {
   role: string;
   content: string;
+  imagePayload?: { mimeType: string; base64: string };
 }
 
 /**
- * Call Google Gemini API with SSE streaming and multimodal image support
+ * Call Google Gemini API with SSE streaming and multimodal image support across all multi-turn messages
  */
 export async function callGeminiStream(
   messages: ChatPayloadMessage[],
@@ -16,24 +17,38 @@ export async function callGeminiStream(
 ): Promise<Response> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:streamGenerateContent?alt=sse&key=${apiKey}`;
 
-  // Map messages to Gemini format
+  // Map messages to Gemini format, preserving images attached to any turn
   const contents = messages
     .filter((m) => m.role !== 'system')
-    .map((m) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }));
+    .map((m) => {
+      const parts: any[] = [{ text: m.content || 'Please analyze this input.' }];
+      if (m.imagePayload?.base64) {
+        parts.push({
+          inlineData: {
+            mimeType: m.imagePayload.mimeType || 'image/png',
+            data: m.imagePayload.base64,
+          },
+        });
+      }
+      return {
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts,
+      };
+    });
 
-  // Attach image to the last user message if provided
-  if (imageData && contents.length > 0) {
+  // Attach latest image to the last user message if not already attached
+  if (imageData?.base64 && contents.length > 0) {
     for (let i = contents.length - 1; i >= 0; i--) {
       if (contents[i].role === 'user') {
-        contents[i].parts.push({
-          inlineData: {
-            mimeType: imageData.mimeType,
-            data: imageData.base64,
-          },
-        } as any);
+        const hasImg = contents[i].parts.some((p: any) => p.inlineData);
+        if (!hasImg) {
+          contents[i].parts.push({
+            inlineData: {
+              mimeType: imageData.mimeType || 'image/png',
+              data: imageData.base64,
+            },
+          });
+        }
         break;
       }
     }
@@ -77,7 +92,6 @@ export async function callGeminiStream(
             const data = JSON.parse(trimmed.slice(6));
             const partText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
             if (partText) {
-              // Clean out think tags if any
               const clean = partText.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<\/?think>/g, '');
               if (clean) {
                 controller.enqueue(encoder.encode(clean));
@@ -100,12 +114,12 @@ export async function callGeminiStream(
 }
 
 /**
- * Call Groq API with SSE streaming
+ * Call Groq API with SSE streaming (Ultra-Fast Llama 3.3 Engine)
  */
 export async function callGroqStream(
   messages: ChatPayloadMessage[],
   apiKey: string,
-  modelName: string = 'llama-3.1-8b-instant'
+  modelName: string = 'llama-3.3-70b-versatile'
 ): Promise<Response> {
   const url = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -144,19 +158,20 @@ export async function callGroqStream(
 
       for (const line of lines) {
         const trimmed = line.trim();
-        if (!trimmed || trimmed === 'data: [DONE]') continue;
         if (trimmed.startsWith('data: ')) {
+          const jsonStr = trimmed.slice(6);
+          if (jsonStr === '[DONE]') return;
           try {
-            const json = JSON.parse(trimmed.slice(6));
-            const content = json.choices?.[0]?.delta?.content || '';
-            if (content) {
-              const clean = content.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<\/?think>/g, '');
+            const data = JSON.parse(jsonStr);
+            const delta = data.choices?.[0]?.delta?.content || '';
+            if (delta) {
+              const clean = delta.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<\/?think>/g, '');
               if (clean) {
                 controller.enqueue(encoder.encode(clean));
               }
             }
           } catch {
-            // Ignore incomplete JSON chunks
+            // Ignore parse errors on partial chunks
           }
         }
       }

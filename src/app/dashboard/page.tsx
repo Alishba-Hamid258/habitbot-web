@@ -43,6 +43,7 @@ interface Message {
   content: string;
   fullPrompt?: string;
   imagePreview?: string;
+  imagePayload?: { mimeType: string; base64: string };
   documentInfo?: { name: string; size: string };
 }
 
@@ -162,7 +163,8 @@ export default function DashboardPage() {
         preview: result,
         base64,
       });
-      toast.success(`Image attached: "${file.name}" 🖼️`);
+      setSelectedProvider('gemini');
+      toast.success(`Image attached: "${file.name}" (Auto-switched to Gemini Vision 👁️)`);
     };
     reader.readAsDataURL(file);
   };
@@ -236,6 +238,10 @@ export default function DashboardPage() {
       content: displayPrompt,
       fullPrompt: payloadPrompt,
       imagePreview: attachedFile?.type === 'image' ? attachedFile.preview : undefined,
+      imagePayload:
+        attachedFile?.type === 'image' && attachedFile.base64
+          ? { mimeType: attachedFile.mimeType, base64: attachedFile.base64 }
+          : undefined,
       documentInfo: attachedFile?.type === 'document' ? { name: attachedFile.name, size: attachedFile.size } : undefined,
     };
 
@@ -257,14 +263,16 @@ export default function DashboardPage() {
     setMessages((prev) => [...prev, { id: assistantMsgId, role: 'assistant', content: '' }]);
 
     try {
-      // Use payloadPrompt / fullPrompt to preserve document and question context across turns
+      // Use payloadPrompt / fullPrompt to preserve document and question context across turns, and carry imagePayload across turns
       const apiMessages = newMessages
         .filter((m) => m.role !== 'system')
         .map((m, idx, arr) => {
-          if (idx === arr.length - 1) {
-            return { role: m.role, content: payloadPrompt };
-          }
-          return { role: m.role, content: m.fullPrompt || m.content };
+          const isLast = idx === arr.length - 1;
+          return {
+            role: m.role,
+            content: isLast ? payloadPrompt : (m.fullPrompt || m.content),
+            imagePayload: m.imagePayload,
+          };
         });
 
       const res = await fetch('/api/chat', {
