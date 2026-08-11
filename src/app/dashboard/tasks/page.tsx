@@ -80,26 +80,28 @@ export default function TasksPage() {
   };
 
   const toggleTask = (id: string) => {
-    const updated = tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t));
-    const target = updated.find((t) => t.id === id);
+    const targetTask = tasks.find((t) => t.id === id);
+    if (!targetTask) return;
+
+    const willBeDone = !targetTask.done;
+    const updated = tasks.map((t) => (t.id === id ? { ...t, done: willBeDone } : t));
     saveTasks(updated);
 
-    if (target) {
-      recordMasterTask(userId, {
-        id: target.id,
-        task: target.task,
-        priority: target.priority,
-        time: target.time,
-        done: target.done,
-      });
-      refreshHistory(userId);
+    recordMasterTask(userId, {
+      id: targetTask.id,
+      task: targetTask.task,
+      priority: targetTask.priority,
+      time: targetTask.time,
+      done: willBeDone,
+    });
+    refreshHistory(userId);
 
-      if (target.done) {
-        addXP(userId, 5);
-        toast.success(`Completed: "${target.task}" (+5 XP saved to master DB)`, { icon: '✅' });
-      } else {
-        toast.info(`Re-opened: "${target.task}"`);
-      }
+    if (willBeDone) {
+      addXP(userId, 5);
+      toast.success(`Completed: "${targetTask.task}" (+5 XP earned)`, { icon: '✅' });
+    } else {
+      addXP(userId, -5);
+      toast.info(`Re-opened: "${targetTask.task}" (-5 XP adjusted)`);
     }
   };
 
