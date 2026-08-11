@@ -1,7 +1,7 @@
 /**
  * Universal High-Fidelity Document & PDF Text Extractor for HabitBot
  * Powered by Mozilla PDF.js engine via unpdf for complete extraction of stories,
- * paragraphs, handouts, and coaching exercises.
+ * paragraphs, handouts, and coaching exercises, plus in-browser OCR for images.
  */
 
 export async function extractTextFromFile(file: File): Promise<{
@@ -55,5 +55,22 @@ export async function extractTextFromFile(file: File): Promise<{
       isPdf: false,
       charCount: 0,
     };
+  }
+}
+
+/**
+ * In-browser OCR text recognition for images (extracts quotes, schedule charts, text posters)
+ */
+export async function extractTextFromImage(file: File): Promise<string> {
+  try {
+    const { createWorker } = await import('tesseract.js');
+    const worker = await createWorker('eng');
+    const ret = await worker.recognize(file);
+    await worker.terminate();
+    const text = ret.data?.text?.trim() || '';
+    return text;
+  } catch (err) {
+    console.warn('Image OCR notice (non-fatal):', err);
+    return '';
   }
 }

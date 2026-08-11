@@ -35,7 +35,7 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getActiveUser, getUserScopedData, setUserScopedData } from '@/lib/auth-storage';
-import { extractTextFromFile } from '@/lib/document-parser';
+import { extractTextFromFile, extractTextFromImage } from '@/lib/document-parser';
 
 interface Message {
   id: string;
@@ -152,7 +152,7 @@ export default function DashboardPage() {
     const sizeStr = fileSizeKb > 1024 ? `${(fileSizeKb / 1024).toFixed(1)} MB` : `${fileSizeKb} KB`;
 
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const result = reader.result as string;
       const base64 = result.split(',')[1];
       setAttachedFile({
@@ -165,6 +165,16 @@ export default function DashboardPage() {
       });
       setSelectedProvider('gemini');
       toast.success(`Image attached: "${file.name}" (Auto-switched to Gemini Vision 👁️)`);
+
+      // Run background OCR to extract quote/text from image
+      try {
+        const ocrText = await extractTextFromImage(file);
+        if (ocrText && ocrText.trim().length > 2) {
+          setAttachedFile((prev) => (prev ? { ...prev, textData: ocrText.trim() } : prev));
+        }
+      } catch (ocrErr) {
+        console.warn('OCR notice:', ocrErr);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -227,9 +237,14 @@ export default function DashboardPage() {
         : `\n\n[Attached Document: ${attachedFile.name}]`;
 
       payloadPrompt = `${displayPrompt}${docText}`;
-    } else if (!displayPrompt && attachedFile?.type === 'image') {
-      displayPrompt = 'Please analyze this schedule/chart image and provide actionable habit coaching advice.';
-      payloadPrompt = displayPrompt;
+    } else if (attachedFile?.type === 'image') {
+      displayPrompt = query || 'Please analyze this attached image/quote and provide actionable habit coaching advice.';
+      
+      const imageOcr = attachedFile.textData && attachedFile.textData.length > 2
+        ? `\n\n[Text / Quote Extracted From Attached Image]: "${attachedFile.textData}"`
+        : '';
+
+      payloadPrompt = `${displayPrompt}${imageOcr}`;
     }
 
     const userMsg: Message = {
