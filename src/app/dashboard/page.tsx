@@ -89,6 +89,7 @@ export default function DashboardPage() {
 
   const [archives, setArchives] = useState<SavedSession[]>([]);
   const [showArchives, setShowArchives] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string>('');
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [userGroqKey, setUserGroqKey] = useState('');
@@ -106,13 +107,22 @@ export default function DashboardPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Load user-scoped archives and profile from storage & trigger onboarding tour for first-time login
+  // Load user-scoped archives, active chat state, and profile from storage
   const loadUserData = () => {
     const active = getActiveUser();
     if (active) {
       setCurrentUser(active);
       const userArchives = getUserScopedData<SavedSession[]>(active.id, 'chat_archives', []);
       setArchives(userArchives);
+
+      const savedSessionId = getUserScopedData<string>(active.id, 'active_session_id', `session_${Date.now()}`);
+      setCurrentSessionId(savedSessionId);
+
+      // Restore active ongoing chat if user refreshes page or switches tabs
+      const savedActiveMessages = getUserScopedData<Message[]>(active.id, 'active_chat_messages', []);
+      if (savedActiveMessages && savedActiveMessages.length > 1) {
+        setMessages(savedActiveMessages);
+      }
 
       // Load custom API keys if saved by user
       const savedGroq = localStorage.getItem('habitbot_groq_key') || '';
@@ -140,6 +150,47 @@ export default function DashboardPage() {
     if (currentUser) {
       setUserScopedData(currentUser.id, 'chat_archives', updated);
     }
+  };
+
+  // Sync active chat session into Vault (updates existing session in-place with latest timestamp)
+  const syncSessionToVault = (msgs: Message[], sessId: string, user: { id: number } | null) => {
+    if (!user || msgs.length <= 1) return;
+
+    setUserScopedData(user.id, 'active_chat_messages', msgs);
+    setUserScopedData(user.id, 'active_session_id', sessId);
+
+    const firstUserMsg = msgs.find((m) => m.role === 'user')?.content || 'Coaching Session';
+    const sessionTitle = firstUserMsg.slice(0, 38) + (firstUserMsg.length > 38 ? '...' : '');
+    const nowStr = new Date().toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    setArchives((prevArchives) => {
+      const existingIndex = prevArchives.findIndex((a) => a.id === sessId);
+      let updated: SavedSession[];
+      if (existingIndex >= 0) {
+        updated = [...prevArchives];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          title: sessionTitle,
+          timestamp: nowStr,
+          messages: msgs,
+        };
+      } else {
+        const newSession: SavedSession = {
+          id: sessId,
+          title: sessionTitle,
+          timestamp: nowStr,
+          messages: msgs,
+        };
+        updated = [newSession, ...prevArchives];
+      }
+      setUserScopedData(user.id, 'chat_archives', updated);
+      return updated;
+    });
   };
 
   // Dedicated Image Upload Handler
@@ -264,6 +315,10 @@ export default function DashboardPage() {
     setMessages(newMessages);
     setInput('');
 
+    const activeSessId = currentSessionId || `session_${Date.now()}`;
+    if (!currentSessionId) setCurrentSessionId(activeSessId);
+    syncSessionToVault(newMessages, activeSessId, currentUser);
+
     // Multimodal payload for Gemini (Image or PDF document)
     const attachmentPayload =
       attachedFile?.base64
@@ -319,9 +374,11 @@ export default function DashboardPage() {
           const chunk = decoder.decode(value, { stream: true });
           streamedAnswer += chunk;
 
-          setMessages((prev) =>
-            prev.map((m) => (m.id === assistantMsgId ? { ...m, content: streamedAnswer } : m))
-          );
+          setMessages((prev) => {
+            const updated = prev.map((m) => (m.id === assistantMsgId ? { ...m, content: streamedAnswer } : m));
+            syncSessionToVault(updated, activeSessId, currentUser);
+            return updated;
+          });
         }
       }
     } catch (err: any) {
@@ -342,30 +399,29 @@ export default function DashboardPage() {
   };
 
   const handleNewChat = () => {
-    if (messages.length > 2) {
-      const firstUserMsg = messages.find((m) => m.role === 'user')?.content || 'Session';
-      const sessionTitle = firstUserMsg.slice(0, 35) + (firstUserMsg.length > 35 ? '...' : '');
-
-      const newArchive: SavedSession = {
-        id: Date.now().toString(),
-        title: sessionTitle,
-        timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        messages: [...messages],
-      };
-
-      const updated = [newArchive, ...archives];
-      saveArchivesToStorage(updated);
-      toast.success('Session saved to Vault!');
-    }
-
+    const newSessId = `session_${Date.now()}`;
+    setCurrentSessionId(newSessId);
     setMessages(INITIAL_MESSAGES);
     setAttachedFile(null);
     setShowAttachmentMenu(false);
+
+    if (currentUser) {
+      setUserScopedData(currentUser.id, 'active_chat_messages', INITIAL_MESSAGES);
+      setUserScopedData(currentUser.id, 'active_session_id', newSessId);
+    }
+    toast.success('Started a fresh coaching chat! Previous sessions are preserved in Vault.');
   };
 
   const handleResumeChat = (session: SavedSession) => {
+    setCurrentSessionId(session.id);
     setMessages(session.messages);
     setShowArchives(false);
+
+    if (currentUser) {
+      setUserScopedData(currentUser.id, 'active_chat_messages', session.messages);
+      setUserScopedData(currentUser.id, 'active_session_id', session.id);
+      syncSessionToVault(session.messages, session.id, currentUser);
+    }
     toast.info(`Resumed session: "${session.title}"`);
   };
 
