@@ -431,39 +431,44 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-5.5rem)] max-w-5xl mx-auto gap-3">
       {/* Dynamic Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-2xl border border-white/5 backdrop-blur-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/80 dark:border-white/5 shadow-sm transition-colors">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 p-0.5 shadow-lg shadow-purple-500/20 shrink-0">
-            <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center">
-              <Bot className="w-5 h-5 text-purple-400" />
+          <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-gradient-to-tr dark:from-purple-600 dark:to-indigo-600 p-0.5 shadow-sm shrink-0">
+            <div className="w-full h-full bg-slate-900 dark:bg-slate-950 rounded-xl flex items-center justify-center">
+              <Bot className="w-5 h-5 text-white dark:text-purple-400" />
             </div>
           </div>
           <div>
-            <h1 className="text-base font-bold text-white flex items-center gap-2">
+            <h1 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <span>AI Habit Coach</span>
             </h1>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Behavioral routines, deep work coaching & document drills</p>
           </div>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           {/* Dual AI Engine Toggle */}
-          <div className="flex items-center bg-slate-900/80 p-1 rounded-xl border border-white/10 text-xs">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-200 dark:border-white/10 text-xs">
             <button
               onClick={() => setSelectedProvider('groq')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors flex items-center gap-1 ${
-                selectedProvider === 'groq' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+              className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+                selectedProvider === 'groq'
+                  ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white shadow-sm border border-slate-200/80 dark:border-transparent font-semibold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <Cpu className="w-3 h-3" /> Groq (Fast)
+              <Cpu className="w-3 h-3 text-indigo-600 dark:text-purple-300" /> Groq (Fast)
             </button>
             <button
               onClick={() => setSelectedProvider('gemini')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors flex items-center gap-1 ${
-                selectedProvider === 'gemini' ? 'bg-cyan-600/30 text-cyan-200 border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
+              className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+                selectedProvider === 'gemini'
+                  ? 'bg-white dark:bg-cyan-600/30 text-slate-900 dark:text-cyan-200 shadow-sm border border-slate-200/80 dark:border-cyan-500/30 font-semibold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <Sparkles className="w-3 h-3 text-cyan-400" /> Gemini Vision
+              <Sparkles className="w-3 h-3 text-indigo-600 dark:text-cyan-400" /> Gemini Vision
             </button>
           </div>
 
@@ -471,16 +476,16 @@ export default function DashboardPage() {
             size="sm"
             variant="outline"
             onClick={() => setShowArchives(true)}
-            className="h-8 text-xs bg-slate-900/60 hover:bg-slate-800 border-white/10 text-slate-200 gap-1.5 rounded-lg shadow-sm"
+            className="h-8 text-xs bg-white hover:bg-slate-100 dark:bg-slate-900/60 dark:hover:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 gap-1.5 rounded-lg shadow-sm cursor-pointer"
           >
-            <Archive className="w-3.5 h-3.5 text-purple-400" />
+            <Archive className="w-3.5 h-3.5 text-indigo-600 dark:text-purple-400" />
             <span>Vault ({archives.length})</span>
           </Button>
 
           <Button
             size="sm"
             onClick={handleNewChat}
-            className="h-8 text-xs gradient-button gap-1.5 rounded-lg shadow-md shadow-purple-500/20"
+            className="h-8 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button gap-1.5 rounded-lg shadow-sm cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Chat</span>
@@ -490,168 +495,147 @@ export default function DashboardPage() {
 
       {/* Interactive Onboarding Tour Modal */}
       <Dialog open={showOnboardingModal} onOpenChange={setShowOnboardingModal}>
-        <DialogContent className="max-w-2xl bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
+        <DialogContent className="max-w-2xl bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold gradient-text flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-400" />
-              <span>Welcome to HabitBot v5.0 Pro! 👋</span>
+            <DialogTitle className="text-lg font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-indigo-600 dark:text-purple-400" />
+              <span>Welcome to HabitBot v5.0! 👋</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-400">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
               Here is everything you can do with your HabitBot account in 60 seconds:
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
-                  <FileText className="w-4 h-4 text-cyan-400" />
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
+                <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-slate-950 border border-indigo-200 dark:border-white/10">
+                  <FileText className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
                 </div>
                 <span>1. PDF & Document Habit Coach</span>
               </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                 Click 📎 Paperclip to attach any PDF book, handout, or notes. HabitBot parses full multi-page chapters and extracts custom actionable drills.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
-                  <Bot className="w-4 h-4 text-purple-400" />
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
+                <div className="p-1.5 rounded-lg bg-purple-50 dark:bg-slate-950 border border-purple-200 dark:border-white/10">
+                  <Bot className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 <span>2. Image OCR & Gemini Vision</span>
               </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                Attach quote posters, workout charts, or handwritten notes. In-browser OCR reads quotes instantly while Gemini Vision analyzes image layout.
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                Attach quote posters, workout charts, or notes. In-browser OCR extracts text instantly while Gemini Vision analyzes visual layouts.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
-                  <Headphones className="w-4 h-4 text-amber-400" />
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
+                <div className="p-1.5 rounded-lg bg-amber-50 dark:bg-slate-950 border border-amber-200 dark:border-white/10">
+                  <Headphones className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 </div>
                 <span>3. Ambient Media & Device Audio</span>
               </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                Listen to curated lofi presets (Lofi Nasheed & Heavy Rain), paste any YouTube link, or upload your own local audio/video files from your device.
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                Listen to curated lofi presets, paste any YouTube link, or upload your own local audio/video files from your device.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
-                  <CheckSquare className="w-4 h-4 text-indigo-400" />
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
+                <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-slate-950 border border-blue-200 dark:border-white/10">
+                  <CheckSquare className="w-4 h-4 text-blue-600 dark:text-indigo-400" />
                 </div>
                 <span>4. Task Sprints & Swap Order</span>
               </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                Generate 4 micro-tasks with AI. Reorder tasks with ⬆️/⬇️ swap buttons, sort High-to-Low, and earn +5 XP per checkmark with fair uncheck balance.
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                Generate 4 micro-tasks with AI. Reorder tasks with ⬆️/⬇️ swap buttons, sort High-to-Low, and earn +5 XP per checkmark.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
+                <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-slate-950 border border-emerald-200 dark:border-white/10">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <span>5. Habit Matrix & Streak Freeze</span>
               </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                 Check off daily habits in the sidebar (+10 XP). Toggle "Freeze Day" ❄️ during rest or travel days to shield your streak without penalties!
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-1.5 hover:border-purple-500/20 transition-colors">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <div className="p-1.5 rounded-lg bg-slate-950 border border-white/10">
-                  <FileSpreadsheet className="w-4 h-4 text-pink-400" />
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
+                <div className="p-1.5 rounded-lg bg-pink-50 dark:bg-slate-950 border border-pink-200 dark:border-white/10">
+                  <FileSpreadsheet className="w-4 h-4 text-pink-600 dark:text-pink-400" />
                 </div>
                 <span>6. Logbook & 5-Sheet Excel Audit</span>
               </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                Log daily wins & friction points (+15 XP) and export your full lifetime habits, tasks, media history, and streaks into an organized Excel (.xlsx) file!
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                Log daily reflections and export your full lifetime habits, tasks, media history, and streaks into an organized Excel (.xlsx) file!
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t border-white/10">
-            <div>
-              <div className="font-semibold text-white text-xs">You're all set to begin! 🚀</div>
-              <div className="text-[10px] text-slate-400">You can re-open this guide anytime from the top bar.</div>
-            </div>
+          <div className="flex items-center justify-end pt-2">
             <Button
               size="sm"
-              onClick={() => {
-                if (currentUser) {
-                  localStorage.setItem(`habitbot_onboarded_user_${currentUser.id}`, 'true');
-                }
-                setShowOnboardingModal(false);
-              }}
-              className="gradient-button text-xs px-5 py-2 rounded-lg shrink-0 shadow-md shadow-purple-500/20"
+              onClick={() => setShowOnboardingModal(false)}
+              className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs px-5 py-2.5 rounded-lg shadow-sm cursor-pointer"
             >
-              Let's Start Building Habits!
+              Start Coaching
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Spacious Glass Vault Dialog Modal */}
+      {/* Archives Vault Dialog Modal */}
       <Dialog open={showArchives} onOpenChange={setShowArchives}>
-        <DialogContent className="max-w-4xl w-[92vw] bg-slate-950/95 border border-white/10 text-white rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-2xl">
+        <DialogContent className="max-w-md bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl p-6 shadow-2xl backdrop-blur-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold gradient-text flex items-center gap-2">
-              <Archive className="w-5 h-5 text-purple-400" />
-              <span>Previous Coaching Sessions Vault</span>
+            <DialogTitle className="text-base font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
+              <Archive className="w-5 h-5 text-indigo-600 dark:text-purple-400" />
+              <span>Conversation Archives Vault</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-400">
-              Review and resume your saved conversation history anytime with one click.
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+              Browse and resume past coaching sessions with HabitBot.
             </DialogDescription>
           </DialogHeader>
 
           {archives.length === 0 ? (
-            <div className="py-12 text-center space-y-2">
-              <Archive className="w-10 h-10 text-slate-600 mx-auto" />
-              <div className="text-sm font-semibold text-slate-300">Your Vault is Empty</div>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Whenever you finish a coaching session and click <b>+ New Chat</b>, your conversation will be safely saved here!
-              </p>
+            <div className="text-center py-8 text-slate-500 text-xs">
+              No archived conversations yet. Start chatting to create history!
             </div>
           ) : (
-            <div className="space-y-2.5 max-h-[480px] overflow-y-auto py-2 pr-1 custom-scrollbar">
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
               {archives.map((arch) => (
                 <div
                   key={arch.id}
-                  className="p-4 bg-slate-900/80 hover:bg-slate-900 border border-white/5 hover:border-purple-500/30 rounded-xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group shadow-sm"
+                  className="p-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/60 dark:hover:bg-slate-900/90 rounded-xl border border-slate-200/80 dark:border-white/5 flex items-center justify-between group transition-all shadow-sm"
                 >
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-sm font-semibold text-white group-hover:text-purple-200 transition-colors leading-snug">
-                        {arch.title}
-                      </h4>
-                      <span className="text-[10px] font-semibold text-purple-300 bg-purple-950/70 border border-purple-500/30 px-2 py-0.5 rounded-full shrink-0">
-                        {arch.messages.length} messages
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
-                      <Clock className="w-3.5 h-3.5 text-purple-400" />
-                      <span>{arch.timestamp}</span>
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">{arch.title}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      {arch.timestamp} • {arch.messages.length} messages
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                  <div className="flex items-center gap-1">
                     <Button
                       size="sm"
+                      variant="ghost"
                       onClick={() => handleResumeChat(arch)}
-                      className="h-8 px-4 text-xs gradient-button gap-1.5 rounded-lg shadow-sm"
+                      className="h-7 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:text-cyan-400 dark:hover:bg-cyan-950/30 px-2 rounded-lg cursor-pointer"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Resume Chat</span>
+                      Resume
                     </Button>
 
                     <button
                       onClick={(e) => handleDeleteArchive(arch.id, e)}
-                      className="p-2 text-slate-500 hover:text-red-400 rounded-lg hover:bg-red-950/20 transition-colors"
+                      className="p-2 text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
                       title="Delete session"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -671,10 +655,10 @@ export default function DashboardPage() {
             <button
               key={idx}
               onClick={() => handleSend(p.prompt)}
-              className="p-2.5 bg-slate-900/60 hover:bg-slate-800/80 border border-white/5 hover:border-purple-500/30 rounded-xl text-left transition-all shadow-sm group"
+              className="p-2.5 bg-white hover:bg-slate-50 dark:bg-slate-900/60 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-purple-500/30 rounded-xl text-left transition-all shadow-sm group cursor-pointer"
             >
-              <div className="text-xs font-semibold text-purple-300 group-hover:text-purple-200">{p.label}</div>
-              <div className="text-[11px] text-slate-400 line-clamp-2 mt-0.5">{p.prompt}</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-purple-300 group-hover:text-indigo-600 dark:group-hover:text-purple-200">{p.label}</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{p.prompt}</div>
             </button>
           ))}
         </div>
@@ -690,78 +674,78 @@ export default function DashboardPage() {
             className={`flex items-start gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 p-0.5 shrink-0 shadow-md shadow-purple-500/20">
-                <div className="w-full h-full bg-slate-950 rounded-lg flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-purple-400" />
+              <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-gradient-to-tr dark:from-purple-600 dark:to-indigo-600 p-0.5 shrink-0 shadow-sm">
+                <div className="w-full h-full bg-slate-900 dark:bg-slate-950 rounded-lg flex items-center justify-center">
+                  <Bot className="w-4 h-4 text-white dark:text-purple-400" />
                 </div>
               </div>
             )}
 
             <div
-              className={`relative group max-w-[80%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-lg ${
+              className={`relative group max-w-[80%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-sm transition-colors ${
                 m.role === 'user'
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-tr-sm'
-                  : 'bg-slate-900/90 border border-white/10 text-slate-200 rounded-tl-sm backdrop-blur-xl'
+                  ? 'bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-indigo-600 text-white rounded-tr-sm'
+                  : 'bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-slate-200 rounded-tl-sm'
               }`}
             >
               {m.imagePreview && (
-                <div className="mb-2.5 rounded-lg overflow-hidden border border-white/20 max-w-xs">
+                <div className="mb-2.5 rounded-lg overflow-hidden border border-slate-200 dark:border-white/20 max-w-xs shadow-sm">
                   <img src={m.imagePreview} alt="Attached context" className="w-full h-auto object-cover" />
                 </div>
               )}
 
               {m.documentInfo && (
-                <div className="mb-2.5 p-2.5 bg-purple-950/80 border border-purple-500/30 rounded-xl flex items-center gap-2 max-w-sm shadow-sm">
-                  <div className="w-8 h-8 rounded-lg bg-purple-900/60 border border-purple-500/20 flex items-center justify-center text-purple-300 shrink-0">
+                <div className="mb-2.5 p-2.5 bg-slate-100 dark:bg-purple-950/80 border border-slate-200 dark:border-purple-500/30 rounded-xl flex items-center gap-2 max-w-sm shadow-sm">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-purple-900/60 border border-indigo-200 dark:border-purple-500/20 flex items-center justify-center text-indigo-600 dark:text-purple-300 shrink-0">
                     <FileText className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-semibold text-white truncate">{m.documentInfo.name}</div>
-                    <div className="text-[10px] text-purple-300 font-mono">{m.documentInfo.size} Document Attached</div>
+                    <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">{m.documentInfo.name}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-purple-300 font-mono">{m.documentInfo.size} Document Attached</div>
                   </div>
                 </div>
               )}
 
-              <div className="text-xs sm:text-sm text-slate-200 break-words">
+              <div className="text-xs sm:text-sm break-words">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-200 last:mb-0">{children}</p>,
+                    p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-700 dark:text-slate-200 last:mb-0">{children}</p>,
                     h1: ({ children }) => (
-                      <h1 className="text-base font-bold text-white mt-4 mb-2.5 flex items-center gap-2 border-b border-white/10 pb-1.5">
+                      <h1 className="text-base font-bold text-slate-900 dark:text-white mt-4 mb-2.5 flex items-center gap-2 border-b border-slate-100 dark:border-white/10 pb-1.5">
                         {children}
                       </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-sm font-bold text-purple-300 mt-4 mb-2 flex items-center gap-2">
+                      <h2 className="text-sm font-bold text-slate-900 dark:text-purple-300 mt-4 mb-2 flex items-center gap-2">
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-xs font-bold text-cyan-300 mt-3.5 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
+                      <h3 className="text-xs font-bold text-indigo-700 dark:text-cyan-300 mt-3.5 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
                         {children}
                       </h3>
                     ),
-                    ul: ({ children }) => <ul className="my-3 space-y-2 pl-4 list-disc marker:text-purple-400">{children}</ul>,
-                    ol: ({ children }) => <ol className="my-3 space-y-2 pl-4 list-decimal marker:text-cyan-400">{children}</ol>,
-                    li: ({ children }) => <li className="leading-relaxed text-slate-200 pl-0.5">{children}</li>,
+                    ul: ({ children }) => <ul className="my-3 space-y-2 pl-4 list-disc marker:text-indigo-600 dark:marker:text-purple-400">{children}</ul>,
+                    ol: ({ children }) => <ol className="my-3 space-y-2 pl-4 list-decimal marker:text-indigo-600 dark:marker:text-cyan-400">{children}</ol>,
+                    li: ({ children }) => <li className="leading-relaxed text-slate-700 dark:text-slate-200 pl-0.5">{children}</li>,
                     strong: ({ children }) => (
-                      <strong className="font-semibold text-white bg-purple-950/50 px-1.5 py-0.5 rounded border border-purple-500/20 text-[12px] sm:text-[13px]">
+                      <strong className="font-semibold text-slate-900 dark:text-white bg-slate-100 dark:bg-purple-950/50 px-1.5 py-0.5 rounded border border-slate-200 dark:border-purple-500/20 text-[12px] sm:text-[13px]">
                         {children}
                       </strong>
                     ),
                     blockquote: ({ children }) => (
-                      <blockquote className="my-3.5 pl-3.5 border-l-2 border-purple-400 bg-purple-950/30 py-2 pr-3 rounded-r-xl text-slate-300 italic shadow-sm">
+                      <blockquote className="my-3.5 pl-3.5 border-l-2 border-indigo-600 dark:border-purple-400 bg-slate-50 dark:bg-purple-950/30 py-2 pr-3 rounded-r-xl text-slate-700 dark:text-slate-300 italic shadow-sm">
                         {children}
                       </blockquote>
                     ),
                     code: ({ inline, children }: any) =>
                       inline ? (
-                        <code className="bg-slate-950/80 text-cyan-300 px-1.5 py-0.5 rounded text-[11px] font-mono border border-white/10">
+                        <code className="bg-slate-100 dark:bg-slate-950/80 text-indigo-700 dark:text-cyan-300 px-1.5 py-0.5 rounded text-[11px] font-mono border border-slate-200 dark:border-white/10">
                           {children}
                         </code>
                       ) : (
-                        <pre className="my-3.5 p-3.5 bg-slate-950 rounded-xl overflow-x-auto text-[11px] font-mono border border-white/10 text-cyan-200">
+                        <pre className="my-3.5 p-3.5 bg-slate-900 dark:bg-slate-950 rounded-xl overflow-x-auto text-[11px] font-mono border border-slate-800 dark:border-white/10 text-slate-100 dark:text-cyan-200">
                           {children}
                         </pre>
                       ),
@@ -774,15 +758,15 @@ export default function DashboardPage() {
               {m.role === 'assistant' && m.content && (
                 <button
                   onClick={() => copyToClipboard(m.content, m.id)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-all text-[10px] flex items-center gap-1"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all text-[10px] flex items-center gap-1 cursor-pointer"
                 >
-                  {copiedId === m.id ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                  {copiedId === m.id ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                 </button>
               )}
             </div>
 
             {m.role === 'user' && (
-              <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center shrink-0 text-slate-300 overflow-hidden shadow-sm">
+              <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/10 flex items-center justify-center shrink-0 text-slate-700 dark:text-slate-300 overflow-hidden shadow-sm">
                 {currentUser?.avatar ? (
                   <img src={currentUser.avatar} alt="User avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -795,13 +779,13 @@ export default function DashboardPage() {
 
         {loading && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 p-0.5 shrink-0 shadow-md">
-              <div className="w-full h-full bg-slate-950 rounded-lg flex items-center justify-center">
-                <Bot className="w-4 h-4 text-purple-400 animate-spin" />
+            <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-gradient-to-tr dark:from-purple-600 dark:to-indigo-600 p-0.5 shrink-0 shadow-sm">
+              <div className="w-full h-full bg-slate-900 dark:bg-slate-950 rounded-lg flex items-center justify-center">
+                <Bot className="w-4 h-4 text-white dark:text-purple-400 animate-spin" />
               </div>
             </div>
-            <div className="p-3.5 bg-slate-900/80 rounded-2xl border border-white/10 text-xs text-slate-400 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+            <div className="p-3.5 bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-white/10 text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-purple-400 animate-pulse" />
               <span>HabitBot ({selectedProvider === 'gemini' ? 'Gemini Vision' : 'Groq'}) is formulating advice...</span>
             </div>
           </div>
@@ -812,17 +796,17 @@ export default function DashboardPage() {
 
       {/* File / Document Preview Floating Pill */}
       {attachedFile && (
-        <div className="flex items-center gap-2 p-2 bg-slate-900/90 border border-purple-500/30 rounded-xl max-w-fit shadow-lg">
+        <div className="flex items-center gap-2 p-2 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-purple-500/30 rounded-xl max-w-fit shadow-md">
           {attachedFile.type === 'image' ? (
-            <ImageIcon className="w-4 h-4 text-cyan-400" />
+            <ImageIcon className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
           ) : (
-            <FileText className="w-4 h-4 text-purple-400" />
+            <FileText className="w-4 h-4 text-indigo-600 dark:text-purple-400" />
           )}
-          <div className="text-xs text-slate-200">
-            <span className="font-semibold text-white">{attachedFile.name}</span>{' '}
-            <span className="text-slate-400 font-mono">({attachedFile.size})</span>
+          <div className="text-xs text-slate-700 dark:text-slate-200">
+            <span className="font-semibold text-slate-900 dark:text-white">{attachedFile.name}</span>{' '}
+            <span className="text-slate-500 dark:text-slate-400 font-mono">({attachedFile.size})</span>
           </div>
-          <button onClick={() => setAttachedFile(null)} className="text-slate-400 hover:text-red-400 p-0.5 ml-1">
+          <button onClick={() => setAttachedFile(null)} className="text-slate-400 hover:text-red-600 p-0.5 ml-1 cursor-pointer">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -837,9 +821,9 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute bottom-16 left-2 z-30 p-2 bg-slate-950/95 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl flex flex-col gap-1 w-52"
+              className="absolute bottom-16 left-2 z-30 p-2 bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl flex flex-col gap-1 w-52"
             >
-              <div className="text-[10px] font-semibold text-slate-400 px-2 py-1 uppercase tracking-wider">
+              <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 px-2 py-1 uppercase tracking-wider">
                 Attach File
               </div>
 
@@ -850,14 +834,14 @@ export default function DashboardPage() {
                   imageInputRef.current?.click();
                   setShowAttachmentMenu(false);
                 }}
-                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-slate-200 hover:text-white hover:bg-purple-950/60 border border-transparent hover:border-purple-500/30 transition-all text-left group"
+                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-purple-950/60 transition-all text-left group cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center text-cyan-300 group-hover:scale-105 transition-transform">
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-cyan-950/60 border border-indigo-200 dark:border-cyan-500/30 flex items-center justify-center text-indigo-600 dark:text-cyan-300 group-hover:scale-105 transition-transform">
                   <ImageIcon className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-white font-semibold text-xs">Image / Photo</div>
-                  <div className="text-[10px] text-slate-400 font-mono">PNG, JPG, WebP</div>
+                  <div className="text-slate-900 dark:text-white font-semibold text-xs">Image / Photo</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">PNG, JPG, WebP</div>
                 </div>
               </button>
 
@@ -868,14 +852,14 @@ export default function DashboardPage() {
                   docInputRef.current?.click();
                   setShowAttachmentMenu(false);
                 }}
-                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-slate-200 hover:text-white hover:bg-purple-950/60 border border-transparent hover:border-purple-500/30 transition-all text-left group"
+                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-purple-950/60 transition-all text-left group cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-purple-950/60 border border-purple-500/30 flex items-center justify-center text-purple-300 group-hover:scale-105 transition-transform">
+                <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-300 group-hover:scale-105 transition-transform">
                   <FileText className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-white font-semibold text-xs">Document / Notes</div>
-                  <div className="text-[10px] text-slate-400 font-mono">PDF, TXT, CSV, MD</div>
+                  <div className="text-slate-900 dark:text-white font-semibold text-xs">Document / Notes</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">PDF, TXT, CSV, MD</div>
                 </div>
               </button>
             </motion.div>
@@ -887,7 +871,7 @@ export default function DashboardPage() {
             e.preventDefault();
             handleSend();
           }}
-          className="relative flex items-center gap-2 p-2 bg-slate-900/90 rounded-2xl border border-white/10 backdrop-blur-2xl shadow-xl"
+          className="relative flex items-center gap-2 p-2 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-white/10 shadow-md transition-colors"
         >
           {/* Hidden Image Input */}
           <input
@@ -912,10 +896,10 @@ export default function DashboardPage() {
             type="button"
             onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
             title="Attach an Image or Document"
-            className={`p-2 rounded-xl transition-all ${
+            className={`p-2 rounded-xl transition-all cursor-pointer ${
               showAttachmentMenu
-                ? 'bg-purple-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-cyan-400 hover:bg-slate-800'
+                ? 'bg-slate-900 text-white dark:bg-purple-600 shadow-sm'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-cyan-400 dark:hover:bg-slate-800'
             }`}
           >
             <Paperclip className="w-4 h-4" />
@@ -927,14 +911,14 @@ export default function DashboardPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
-            className="flex-1 bg-transparent border-0 text-white placeholder:text-slate-500 focus-visible:ring-0 text-xs sm:text-sm pl-1"
+            className="flex-1 bg-transparent border-0 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-0 text-xs sm:text-sm pl-1 shadow-none"
           />
 
           <Button
             type="submit"
             size="sm"
             disabled={(!input.trim() && !attachedFile) || loading}
-            className="gradient-button h-10 px-4 rounded-xl shadow-lg shadow-purple-500/20 flex items-center gap-1.5"
+            className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button h-10 px-4 rounded-xl shadow-sm flex items-center gap-1.5 cursor-pointer"
           >
             <Send className="w-4 h-4" />
             <span className="hidden sm:inline">Send</span>

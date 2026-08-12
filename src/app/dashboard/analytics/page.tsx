@@ -149,17 +149,17 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-purple-400" /> Performance Analytics
+          <h1 className="text-xl font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
+            <BarChart2 className="w-5 h-5 text-indigo-600 dark:text-purple-400" /> Performance Analytics
           </h1>
-          <p className="text-xs text-slate-400">Live dynamic tracking of habit consistency, deep work volume, and behavioral milestones</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Live dynamic tracking of habit consistency, deep work volume, and behavioral milestones</p>
         </div>
 
         <Button
           size="sm"
           onClick={generateReport}
           disabled={reportLoading}
-          className="gradient-button text-xs gap-1.5 rounded-lg shadow-md shadow-purple-500/20"
+          className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs gap-1.5 rounded-lg shadow-sm cursor-pointer"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>{reportLoading ? 'Analyzing...' : 'Generate AI Weekly Audit'}</span>
@@ -171,96 +171,96 @@ export default function AnalyticsPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 bg-gradient-to-r from-purple-950/40 via-slate-900/80 to-cyan-950/40 rounded-xl border border-purple-500/30 text-xs leading-relaxed space-y-2 shadow-lg"
+          className="p-5 bg-white dark:bg-gradient-to-r dark:from-purple-950/40 dark:via-slate-900/80 dark:to-cyan-950/40 rounded-xl border border-slate-200/80 dark:border-purple-500/30 text-xs leading-relaxed space-y-2 shadow-sm"
         >
-          <div className="flex items-center gap-2 text-purple-300 font-bold">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
+          <div className="flex items-center gap-2 text-indigo-600 dark:text-purple-300 font-bold">
+            <Sparkles className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
             <span>AI Executive Coaching Audit</span>
           </div>
-          <div className="text-slate-300 whitespace-pre-line">{aiReport}</div>
+          <div className="text-slate-700 dark:text-slate-300 whitespace-pre-line">{aiReport}</div>
         </motion.div>
       )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
             <span>Active Streak</span>
-            <Flame className="w-4 h-4 text-amber-400" />
+            <Flame className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">{userAnalytics.streak} Days</div>
-          <div className="text-[10px] text-emerald-400 font-medium">~ Live tracking</div>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">{userAnalytics.streak} Days</div>
+          <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">~ Live tracking</div>
         </div>
 
-        <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
             <span>Habits Checked</span>
-            <Shield className="w-4 h-4 text-purple-400" />
+            <Shield className="w-4 h-4 text-indigo-600 dark:text-purple-400" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">{userAnalytics.habitsCompleted} Completed</div>
-          <div className="text-[10px] text-purple-300 font-medium">{userAnalytics.disciplineRate}% discipline rate</div>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">{userAnalytics.habitsCompleted} Completed</div>
+          <div className="text-[10px] text-indigo-600 dark:text-purple-300 font-medium">{userAnalytics.disciplineRate}% discipline rate</div>
         </div>
 
-        <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
             <span>Deep Work</span>
-            <Clock className="w-4 h-4 text-cyan-400" />
+            <Clock className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">{userAnalytics.focusHours} Hours</div>
-          <div className="text-[10px] text-cyan-300 font-medium">{userAnalytics.focusMins} total minutes</div>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">{userAnalytics.focusHours} Hours</div>
+          <div className="text-[10px] text-cyan-600 dark:text-cyan-300 font-medium">{userAnalytics.focusMins} total minutes</div>
         </div>
 
-        <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-1">
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
             <span>Mastery Level</span>
-            <Award className="w-4 h-4 text-amber-400" />
+            <Award className="w-4 h-4 text-amber-500 dark:text-amber-400" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">Level {xpInfo.level}</div>
-          <div className="text-[10px] text-amber-300 font-medium">{xpInfo.name}</div>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">Level {xpInfo.level}</div>
+          <div className="text-[10px] text-amber-600 dark:text-amber-300 font-medium">{xpInfo.name}</div>
         </div>
       </div>
 
       {/* Visual Charts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Habit Completion Chart (Real Last 7 Days) */}
-        <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-3">
-          <div className="text-xs font-semibold text-purple-300 flex items-center gap-1.5">
-            <Shield className="w-4 h-4 text-purple-400" />
+        <div className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-3 shadow-sm">
+          <div className="text-xs font-semibold text-slate-800 dark:text-purple-300 flex items-center gap-1.5">
+            <Shield className="w-4 h-4 text-indigo-600 dark:text-purple-400" />
             <span>Daily Habits Logged (Last 7 Days)</span>
           </div>
 
           <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
+                <XAxis dataKey="day" stroke="#64748b" fontSize={11} />
+                <YAxis stroke="#64748b" fontSize={11} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', fontSize: '11px', color: '#0f172a' }}
                 />
-                <Bar dataKey="habits" fill="#a855f7" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="habits" fill="#6366f1" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Focus Minutes Chart (Real Last 7 Days) */}
-        <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-3">
-          <div className="text-xs font-semibold text-cyan-300 flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-cyan-400" />
+        <div className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-3 shadow-sm">
+          <div className="text-xs font-semibold text-slate-800 dark:text-cyan-300 flex items-center gap-1.5">
+            <Clock className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
             <span>Deep Work Minutes</span>
           </div>
 
           <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
+                <XAxis dataKey="day" stroke="#64748b" fontSize={11} />
+                <YAxis stroke="#64748b" fontSize={11} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', fontSize: '11px', color: '#0f172a' }}
                 />
-                <Bar dataKey="focusMins" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="focusMins" fill="#0284c7" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -268,15 +268,15 @@ export default function AnalyticsPage() {
       </div>
 
       {/* 365-Day Consistency Heatmap Grid */}
-      <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-3">
+      <div className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-3 shadow-sm">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-200">365-Day Habit Matrix Heatmap</span>
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+          <span className="font-semibold text-slate-800 dark:text-slate-200">365-Day Habit Matrix Heatmap</span>
+          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
             <span>Less</span>
-            <div className="w-2.5 h-2.5 rounded-sm bg-slate-800" />
-            <div className="w-2.5 h-2.5 rounded-sm bg-purple-900/50" />
-            <div className="w-2.5 h-2.5 rounded-sm bg-purple-600" />
-            <div className="w-2.5 h-2.5 rounded-sm bg-cyan-400" />
+            <div className="w-2.5 h-2.5 rounded-sm bg-slate-200 dark:bg-slate-800" />
+            <div className="w-2.5 h-2.5 rounded-sm bg-indigo-200 dark:bg-purple-900/50" />
+            <div className="w-2.5 h-2.5 rounded-sm bg-indigo-400 dark:bg-purple-600" />
+            <div className="w-2.5 h-2.5 rounded-sm bg-indigo-600 dark:bg-cyan-400" />
             <span>More</span>
           </div>
         </div>
@@ -286,14 +286,14 @@ export default function AnalyticsPage() {
             const intensity = Math.min(4, d.count);
             const bgClass =
               intensity >= 4
-                ? 'bg-cyan-400 shadow-sm shadow-cyan-500/50'
+                ? 'bg-indigo-600 dark:bg-cyan-400'
                 : intensity === 3
-                ? 'bg-purple-600'
+                ? 'bg-indigo-400 dark:bg-purple-600'
                 : intensity === 2
-                ? 'bg-purple-800/60'
+                ? 'bg-indigo-300 dark:bg-purple-800/60'
                 : intensity === 1
-                ? 'bg-purple-950/40'
-                : 'bg-slate-800/40';
+                ? 'bg-indigo-100 dark:bg-purple-950/40'
+                : 'bg-slate-100 dark:bg-slate-800/40';
 
             return (
               <div

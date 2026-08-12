@@ -139,16 +139,16 @@ export function PomodoroTimer() {
   const progress = totalDuration > 0 ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0;
 
   return (
-    <div className="p-3.5 bg-slate-900/60 rounded-xl border border-white/5 space-y-3">
+    <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-3 transition-colors">
       {/* Header with Settings Toggle */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-300">
-          <Timer className="w-3.5 h-3.5 text-purple-400" />
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-purple-300">
+          <Timer className="w-3.5 h-3.5 text-indigo-600 dark:text-purple-400" />
           <span>Pomodoro Timer</span>
         </div>
         <button
           onClick={() => setShowSettings(!showSettings)}
-          className="text-slate-400 hover:text-cyan-300 p-1 rounded transition-colors text-[10px] flex items-center gap-1"
+          className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-cyan-300 p-1 rounded transition-colors text-[10px] flex items-center gap-1 cursor-pointer font-medium"
         >
           <Settings2 className="w-3 h-3" />
           <span>{showSettings ? 'Close' : 'Adjust'}</span>
@@ -157,19 +157,19 @@ export function PomodoroTimer() {
 
       {/* Manual Time & Name Adjustment Settings Box */}
       {showSettings && (
-        <form onSubmit={applyCustomSettings} className="p-2.5 bg-slate-950/80 rounded-lg border border-purple-500/30 space-y-2 text-xs">
+        <form onSubmit={applyCustomSettings} className="p-2.5 bg-white dark:bg-slate-950/80 rounded-lg border border-slate-200 dark:border-purple-500/30 space-y-2 text-xs shadow-sm">
           <div>
-            <label className="text-[10px] text-slate-400 block mb-1">Session Title / Activity</label>
+            <label className="text-[10px] text-slate-500 dark:text-slate-400 block mb-1">Session Title / Activity</label>
             <Input
               type="text"
               placeholder="e.g. Physics Study, Coding, Meditation"
               value={customTitle}
               onChange={(e) => setCustomTitle(e.target.value)}
-              className="h-7 text-xs bg-slate-900 border-white/10 text-white"
+              className="h-7 text-xs bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="text-[10px] text-slate-400 block mb-1">Duration (Minutes: 1 - 240)</label>
+            <label className="text-[10px] text-slate-500 dark:text-slate-400 block mb-1">Duration (Minutes: 1 - 240)</label>
             <div className="flex gap-1.5">
               <Input
                 type="number"
@@ -177,9 +177,9 @@ export function PomodoroTimer() {
                 max="240"
                 value={customMins}
                 onChange={(e) => setCustomMins(Number(e.target.value))}
-                className="h-7 text-xs bg-slate-900 border-white/10 text-white"
+                className="h-7 text-xs bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white"
               />
-              <Button size="sm" type="submit" className="h-7 px-3 gradient-button text-xs gap-1">
+              <Button size="sm" type="submit" className="h-7 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs gap-1">
                 <Check className="w-3 h-3" /> Set
               </Button>
             </div>
@@ -188,27 +188,33 @@ export function PomodoroTimer() {
       )}
 
       {/* Mode Quick Selectors */}
-      <div className="grid grid-cols-3 gap-1 bg-slate-950/80 p-1 rounded-lg border border-white/5 text-[11px]">
+      <div className="grid grid-cols-3 gap-1 bg-slate-100/90 dark:bg-slate-950/80 p-1 rounded-lg border border-slate-200/80 dark:border-white/5 text-[11px]">
         <button
           onClick={() => handleModeChange('focus', 25)}
-          className={`py-1 rounded font-medium transition-colors ${
-            mode === 'focus' ? 'bg-purple-600/30 text-purple-200 border border-purple-500/30' : 'text-slate-400 hover:text-slate-200'
+          className={`py-1 rounded font-semibold transition-colors cursor-pointer ${
+            mode === 'focus'
+              ? 'bg-white dark:bg-purple-600/30 text-slate-900 dark:text-purple-200 shadow-sm border border-slate-200/80 dark:border-purple-500/30'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
           25m Focus
         </button>
         <button
           onClick={() => handleModeChange('shortBreak', 5)}
-          className={`py-1 rounded font-medium transition-colors ${
-            mode === 'shortBreak' ? 'bg-cyan-600/30 text-cyan-200 border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
+          className={`py-1 rounded font-semibold transition-colors cursor-pointer ${
+            mode === 'shortBreak'
+              ? 'bg-white dark:bg-cyan-600/30 text-slate-900 dark:text-cyan-200 shadow-sm border border-slate-200/80 dark:border-cyan-500/30'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
           5m Break
         </button>
         <button
           onClick={() => handleModeChange('longBreak', 15)}
-          className={`py-1 rounded font-medium transition-colors ${
-            mode === 'longBreak' ? 'bg-indigo-600/30 text-indigo-200 border border-indigo-500/30' : 'text-slate-400 hover:text-slate-200'
+          className={`py-1 rounded font-semibold transition-colors cursor-pointer ${
+            mode === 'longBreak'
+              ? 'bg-white dark:bg-indigo-600/30 text-slate-900 dark:text-indigo-200 shadow-sm border border-slate-200/80 dark:border-indigo-500/30'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
           15m Long
@@ -221,19 +227,19 @@ export function PomodoroTimer() {
           key={timeLeft}
           initial={{ scale: 0.98 }}
           animate={{ scale: 1 }}
-          className="text-4xl font-extrabold font-mono tracking-tight text-white drop-shadow-md"
+          className="text-4xl font-extrabold font-mono tracking-tight text-slate-900 dark:text-white"
         >
           {formatTime(timeLeft)}
         </motion.div>
-        <div className="text-[11px] text-slate-300 mt-0.5 truncate px-2 font-medium">
+        <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 truncate px-2 font-semibold">
           🎯 {customTitle}
         </div>
       </div>
 
       {/* Progress Line */}
-      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-purple-500 to-cyan-400 transition-all duration-300 rounded-full"
+          className="h-full bg-slate-900 dark:bg-gradient-to-r dark:from-purple-500 dark:to-cyan-400 transition-all duration-300 rounded-full"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -243,10 +249,10 @@ export function PomodoroTimer() {
         <Button
           size="sm"
           onClick={toggleTimer}
-          className={`flex-1 font-semibold py-4 rounded-lg flex items-center justify-center gap-1.5 shadow-md ${
+          className={`flex-1 font-semibold py-4 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition-all ${
             isRunning
               ? 'bg-amber-600 hover:bg-amber-500 text-white'
-              : 'gradient-button shadow-purple-500/20'
+              : 'bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button'
           }`}
         >
           {isRunning ? (
@@ -263,7 +269,7 @@ export function PomodoroTimer() {
           size="sm"
           variant="outline"
           onClick={resetTimer}
-          className="bg-slate-800/80 hover:bg-slate-700 border-white/10 text-slate-300 p-2.5 rounded-lg"
+          className="bg-white hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-700 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 p-2.5 rounded-lg shadow-sm"
         >
           <RotateCcw className="w-3.5 h-3.5" />
         </Button>

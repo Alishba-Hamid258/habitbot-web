@@ -47,7 +47,38 @@
 }
 
 :root {
-  /* Default to sleek dark theme */
+  /* Clean, Minimalist, Sophisticated White Theme (Default) */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0f172a;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #334155;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0f172a;
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0f172a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #0f172a;
+}
+
+.dark {
+  /* Sleek Dark Theme */
   --background: #090d16;
   --foreground: #f1f5f9;
   --card: #0f172a;
@@ -66,7 +97,6 @@
   --border: rgba(255, 255, 255, 0.08);
   --input: rgba(255, 255, 255, 0.12);
   --ring: #8b5cf6;
-  --radius: 0.75rem;
   --sidebar: #0b1120;
   --sidebar-foreground: #f1f5f9;
   --sidebar-primary: #8b5cf6;
@@ -86,84 +116,110 @@
     color: var(--foreground);
     font-feature-settings: "rlig" 1, "calt" 1;
     overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
 
-/* Custom Glassmorphic and Visual Utilities */
+/* Adaptive Clean Panels & Cards */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .glass-card {
-  background: rgba(30, 41, 59, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease-in-out;
 }
 
 .glass-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.06);
+}
+
+.dark .glass-card {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
+
+.dark .glass-card:hover {
   background: rgba(30, 41, 59, 0.6);
   border-color: rgba(139, 92, 246, 0.3);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
 .gradient-text {
+  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .gradient-text {
   background: linear-gradient(135deg, #a78bfa 0%, #38bdf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-button {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  background: #0f172a;
   color: white;
   transition: all 0.2s ease;
 }
 
 .gradient-button:hover {
+  background: #1e293b;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+}
+
+.dark .gradient-button {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: white;
+}
+
+.dark .gradient-button:hover {
   background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
 }
 
-.glow-purple {
-  box-shadow: 0 0 25px rgba(139, 92, 246, 0.25);
-}
-
-/* Custom Scrollbar for Dark Theme */
+/* Custom Scrollbar for Light & Dark Theme */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.3);
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.6);
-}
-
-/* Subtle Pulsing Animation */
-@keyframes pulse-glow {
-  0%, 100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 4s infinite ease-in-out;
 }

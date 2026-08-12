@@ -357,21 +357,21 @@ export default function LogbookPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-purple-400" /> Logbook, Reflections & Custom Export
+        <h1 className="text-xl font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-indigo-600 dark:text-purple-400" /> Logbook, Reflections & Custom Export
         </h1>
-        <p className="text-xs text-slate-400">Daily evening reflections, behavioral insights, and tailored Excel data backups</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Daily evening reflections, behavioral insights, and tailored Excel data backups</p>
       </div>
 
       {/* Customizable Life Audit Exporter Banner Card */}
-      <div className="p-5 bg-gradient-to-r from-purple-950/30 via-slate-900/60 to-cyan-950/30 rounded-xl border border-purple-500/20 space-y-4 shadow-lg">
+      <div className="p-5 bg-white dark:bg-gradient-to-r dark:from-purple-950/30 dark:via-slate-900/60 dark:to-cyan-950/30 rounded-xl border border-slate-200/80 dark:border-purple-500/20 space-y-4 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-bold text-white flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+            <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Full Life Audit & Behavioral Exporter</span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Exports your habits, deep work focus hours, tasks master database, chat transcripts, and reflections into structured multi-sheet Excel files.
             </p>
           </div>
@@ -379,7 +379,7 @@ export default function LogbookPage() {
           <Button
             onClick={handleExportLifeAudit}
             disabled={exporting || selectedCount === 0}
-            className="gradient-button text-xs font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-purple-500/20 flex items-center gap-2 shrink-0"
+            className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs font-semibold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 shrink-0 cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>{exporting ? 'Compiling Excel...' : `Export ${selectedCount} Sheet${selectedCount > 1 ? 's' : ''}`}</span>
@@ -387,13 +387,13 @@ export default function LogbookPage() {
         </div>
 
         {/* Timeframe Scope Selector */}
-        <div className="pt-2 border-t border-white/5 space-y-2">
+        <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-300 font-semibold flex items-center gap-1.5">
-              <Filter className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
               <span>Timeframe & Scale Scope:</span>
             </span>
-            <span className="text-[10px] text-purple-300 font-mono">
+            <span className="text-[10px] text-indigo-600 dark:text-purple-300 font-mono font-medium">
               {timeframe === 'today'
                 ? "Today's Daily Progress"
                 : timeframe === 'all'
@@ -414,10 +414,10 @@ export default function LogbookPage() {
               <button
                 key={opt.id}
                 onClick={() => setTimeframe(opt.id as TimeframeOption)}
-                className={`py-1 px-2.5 rounded-lg text-[11px] font-medium transition-colors border ${
+                className={`py-1 px-2.5 rounded-lg text-[11px] font-medium transition-colors border cursor-pointer ${
                   timeframe === opt.id
-                    ? 'bg-cyan-950/80 text-cyan-300 border-cyan-500/40 shadow-sm'
-                    : 'bg-slate-950/40 text-slate-400 border-white/5 hover:text-slate-200'
+                    ? 'bg-slate-900 text-white border-slate-900 dark:bg-cyan-950/80 dark:text-cyan-300 dark:border-cyan-500/40 shadow-sm'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-950/40 dark:text-slate-400 dark:border-white/5 dark:hover:text-slate-200'
                 }`}
               >
                 {opt.label}
@@ -427,22 +427,22 @@ export default function LogbookPage() {
 
           {timeframe === 'custom' && (
             <div className="flex items-center gap-2 pt-1">
-              <div className="flex items-center gap-1 text-xs text-slate-400">
+              <div className="flex items-center gap-1 text-xs text-slate-500">
                 <span>From:</span>
                 <Input
                   type="date"
                   value={customStart}
                   onChange={(e) => setCustomStart(e.target.value)}
-                  className="h-7 text-xs bg-slate-950 border-white/10 text-white w-36"
+                  className="h-7 text-xs bg-white dark:bg-slate-950 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white w-36 shadow-sm"
                 />
               </div>
-              <div className="flex items-center gap-1 text-xs text-slate-400">
+              <div className="flex items-center gap-1 text-xs text-slate-500">
                 <span>To:</span>
                 <Input
                   type="date"
                   value={customEnd}
                   onChange={(e) => setCustomEnd(e.target.value)}
-                  className="h-7 text-xs bg-slate-950 border-white/10 text-white w-36"
+                  className="h-7 text-xs bg-white dark:bg-slate-950 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white w-36 shadow-sm"
                 />
               </div>
             </div>
@@ -450,18 +450,18 @@ export default function LogbookPage() {
         </div>
 
         {/* Sheet Selection Toggles */}
-        <div className="pt-2 border-t border-white/5 space-y-2">
+        <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-300 font-semibold flex items-center gap-1">
-              <Layers className="w-3.5 h-3.5 text-purple-400" />
+            <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5 text-indigo-600 dark:text-purple-400" />
               <span>Select Sheets to Include:</span>
             </span>
             <div className="flex gap-2">
-              <button onClick={() => setAllSheets(true)} className="text-[11px] text-cyan-400 hover:underline">
+              <button onClick={() => setAllSheets(true)} className="text-[11px] text-indigo-600 dark:text-cyan-400 hover:underline cursor-pointer font-medium">
                 Select All
               </button>
-              <span className="text-slate-600">|</span>
-              <button onClick={() => setAllSheets(false)} className="text-[11px] text-slate-400 hover:underline">
+              <span className="text-slate-300 dark:text-slate-600">|</span>
+              <button onClick={() => setAllSheets(false)} className="text-[11px] text-slate-500 hover:underline cursor-pointer">
                 Deselect All
               </button>
             </div>
@@ -469,12 +469,12 @@ export default function LogbookPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[
-              { key: 'reflections', label: 'Evening Reflections', icon: BookOpen, color: 'text-purple-400' },
-              { key: 'habits', label: 'Habit Matrix Logs', icon: CheckCircle2, color: 'text-cyan-400' },
-              { key: 'focus', label: 'Deep Work Sessions', icon: Clock, color: 'text-amber-400' },
-              { key: 'tasks', label: 'Tasks Master Database', icon: Database, color: 'text-emerald-400' },
-              { key: 'chat', label: 'AI Chat Vaults', icon: MessageSquare, color: 'text-indigo-400' },
-              { key: 'media', label: 'Focus Soundtracks', icon: Video, color: 'text-pink-400' },
+              { key: 'reflections', label: 'Evening Reflections', icon: BookOpen, color: 'text-indigo-600 dark:text-purple-400' },
+              { key: 'habits', label: 'Habit Matrix Logs', icon: CheckCircle2, color: 'text-emerald-600 dark:text-cyan-400' },
+              { key: 'focus', label: 'Deep Work Sessions', icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
+              { key: 'tasks', label: 'Tasks Master Database', icon: Database, color: 'text-blue-600 dark:text-emerald-400' },
+              { key: 'chat', label: 'AI Chat Vaults', icon: MessageSquare, color: 'text-purple-600 dark:text-indigo-400' },
+              { key: 'media', label: 'Focus Soundtracks', icon: Video, color: 'text-rose-600 dark:text-pink-400' },
             ].map(({ key, label, icon: Icon, color }) => {
               const active = selectedSheets[key as keyof typeof selectedSheets];
               return (
@@ -482,15 +482,15 @@ export default function LogbookPage() {
                   key={key}
                   type="button"
                   onClick={() => toggleSheet(key as keyof typeof selectedSheets)}
-                  className={`flex items-center gap-2 p-2 rounded-lg border text-xs font-medium transition-colors text-left ${
+                  className={`flex items-center gap-2 p-2 rounded-lg border text-xs font-medium transition-colors text-left cursor-pointer ${
                     active
-                      ? 'bg-purple-950/40 border-purple-500/40 text-slate-100 shadow-sm'
-                      : 'bg-slate-950/40 border-white/5 text-slate-500 hover:text-slate-400'
+                      ? 'bg-indigo-50/80 border-indigo-200 text-slate-900 dark:bg-purple-950/40 dark:border-purple-500/40 dark:text-slate-100 shadow-sm'
+                      : 'bg-slate-50/60 border-slate-200/80 text-slate-500 dark:bg-slate-950/40 dark:border-white/5 dark:text-slate-500 hover:text-slate-900'
                   }`}
                 >
                   <div
                     className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
-                      active ? 'bg-purple-600 border-purple-500 text-white' : 'border-white/20'
+                      active ? 'bg-indigo-600 border-indigo-600 dark:bg-purple-600 dark:border-purple-500 text-white' : 'border-slate-300 dark:border-white/20 bg-white dark:bg-transparent'
                     }`}
                   >
                     {active && <Check className="w-3 h-3" />}
@@ -505,43 +505,43 @@ export default function LogbookPage() {
       </div>
 
       {/* Evening Reflection Card */}
-      <form onSubmit={handleSaveReflection} className="p-5 bg-slate-900/60 rounded-xl border border-white/5 space-y-4">
+      <form onSubmit={handleSaveReflection} className="p-5 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-semibold text-white">
-            <Sparkles className="w-4 h-4 text-purple-400" />
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+            <Sparkles className="w-4 h-4 text-indigo-600 dark:text-purple-400" />
             <span>Daily Behavioral Reflection (+15 XP)</span>
           </div>
-          <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
-            <Calendar className="w-3.5 h-3.5 text-cyan-400" /> Today: {new Date().toISOString().split('T')[0]}
+          <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 font-mono">
+            <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" /> Today: {new Date().toISOString().split('T')[0]}
           </span>
         </div>
 
         <div className="space-y-3">
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-300">1. What went exceptionally well today?</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">1. What went exceptionally well today?</label>
             <textarea
               rows={2}
               placeholder="e.g. Completed 2 deep work sprints, hit workout habit, resisted sugar cravings..."
               value={wentWell}
               onChange={(e) => setWentWell(e.target.value)}
-              className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-300 dark:border-white/10 rounded-lg p-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-300">2. Where did you encounter friction or resistance?</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">2. Where did you encounter friction or resistance?</label>
             <textarea
               rows={2}
               placeholder="e.g. Checked phone at 3 PM, delayed starting task 2 by 20 minutes..."
               value={friction}
               onChange={(e) => setFriction(e.target.value)}
-              className="w-full bg-slate-950/80 border border-white/10 rounded-lg p-2.5 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-300 dark:border-white/10 rounded-lg p-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm"
             />
           </div>
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" size="sm" className="gradient-button text-xs px-5 rounded-lg">
+          <Button type="submit" size="sm" className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs px-5 rounded-lg shadow-sm cursor-pointer">
             Save Evening Reflection
           </Button>
         </div>
@@ -549,15 +549,15 @@ export default function LogbookPage() {
 
       {/* Historical Reflections List */}
       <div className="space-y-3">
-        <div className="text-sm font-semibold text-white flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-cyan-400" />
+        <div className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
           <span>Past Reflection Entries ({reflections.length})</span>
         </div>
 
         {reflections.length === 0 ? (
-          <div className="p-8 text-center bg-slate-900/30 rounded-xl border border-white/5 space-y-2">
-            <BookOpen className="w-8 h-8 text-slate-600 mx-auto" />
-            <div className="text-xs text-slate-400">No reflections logged yet. Submit your first daily review above!</div>
+          <div className="p-8 text-center bg-white dark:bg-slate-900/30 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-2 shadow-sm">
+            <BookOpen className="w-8 h-8 text-slate-400 mx-auto" />
+            <div className="text-xs text-slate-500">No reflections logged yet. Submit your first daily review above!</div>
           </div>
         ) : (
           <div className="space-y-2.5">
@@ -566,23 +566,23 @@ export default function LogbookPage() {
                 key={r.id || r.date}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-2"
+                className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-2 shadow-sm"
               >
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-purple-300 font-semibold">{r.date}</span>
-                  <span className="text-[10px] bg-purple-950/60 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded">
+                  <span className="text-indigo-700 dark:text-purple-300 font-semibold">{r.date}</span>
+                  <span className="text-[10px] bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20 px-2 py-0.5 rounded font-semibold">
                     +15 XP Earned
                   </span>
                 </div>
 
                 <div className="text-xs space-y-1">
                   <div>
-                    <span className="text-emerald-400 font-medium">✨ Wins: </span>
-                    <span className="text-slate-200">{r.wentWell}</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">✨ Wins: </span>
+                    <span className="text-slate-700 dark:text-slate-200">{r.wentWell}</span>
                   </div>
                   <div>
-                    <span className="text-amber-400 font-medium">⚠️ Friction: </span>
-                    <span className="text-slate-300">{r.friction}</span>
+                    <span className="text-amber-600 dark:text-amber-400 font-medium">⚠️ Friction: </span>
+                    <span className="text-slate-600 dark:text-slate-300">{r.friction}</span>
                   </div>
                 </div>
               </motion.div>

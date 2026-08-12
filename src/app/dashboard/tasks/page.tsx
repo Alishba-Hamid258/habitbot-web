@@ -98,10 +98,16 @@ export default function TasksPage() {
 
     if (willBeDone) {
       addXP(userId, 5);
-      toast.success(`Completed: "${targetTask.task}" (+5 XP earned)`, { icon: '✅' });
+      logTaskCompletion(userId, {
+        id: targetTask.id,
+        task: targetTask.task,
+        priority: targetTask.priority,
+        time: targetTask.time,
+      });
+      toast.success(`Completed: ${targetTask.task} (+5 XP)`, { icon: '🎯' });
     } else {
       addXP(userId, -5);
-      toast.info(`Re-opened: "${targetTask.task}" (-5 XP adjusted)`);
+      toast.info(`Task reopened: ${targetTask.task} (-5 XP)`);
     }
   };
 
@@ -113,7 +119,7 @@ export default function TasksPage() {
       id: Date.now().toString(),
       task: newTaskTitle.trim(),
       priority: newPriority,
-      time: newTime.trim() || '25 mins',
+      time: newTime || '25 mins',
       done: false,
     };
 
@@ -123,6 +129,8 @@ export default function TasksPage() {
     refreshHistory(userId);
 
     setNewTaskTitle('');
+    setNewTime('25 mins');
+    toast.success('Task created and logged to Master Database!');
   };
 
   const deleteTask = (id: string) => {
@@ -133,34 +141,37 @@ export default function TasksPage() {
   const clearCompleted = () => {
     const updated = tasks.filter((t) => !t.done);
     saveTasks(updated);
+    toast.info('Cleared finished tasks.');
   };
 
-  // High to Low Priority Sorting
-  const handleSortHighToLow = () => {
-    const priorityWeight = { High: 3, Medium: 2, Low: 1 };
-    const sorted = [...tasks].sort((a, b) => priorityWeight[b.priority] - priorityWeight[a.priority]);
-    saveTasks(sorted);
-    setIsSortedHighToLow(true);
-    toast.success('Tasks sorted: High 🔴 ➡️ Medium 🟡 ➡️ Low 🟢 Priority!');
-  };
-
-  // Move / Swap Task Position Up or Down as per User Preference
-  const moveTask = (index: number, direction: 'up' | 'down') => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= tasks.length) return;
+  // Move task manual swap
+  const moveTask = (fromIndex: number, direction: 'up' | 'down') => {
+    const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= tasks.length) return;
 
     const updated = [...tasks];
-    const temp = updated[index];
-    updated[index] = updated[targetIndex];
-    updated[targetIndex] = temp;
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
     saveTasks(updated);
     setIsSortedHighToLow(false);
   };
 
-  // AI Breakdown Engine
+  // Sort from High to Low priority
+  const handleSortHighToLow = () => {
+    const priorityWeight = { High: 3, Medium: 2, Low: 1 };
+    const sorted = [...tasks].sort((a, b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      return priorityWeight[b.priority] - priorityWeight[a.priority];
+    });
+    saveTasks(sorted);
+    setIsSortedHighToLow(true);
+    toast.success('Tasks sorted: High ➔ Medium ➔ Low! ⚡');
+  };
+
+  // AI Task Architect Breakdown
   const handleAiBreakdown = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aiGoal.trim()) return;
+    if (!aiGoal.trim() || aiArchitectLoading) return;
 
     setAiArchitectLoading(true);
     try {
@@ -168,13 +179,14 @@ export default function TasksPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          provider: 'groq',
           messages: [
             {
               role: 'user',
-              content: `Break down this big goal into exactly 4 concrete, actionable micro-tasks for today using atomic habit principles: "${aiGoal.trim()}". Return ONLY a raw JSON array of 4 objects with keys: "task" (string description starting with Step 1, Step 2, etc.), "priority" (strictly "High", "Medium", or "Low"), and "time" (e.g. "20 mins", "15 mins", "25 mins"). Do not output any markdown ticks, preamble, or commentary.`,
+              content: `Deconstruct the following high-level objective into exactly 4 concrete, actionable micro-tasks for today's execution plan. Return ONLY a valid JSON array of objects with keys: "task" (string, max 8 words), "priority" ("High" | "Medium" | "Low"), "time" (string e.g. "20 mins", "30 mins").
+Objective: "${aiGoal}"`,
             },
           ],
-          provider: 'groq',
         }),
       });
 
@@ -229,10 +241,10 @@ export default function TasksPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
-            <CheckSquare className="w-5 h-5 text-purple-400" /> Action Sprints & Task Planner
+          <h1 className="text-xl font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
+            <CheckSquare className="w-5 h-5 text-indigo-600 dark:text-purple-400" /> Action Sprints & Task Planner
           </h1>
-          <p className="text-xs text-slate-400">Micro-task execution engine with automated Master Database persistence</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Micro-task execution engine with automated Master Database persistence</p>
         </div>
 
         {/* Master History Button */}
@@ -240,17 +252,17 @@ export default function TasksPage() {
           size="sm"
           variant="outline"
           onClick={() => setShowHistory(!showHistory)}
-          className="text-xs bg-slate-900/80 hover:bg-slate-800 border-white/10 text-cyan-300 gap-1.5 rounded-lg shadow-sm"
+          className="text-xs bg-white hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 border-slate-200 dark:border-white/10 text-indigo-600 dark:text-cyan-300 gap-1.5 rounded-lg shadow-sm cursor-pointer"
         >
-          <History className="w-3.5 h-3.5 text-cyan-400" />
+          <History className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
           <span>{showHistory ? 'Hide History' : `Master Database (${taskHistory.length})`}</span>
         </Button>
       </div>
 
       {/* AI Task Architect */}
-      <div className="p-4 bg-gradient-to-r from-purple-950/40 via-slate-900/60 to-indigo-950/40 rounded-xl border border-purple-500/20 space-y-2.5 shadow-lg">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-300">
-          <Sparkles className="w-4 h-4 text-purple-400" />
+      <div className="p-4 bg-white dark:bg-gradient-to-r dark:from-purple-950/40 dark:via-slate-900/60 dark:to-indigo-950/40 rounded-xl border border-slate-200/80 dark:border-purple-500/20 space-y-2.5 shadow-sm">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-purple-300">
+          <Sparkles className="w-4 h-4 text-indigo-600 dark:text-purple-400" />
           <span>AI Task Architect & Goal Breakdown</span>
         </div>
         <form onSubmit={handleAiBreakdown} className="flex gap-2">
@@ -260,13 +272,13 @@ export default function TasksPage() {
             value={aiGoal}
             onChange={(e) => setAiGoal(e.target.value)}
             disabled={aiArchitectLoading}
-            className="flex-1 bg-slate-950/80 border-white/10 text-white placeholder:text-slate-500 text-xs"
+            className="flex-1 bg-slate-50 dark:bg-slate-950/80 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs shadow-sm"
           />
           <Button
             type="submit"
             size="sm"
             disabled={!aiGoal.trim() || aiArchitectLoading}
-            className="gradient-button text-xs px-4 rounded-lg shrink-0 gap-1.5 shadow-md shadow-purple-500/20"
+            className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs px-4 rounded-lg shrink-0 gap-1.5 shadow-sm cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{aiArchitectLoading ? 'Deconstructing...' : 'Break Down'}</span>
@@ -280,14 +292,14 @@ export default function TasksPage() {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="p-4 bg-slate-900/80 rounded-xl border border-cyan-500/30 space-y-3 shadow-xl"
+          className="p-4 bg-white dark:bg-slate-900/80 rounded-xl border border-slate-200 dark:border-cyan-500/30 space-y-3 shadow-md"
         >
-          <div className="flex items-center justify-between text-xs font-semibold text-cyan-300 border-b border-white/5 pb-2">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-900 dark:text-cyan-300 border-b border-slate-100 dark:border-white/5 pb-2">
             <span className="flex items-center gap-1.5">
-              <History className="w-4 h-4 text-cyan-400" />
+              <History className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
               <span>Permanent Completed Tasks History ({taskHistory.length})</span>
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">Synced with Excel Life Audit</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Synced with Excel Life Audit</span>
           </div>
 
           {taskHistory.length === 0 ? (
@@ -299,25 +311,25 @@ export default function TasksPage() {
               {taskHistory.map((h, i) => (
                 <div
                   key={h.id || i}
-                  className="p-2.5 bg-slate-950/60 rounded-lg border border-white/5 flex items-center justify-between text-xs"
+                  className="p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-lg border border-slate-200/80 dark:border-white/5 flex items-center justify-between text-xs shadow-sm"
                 >
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <div>
-                      <span className="text-slate-200 line-through decoration-slate-500 font-medium">{h.task}</span>
+                      <span className="text-slate-700 dark:text-slate-200 line-through decoration-slate-400 font-medium">{h.task}</span>
                       <div className="text-[10px] text-slate-500 flex items-center gap-2 mt-0.5 font-mono">
                         <span className="flex items-center gap-1">
-                          <Calendar className="w-2.5 h-2.5 text-cyan-400" /> {h.completedAt}
+                          <Calendar className="w-2.5 h-2.5 text-indigo-600 dark:text-cyan-400" /> {h.completedAt}
                         </span>
                         <span>•</span>
                         <span>{h.time}</span>
                         <span>•</span>
-                        <span className="text-purple-400 font-semibold">{h.priority} Priority</span>
+                        <span className="text-indigo-600 dark:text-purple-400 font-semibold">{h.priority} Priority</span>
                       </div>
                     </div>
                   </div>
 
-                  <span className="text-[10px] bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-mono">
+                  <span className="text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 px-2 py-0.5 rounded font-mono font-semibold">
                     +5 XP Earned
                   </span>
                 </div>
@@ -328,21 +340,21 @@ export default function TasksPage() {
       )}
 
       {/* Add New Custom Task Form */}
-      <form onSubmit={handleAddTask} className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-3">
+      <form onSubmit={handleAddTask} className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-3 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-2">
           <Input
             type="text"
             placeholder="What micro-action will you tackle next?"
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
-            className="flex-1 bg-slate-950/80 border-white/10 text-white placeholder:text-slate-500 text-xs"
+            className="flex-1 bg-slate-50 dark:bg-slate-950/80 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs shadow-sm"
           />
 
           <div className="flex gap-2">
             <select
               value={newPriority}
               onChange={(e) => setNewPriority(e.target.value as any)}
-              className="bg-slate-950/80 border border-white/10 text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="bg-slate-50 dark:bg-slate-950/80 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm cursor-pointer font-medium"
             >
               <option value="High">🔴 High Priority</option>
               <option value="Medium">🟡 Medium Priority</option>
@@ -354,10 +366,10 @@ export default function TasksPage() {
               placeholder="Est: 25 mins"
               value={newTime}
               onChange={(e) => setNewTime(e.target.value)}
-              className="w-28 bg-slate-950/80 border-white/10 text-white text-xs"
+              className="w-28 bg-slate-50 dark:bg-slate-950/80 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white text-xs shadow-sm"
             />
 
-            <Button type="submit" size="sm" className="gradient-button text-xs px-4 rounded-lg">
+            <Button type="submit" size="sm" className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs px-4 rounded-lg shadow-sm cursor-pointer">
               <Plus className="w-4 h-4 mr-1" /> Add
             </Button>
           </div>
@@ -365,10 +377,10 @@ export default function TasksPage() {
       </form>
 
       {/* Active Tasks Progress & Alignment / Sorting Control Bar */}
-      <div className="p-4 bg-slate-900/60 rounded-xl border border-white/5 space-y-3">
+      <div className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-3 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-300">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>Active Sprint Tasks ({completedCount} / {tasks.length} Completed)</span>
           </div>
 
@@ -378,20 +390,20 @@ export default function TasksPage() {
               type="button"
               onClick={handleSortHighToLow}
               title="Align tasks from High to Low priority"
-              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border cursor-pointer ${
                 isSortedHighToLow
-                  ? 'bg-purple-600 text-white border-purple-400 shadow-md'
-                  : 'bg-slate-950/60 text-slate-300 hover:text-white border-white/10'
+                  ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-400 shadow-sm'
+                  : 'bg-white hover:bg-slate-100 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10'
               }`}
             >
-              <Flame className="w-3.5 h-3.5 text-red-400" />
+              <Flame className="w-3.5 h-3.5 text-rose-500" />
               <span>High to Low</span>
             </button>
 
             {completedCount > 0 && (
               <button
                 onClick={clearCompleted}
-                className="text-xs text-slate-400 hover:text-red-400 flex items-center gap-1 transition-colors px-2 py-1"
+                className="text-xs text-slate-500 hover:text-red-600 flex items-center gap-1 transition-colors px-2 py-1 cursor-pointer font-medium"
               >
                 <Trash2 className="w-3 h-3" /> Clear Finished
               </button>
@@ -400,22 +412,22 @@ export default function TasksPage() {
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-white/5">
+        <div className="w-full bg-slate-200 dark:bg-slate-950 rounded-full h-2 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
-            className="h-full bg-gradient-to-r from-purple-500 to-cyan-400"
+            className="h-full bg-slate-900 dark:bg-gradient-to-r dark:from-purple-500 dark:to-cyan-400"
           />
         </div>
       </div>
 
-      {/* Active Tasks List — Formatted: Name (Left), Time (Below Name), Priority & Swap Arrows (Right) */}
+      {/* Active Tasks List */}
       <div className="space-y-2">
         {tasks.length === 0 ? (
-          <div className="p-8 text-center bg-slate-900/30 rounded-xl border border-white/5 space-y-2">
-            <CheckSquare className="w-8 h-8 text-slate-600 mx-auto" />
-            <div className="text-xs text-slate-400">All clear! Add a task above or use AI Breakdown to plan your day.</div>
+          <div className="p-8 text-center bg-white dark:bg-slate-900/30 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-2 shadow-sm">
+            <CheckSquare className="w-8 h-8 text-slate-400 mx-auto" />
+            <div className="text-xs text-slate-500">All clear! Add a task above or use AI Breakdown to plan your day.</div>
           </div>
         ) : (
           <AnimatePresence>
@@ -426,20 +438,20 @@ export default function TasksPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className={`p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between gap-3 group ${
+                className={`p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between gap-3 group shadow-sm ${
                   t.done
-                    ? 'bg-slate-950/40 border-emerald-500/20 opacity-60'
-                    : 'bg-slate-900/60 border-white/5 hover:border-purple-500/30 shadow-sm'
+                    ? 'bg-slate-50/90 dark:bg-slate-950/40 border-slate-200/60 dark:border-emerald-500/20 opacity-70'
+                    : 'bg-white hover:bg-slate-50/80 dark:bg-slate-900/60 dark:hover:bg-slate-900/90 border-slate-200/80 dark:border-white/5 hover:border-slate-300'
                 }`}
               >
                 {/* LEFT: Radio Checkbox + Task Name (Line 1) + Time (Line 2 Below Name) */}
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   <button
                     onClick={() => toggleTask(t.id)}
-                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border shrink-0 mt-0.5 ${
+                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border shrink-0 mt-0.5 cursor-pointer ${
                       t.done
-                        ? 'bg-emerald-500 border-emerald-400 text-white'
-                        : 'border-white/30 hover:border-purple-400'
+                        ? 'bg-emerald-600 border-emerald-600 text-white'
+                        : 'border-slate-300 dark:border-white/30 hover:border-indigo-600 dark:hover:border-purple-400 bg-white dark:bg-transparent'
                     }`}
                   >
                     {t.done && <CheckSquare className="w-3.5 h-3.5" />}
@@ -449,15 +461,15 @@ export default function TasksPage() {
                     {/* Line 1: Task Title */}
                     <div
                       className={`text-xs sm:text-sm font-medium leading-snug break-words ${
-                        t.done ? 'line-through text-slate-500' : 'text-slate-200'
+                        t.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-200'
                       }`}
                     >
                       {t.task}
                     </div>
 
                     {/* Line 2: Estimated Time Below Task Name */}
-                    <div className="flex items-center gap-1.5 text-[11px] text-cyan-300 font-mono">
-                      <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-cyan-300 font-mono">
+                      <Clock className="w-3 h-3 text-indigo-600 dark:text-cyan-400 shrink-0" />
                       <span>{t.time}</span>
                     </div>
                   </div>
@@ -469,31 +481,31 @@ export default function TasksPage() {
                   <span
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 shadow-sm ${
                       t.priority === 'High'
-                        ? 'bg-red-950/60 text-red-300 border-red-500/40'
+                        ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-500/40'
                         : t.priority === 'Medium'
-                        ? 'bg-amber-950/60 text-amber-300 border-amber-500/40'
-                        : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-500/40'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-500/40'
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
                         t.priority === 'High'
-                          ? 'bg-red-400'
+                          ? 'bg-rose-600 dark:bg-red-400'
                           : t.priority === 'Medium'
-                          ? 'bg-amber-400'
-                          : 'bg-emerald-400'
+                          ? 'bg-amber-600 dark:bg-amber-400'
+                          : 'bg-emerald-600 dark:bg-emerald-400'
                       }`}
                     />
                     <span>{t.priority}</span>
                   </span>
 
                   {/* Manual Swap Up / Down Buttons */}
-                  <div className="flex flex-col bg-slate-950/70 p-0.5 rounded-lg border border-white/5 opacity-80 group-hover:opacity-100 transition-opacity">
+                  <div className="flex flex-col bg-slate-100 dark:bg-slate-950/70 p-0.5 rounded-lg border border-slate-200 dark:border-white/5 opacity-80 group-hover:opacity-100 transition-opacity shadow-sm">
                     <button
                       type="button"
                       disabled={idx === 0}
                       onClick={() => moveTask(idx, 'up')}
-                      className="p-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors"
+                      className="p-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-cyan-300 disabled:opacity-20 transition-colors cursor-pointer"
                       title="Move task up"
                     >
                       <ChevronUp className="w-3 h-3" />
@@ -502,7 +514,7 @@ export default function TasksPage() {
                       type="button"
                       disabled={idx === tasks.length - 1}
                       onClick={() => moveTask(idx, 'down')}
-                      className="p-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors"
+                      className="p-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-cyan-300 disabled:opacity-20 transition-colors cursor-pointer"
                       title="Move task down"
                     >
                       <ChevronDown className="w-3 h-3" />
@@ -512,7 +524,7 @@ export default function TasksPage() {
                   {/* Delete Button */}
                   <button
                     onClick={() => deleteTask(t.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-950/30 text-slate-500 hover:text-red-400 transition-all ml-0.5"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400 transition-all ml-0.5 cursor-pointer"
                     title="Delete task"
                   >
                     <Trash2 className="w-4 h-4" />

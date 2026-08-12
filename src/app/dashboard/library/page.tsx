@@ -173,18 +173,20 @@ export default function LibraryPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
-          <Library className="w-5 h-5 text-purple-400" /> Behavioral Mastery Library
+        <h1 className="text-xl font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
+          <Library className="w-5 h-5 text-indigo-600 dark:text-purple-400" /> Behavioral Mastery Library
         </h1>
-        <p className="text-xs text-slate-400">Curated free literature, habit masterclasses, and distraction-free custom media player</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Curated free literature, habit masterclasses, and distraction-free custom media player</p>
       </div>
 
       {/* Sub Tabs Bar */}
-      <div className="flex items-center gap-1.5 p-1.5 bg-slate-900/80 rounded-xl border border-white/5 max-w-fit">
+      <div className="flex items-center gap-1.5 p-1.5 bg-white dark:bg-slate-900/80 rounded-xl border border-slate-200/80 dark:border-white/5 max-w-fit shadow-sm">
         <button
           onClick={() => setActiveTab('books')}
-          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-            activeTab === 'books' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            activeTab === 'books'
+              ? 'bg-slate-900 text-white dark:bg-purple-600 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
           <BookOpen className="w-3.5 h-3.5" />
@@ -193,8 +195,10 @@ export default function LibraryPage() {
 
         <button
           onClick={() => setActiveTab('theater')}
-          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-            activeTab === 'theater' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            activeTab === 'theater'
+              ? 'bg-slate-900 text-white dark:bg-purple-600 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
           <Film className="w-3.5 h-3.5" />
@@ -203,8 +207,10 @@ export default function LibraryPage() {
 
         <button
           onClick={() => setActiveTab('customPlayer')}
-          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-            activeTab === 'customPlayer' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            activeTab === 'customPlayer'
+              ? 'bg-slate-900 text-white dark:bg-purple-600 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
           <Video className="w-3.5 h-3.5" />
@@ -219,37 +225,37 @@ export default function LibraryPage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <div className="text-xs font-semibold text-purple-300">📖 The Habit Blueprint (100% Free Online Reading)</div>
+          <div className="text-xs font-semibold text-slate-800 dark:text-purple-300">📖 The Habit Blueprint (100% Free Online Reading)</div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {BOOKS.map((b, i) => (
               <div
                 key={i}
-                className="p-4 bg-slate-900/60 hover:bg-slate-900/90 border border-white/5 hover:border-purple-500/30 rounded-xl transition-all space-y-2.5 flex flex-col justify-between"
+                className="p-4 bg-white hover:bg-slate-50 dark:bg-slate-900/60 dark:hover:bg-slate-900/90 border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-purple-500/30 rounded-xl transition-all space-y-2.5 flex flex-col justify-between shadow-sm"
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{b.icon}</span>
                       <div>
-                        <h3 className="text-sm font-bold text-white">{b.title}</h3>
-                        <p className="text-[11px] text-slate-400">by {b.author}</p>
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">{b.title}</h3>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">by {b.author}</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-mono bg-purple-950/60 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-mono bg-indigo-50 text-indigo-700 dark:bg-purple-950/60 dark:text-purple-300 border border-indigo-200 dark:border-purple-500/20 px-2 py-0.5 rounded font-semibold">
                       {b.category}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-300 mt-2 leading-relaxed">{b.desc}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">{b.desc}</p>
                 </div>
 
-                <div className="pt-2 border-t border-white/5 flex justify-end">
+                <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex justify-end">
                   <a
                     href={b.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 hover:bg-cyan-950/70 border border-cyan-500/30 px-3 py-1.5 rounded-lg transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 dark:text-cyan-400 dark:hover:text-cyan-300 dark:bg-cyan-950/40 dark:hover:bg-cyan-950/70 dark:border-cyan-500/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
                   >
                     <span>Read Free Online</span>
                     <ExternalLink className="w-3 h-3" />
@@ -268,15 +274,15 @@ export default function LibraryPage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <div className="text-xs font-semibold text-purple-300">🎥 High-Impact Behavioral Lectures & Animations</div>
+          <div className="text-xs font-semibold text-slate-800 dark:text-purple-300">🎥 High-Impact Behavioral Lectures & Animations</div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {MASTERCLASSES.map((v, i) => (
               <div
                 key={i}
-                className="p-3 bg-slate-900/60 border border-white/5 hover:border-purple-500/30 rounded-xl space-y-2 group transition-all"
+                className="p-3 bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-purple-500/30 rounded-xl space-y-2 group transition-all shadow-sm"
               >
-                <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-black">
+                <div className="relative aspect-video rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 bg-black">
                   <iframe
                     src={`https://www.youtube.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1`}
                     title={v.title}
@@ -287,8 +293,8 @@ export default function LibraryPage() {
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-bold text-white truncate">{v.title}</h4>
-                  <p className="text-[10px] text-slate-400">{v.speaker}</p>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">{v.title}</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{v.speaker}</p>
                 </div>
               </div>
             ))}
@@ -303,14 +309,14 @@ export default function LibraryPage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <div className="p-5 bg-slate-900/60 rounded-xl border border-white/5 space-y-4 shadow-lg">
+          <div className="p-5 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-4 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-white flex items-center gap-2">
-                  <Video className="w-4 h-4 text-purple-400" />
+                <div className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Video className="w-4 h-4 text-indigo-600 dark:text-purple-400" />
                   <span>Distraction-Free Focus Media Player</span>
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Paste any YouTube study stream OR upload music and video files directly from your computer/phone!
                 </p>
               </div>
@@ -319,7 +325,7 @@ export default function LibraryPage() {
               <Button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shrink-0 shadow-md shadow-emerald-500/20"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer"
               >
                 <Upload className="w-3.5 h-3.5" />
                 <span>Upload Device Audio / Video</span>
@@ -332,16 +338,16 @@ export default function LibraryPage() {
                 placeholder="https://www.youtube.com/watch?v=... OR 11-digit video ID"
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
-                className="flex-1 bg-slate-950/80 border-white/10 text-white text-xs"
+                className="flex-1 bg-slate-50 dark:bg-slate-950/80 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white text-xs shadow-sm"
               />
-              <Button type="submit" size="sm" className="gradient-button text-xs px-5 rounded-lg">
+              <Button type="submit" size="sm" className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs px-5 rounded-lg shadow-sm cursor-pointer">
                 Load & Play
               </Button>
             </form>
 
             {/* Video / Audio Player Display */}
             <div className="space-y-2 pt-2">
-              <div className="relative aspect-video max-w-2xl mx-auto rounded-xl overflow-hidden border border-white/10 bg-black shadow-2xl flex items-center justify-center">
+              <div className="relative aspect-video max-w-2xl mx-auto rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 bg-black shadow-lg flex items-center justify-center">
                 {localMedia ? (
                   localMedia.isVideo ? (
                     <video
@@ -351,13 +357,13 @@ export default function LibraryPage() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <div className="space-y-4 text-center p-6 bg-gradient-to-b from-slate-900 to-slate-950 w-full h-full flex flex-col items-center justify-center">
-                      <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-lg">
+                    <div className="space-y-4 text-center p-6 bg-gradient-to-b from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-950 w-full h-full flex flex-col items-center justify-center">
+                      <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm">
                         <FileAudio className="w-8 h-8 animate-pulse" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-white">{localMedia.name}</h4>
-                        <p className="text-xs text-emerald-400 font-mono mt-0.5">Playing Local Audio File from Device</p>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{localMedia.name}</h4>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">Playing Local Audio File from Device</p>
                       </div>
                       <audio src={localMedia.url} controls autoPlay className="w-full max-w-md" />
                     </div>
@@ -375,7 +381,7 @@ export default function LibraryPage() {
                 )}
               </div>
 
-              <div className="text-center text-xs text-emerald-400 font-medium">
+              <div className="text-center text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                 ✅ Active in Global Workspace — Keep your focus soundtrack running while you work!
               </div>
             </div>

@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HabitBot v5.0 | AI Habit Coach & Productivity Suite",
-  description: "Next-gen AI behavioral coaching, Pomodoro focus timer, Atomic Habit matrices, and productivity analytics.",
+  title: "HabitBot | Habit Coach & Daily Execution Suite",
+  description: "Next-gen behavioral coaching, Pomodoro focus timer, Atomic Habit matrices, and productivity analytics.",
   icons: {
     icon: "/favicon.ico",
   },
@@ -23,20 +23,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} font-sans min-h-screen bg-[#090d16] text-[#f1f5f9] antialiased selection:bg-purple-500/30 selection:text-purple-200`}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('habitbot_theme') || 'light';
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body className={`${inter.variable} font-sans min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 antialiased selection:bg-indigo-500/20 selection:text-indigo-900 dark:selection:bg-purple-500/30 dark:selection:text-purple-200`}>
         <TooltipProvider>
           {children}
           <Toaster 
-            theme="dark" 
             position="bottom-right" 
-            toastOptions={{
-              style: {
-                background: '#0f172a',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#f8fafc',
-              },
-            }}
+            richColors
           />
         </TooltipProvider>
       </body>
