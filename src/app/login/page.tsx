@@ -251,112 +251,86 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 py-8 overflow-x-hidden bg-slate-50 dark:bg-[#090d16] transition-colors">
-      {/* Background Subtle Gradient Blobs */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/10 dark:bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-sky-500/10 dark:bg-cyan-600/20 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 py-8 bg-[#f8f9fa] dark:bg-[#121212] transition-colors">
       {/* Main Card */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         className="relative z-10 w-full max-w-md"
       >
-        <div className="text-center mb-4">
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', damping: 15 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900 dark:bg-gradient-to-tr dark:from-purple-600 dark:to-cyan-500 p-0.5 shadow-md mb-2"
-          >
-            <div className="w-full h-full bg-slate-900 dark:bg-slate-950 rounded-2xl flex items-center justify-center">
-              <Bot className="w-8 h-8 text-white dark:text-purple-400" />
-            </div>
-          </motion.div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:gradient-text">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#1a73e8] text-white mb-3 shadow-none">
+            <Bot className="w-6 h-6" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#202124] dark:text-[#e8eaed]">
             HabitBot
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center justify-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" /> AI Behavioral & Performance Coach
+          <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-1 flex items-center justify-center gap-1">
+            <span>AI Behavioral & Performance Workspace</span>
           </p>
 
           {/* Why Use HabitBot Feature Highlights Button */}
           <button
             onClick={() => setShowGuideModal(true)}
-            className="mt-2.5 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-semibold bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 dark:bg-purple-950/70 dark:border-purple-500/30 dark:text-purple-300 dark:hover:text-white dark:hover:bg-purple-900/60 transition-all shadow-sm cursor-pointer"
+            className="mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] transition-colors cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
-            <span>Why Use HabitBot? Read Features & Capabilities</span>
-            <ChevronRight className="w-3 h-3 text-indigo-600 dark:text-purple-400" />
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Why Use HabitBot? Features & Capabilities</span>
+            <ChevronRight className="w-3 h-3" />
           </button>
         </div>
 
-        <Card className="bg-white dark:bg-slate-950/90 border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl">
-          {/* Custom Animated Tabs Bar */}
+        <Card className="bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] rounded-3xl shadow-none">
+          {/* Google Segmented Tabs Bar */}
           {activeTab !== 'forgot' ? (
-            <div className="grid grid-cols-3 p-1.5 m-4 bg-slate-100 dark:bg-slate-900/80 rounded-xl border border-slate-200 dark:border-white/5 relative">
+            <div className="grid grid-cols-3 p-1 m-4 bg-[#f1f3f4] dark:bg-[#2d2e30] rounded-full relative">
               <button
                 onClick={() => setActiveTab('login')}
-                className={`relative z-10 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
-                  activeTab === 'login' ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                className={`relative z-10 py-1.5 text-xs font-medium rounded-full transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeTab === 'login'
+                    ? 'bg-white dark:bg-[#394457] text-[#1a73e8] dark:text-[#8ab4f8] shadow-sm font-semibold'
+                    : 'text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#202124]'
                 }`}
               >
                 <Lock className="w-3.5 h-3.5" /> Login
-                {activeTab === 'login' && (
-                  <motion.div
-                    layoutId="tab-indicator"
-                    className="absolute inset-0 bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-indigo-600 rounded-lg -z-10 shadow-sm"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-                  />
-                )}
               </button>
 
               <button
                 onClick={() => setActiveTab('signup')}
-                className={`relative z-10 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
-                  activeTab === 'signup' ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                className={`relative z-10 py-1.5 text-xs font-medium rounded-full transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeTab === 'signup'
+                    ? 'bg-white dark:bg-[#394457] text-[#1a73e8] dark:text-[#8ab4f8] shadow-sm font-semibold'
+                    : 'text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#202124]'
                 }`}
               >
                 <User className="w-3.5 h-3.5" /> Sign Up
-                {activeTab === 'signup' && (
-                  <motion.div
-                    layoutId="tab-indicator"
-                    className="absolute inset-0 bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-indigo-600 rounded-lg -z-10 shadow-sm"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-                  />
-                )}
               </button>
 
               <button
                 onClick={() => setActiveTab('admin')}
-                className={`relative z-10 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
-                  activeTab === 'admin' ? 'text-white' : 'text-amber-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300'
+                className={`relative z-10 py-1.5 text-xs font-medium rounded-full transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeTab === 'admin'
+                    ? 'bg-white dark:bg-[#394457] text-[#b06000] dark:text-[#fdd663] shadow-sm font-semibold'
+                    : 'text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#202124]'
                 }`}
               >
-                <Shield className="w-3.5 h-3.5 text-amber-500" /> Admin
-                {activeTab === 'admin' && (
-                  <motion.div
-                    layoutId="tab-indicator"
-                    className="absolute inset-0 bg-amber-600 dark:bg-gradient-to-r dark:from-amber-600 dark:to-yellow-600 rounded-lg -z-10 shadow-sm"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-                  />
-                )}
+                <Shield className="w-3.5 h-3.5 text-[#f9ab00]" /> Admin
               </button>
             </div>
           ) : (
-            <div className="p-4 pb-0 flex items-center justify-between border-b border-slate-100 dark:border-white/5 m-2 mb-0">
+            <div className="p-4 pb-0 flex items-center justify-between border-b border-[#dadce0] dark:border-[#3c4043] m-2 mb-0">
               <button
                 onClick={() => {
                   setActiveTab('login');
                   setOtpSent(false);
                 }}
-                className="text-xs text-indigo-600 dark:text-purple-300 hover:text-indigo-800 dark:hover:text-white flex items-center gap-1 font-medium transition-colors cursor-pointer"
+                className="text-xs text-[#1a73e8] dark:text-[#8ab4f8] hover:underline flex items-center gap-1 font-medium transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
               </button>
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                <KeyRound className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" /> Security OTP Recovery
+              <span className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] flex items-center gap-1">
+                <KeyRound className="w-3.5 h-3.5 text-[#1a73e8]" /> OTP Recovery
               </span>
             </div>
           )}
@@ -367,30 +341,30 @@ export default function LoginPage() {
               {activeTab === 'login' && (
                 <motion.form
                   key="login"
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.15 }}
                   onSubmit={handleLogin}
                   className="space-y-4"
                 >
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Username, Email, or WhatsApp Number</label>
+                    <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">Username, Email, or WhatsApp Number</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
                       <Input
                         type="text"
                         placeholder="Enter username, email, or phone"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="pl-9 bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-indigo-500 text-xs shadow-sm"
+                        className="pl-10 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] rounded-full text-xs"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Password</label>
+                      <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">Password</label>
                       <button
                         type="button"
                         onClick={() => {
@@ -398,19 +372,19 @@ export default function LoginPage() {
                           setOtpSent(false);
                           setActiveTab('forgot');
                         }}
-                        className="text-[11px] text-indigo-600 dark:text-cyan-400 hover:underline transition-colors cursor-pointer font-medium"
+                        className="text-[11px] text-[#1a73e8] dark:text-[#8ab4f8] hover:underline cursor-pointer font-medium"
                       >
                         Forgot Password?
                       </button>
                     </div>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
                       <Input
                         type="password"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-9 bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-indigo-500 text-xs shadow-sm"
+                        className="pl-10 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] rounded-full text-xs"
                       />
                     </div>
                   </div>
@@ -418,9 +392,9 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-sm text-xs cursor-pointer"
+                    className="w-full bg-[#1a73e8] hover:bg-[#1557b0] text-white font-medium py-2.5 rounded-full flex items-center justify-center gap-2 shadow-none text-xs cursor-pointer"
                   >
-                    {loading ? 'Verifying...' : 'Sign In to HabitBot'}
+                    {loading ? 'Verifying...' : 'Sign In'}
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </motion.form>
@@ -430,30 +404,30 @@ export default function LoginPage() {
               {activeTab === 'signup' && (
                 <motion.form
                   key="signup"
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.15 }}
                   onSubmit={handleSignup}
                   className="space-y-3"
                 >
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Choose Username *</label>
+                    <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">Choose Username *</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
                       <Input
                         type="text"
                         placeholder="Unique username (min 3 chars)"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="pl-9 bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-indigo-500 text-xs shadow-sm"
+                        className="pl-10 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] rounded-full text-xs"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                      <Mail className="w-3 h-3 text-indigo-600 dark:text-cyan-400" /> Recovery Email *
+                    <label className="text-[11px] font-medium text-[#202124] dark:text-[#e8eaed] flex items-center gap-1">
+                      <Mail className="w-3 h-3 text-[#1a73e8]" /> Recovery Email *
                     </label>
                     <Input
                       type="email"
@@ -461,13 +435,13 @@ export default function LoginPage() {
                       placeholder="you@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-indigo-500 text-xs shadow-sm"
+                      className="bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] rounded-full text-xs px-4"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> WhatsApp Phone Number *
+                    <label className="text-[11px] font-medium text-[#202124] dark:text-[#e8eaed] flex items-center gap-1">
+                      <Phone className="w-3 h-3 text-[#1e8e3e]" /> WhatsApp Phone Number *
                     </label>
                     <Input
                       type="tel"
@@ -475,49 +449,49 @@ export default function LoginPage() {
                       placeholder="+1 234 567 890"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-indigo-500 text-xs shadow-sm"
+                      className="bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] rounded-full text-xs px-4"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Create Password *</label>
+                    <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">Create Password *</label>
                     <div className="relative">
-                      <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
                       <Input
                         type="password"
                         placeholder="Min 6 chars (letters + numbers)"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-9 bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-indigo-500 text-xs shadow-sm"
+                        className="pl-10 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] rounded-full text-xs"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Confirm Password *</label>
+                    <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">Confirm Password *</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
                       <Input
                         type="password"
                         placeholder="Re-enter password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pl-9 bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-indigo-500 text-xs shadow-sm"
+                        className="pl-10 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] rounded-full text-xs"
                       />
                     </div>
                   </div>
 
-                  <div className="text-[10px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/60 p-2 rounded-lg border border-slate-200 dark:border-white/5 space-y-0.5">
-                    <span className="font-semibold text-indigo-700 dark:text-purple-300">🔒 Account Security:</span>
-                    <div>• Email & WhatsApp are verified for password recovery OTPs.</div>
+                  <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] bg-[#f8f9fa] dark:bg-[#2d2e30] p-2.5 rounded-xl border border-[#dadce0] dark:border-[#3c4043]">
+                    <span className="font-medium text-[#1a73e8] dark:text-[#8ab4f8]">🔒 Account Security: </span>
+                    Email & WhatsApp are used for password recovery OTPs.
                   </div>
 
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-sm text-xs cursor-pointer"
+                    className="w-full bg-[#1a73e8] hover:bg-[#1557b0] text-white font-medium py-2.5 rounded-full flex items-center justify-center gap-2 shadow-none text-xs cursor-pointer"
                   >
-                    {loading ? 'Registering...' : 'Create Account & Assign ID'}
+                    {loading ? 'Registering...' : 'Create Account'}
                     <CheckCircle2 className="w-4 h-4" />
                   </Button>
                 </motion.form>
@@ -527,38 +501,34 @@ export default function LoginPage() {
               {activeTab === 'forgot' && (
                 <motion.div
                   key="forgot"
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.15 }}
                   className="space-y-3.5"
                 >
                   {!otpSent ? (
                     /* STEP 1: Enter Email or WhatsApp */
                     <form onSubmit={handleRequestOTP} className="space-y-3.5">
-                      <div className="p-3 bg-sky-50 dark:bg-cyan-500/10 border border-sky-200 dark:border-cyan-500/20 rounded-xl text-xs text-sky-800 dark:text-cyan-300 space-y-1">
+                      <div className="p-3 bg-[#e8f0fe] dark:bg-[#394457] rounded-2xl text-xs text-[#1967d2] dark:text-[#8ab4f8] space-y-1">
                         <div className="font-semibold flex items-center gap-1.5">
-                          <Shield className="w-4 h-4 text-indigo-600 dark:text-cyan-400" /> Secure OTP Dispatch
+                          <Shield className="w-4 h-4 text-[#1a73e8]" /> Secure OTP Dispatch
                         </div>
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                        <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">
                           Enter your registered <b>Email Address</b> or <b>WhatsApp Phone Number</b> to receive a 6-digit security code.
                         </p>
-                        <div className="text-[10px] text-amber-700 dark:text-amber-300/90 pt-1 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3 shrink-0" />
-                          <span>Usernames cannot be used for recovery for security protection.</span>
-                        </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Registered Email or WhatsApp Number</label>
+                        <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">Registered Email or WhatsApp Number</label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
                           <Input
                             type="text"
                             placeholder="you@email.com OR +1234567890"
                             value={recoveryContact}
                             onChange={(e) => setRecoveryContact(e.target.value)}
-                            className="pl-9 bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-indigo-500 text-xs shadow-sm"
+                            className="pl-10 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] rounded-full text-xs"
                           />
                         </div>
                       </div>
@@ -566,9 +536,9 @@ export default function LoginPage() {
                       <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-slate-900 hover:bg-slate-800 font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-sm text-xs text-white cursor-pointer"
+                        className="w-full bg-[#1a73e8] hover:bg-[#1557b0] font-medium py-2.5 rounded-full flex items-center justify-center gap-2 shadow-none text-xs text-white cursor-pointer"
                       >
-                        {loading ? 'Sending OTP Code...' : '📲 Send 6-Digit OTP Code'}
+                        {loading ? 'Sending OTP Code...' : 'Send 6-Digit OTP Code'}
                         <Send className="w-4 h-4" />
                       </Button>
                     </form>
@@ -576,23 +546,23 @@ export default function LoginPage() {
                     /* STEP 2: Input OTP & Set New Password */
                     <form onSubmit={handleVerifyOTPAndReset} className="space-y-3.5">
                       {generatedOtpInfo && (
-                        <div className="p-3.5 bg-slate-50 dark:bg-gradient-to-r dark:from-cyan-950/40 dark:via-purple-950/40 dark:to-slate-900/60 border border-slate-200 dark:border-cyan-500/30 rounded-xl space-y-2 text-xs">
-                          <div className="flex items-center justify-between text-slate-900 dark:text-cyan-300 font-semibold">
+                        <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl space-y-2 text-xs">
+                          <div className="flex items-center justify-between text-[#202124] dark:text-[#e8eaed] font-medium">
                             <span className="flex items-center gap-1.5">
                               {generatedOtpInfo.isPhone ? (
-                                <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <MessageCircle className="w-4 h-4 text-[#1e8e3e]" />
                               ) : (
-                                <Mail className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
+                                <Mail className="w-4 h-4 text-[#1a73e8]" />
                               )}
                               Security OTP Dispatched
                             </span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Expires in 10m</span>
+                            <span className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">Expires in 10m</span>
                           </div>
 
-                          <div className="flex items-center justify-between bg-white dark:bg-slate-950/80 p-2.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm">
+                          <div className="flex items-center justify-between bg-white dark:bg-[#1e1e1e] p-2.5 rounded-xl border border-[#dadce0] dark:border-[#3c4043]">
                             <div>
-                              <div className="text-[10px] text-slate-500 dark:text-slate-400">Your 6-Digit Verification Code:</div>
-                              <div className="text-xl font-bold font-mono text-indigo-600 dark:text-cyan-300 tracking-widest">
+                              <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">Your 6-Digit Code:</div>
+                              <div className="text-xl font-bold font-mono text-[#1a73e8] dark:text-[#8ab4f8] tracking-widest">
                                 {generatedOtpInfo.otp}
                               </div>
                             </div>
@@ -600,9 +570,9 @@ export default function LoginPage() {
                             <button
                               type="button"
                               onClick={() => copyOTP(generatedOtpInfo.otp)}
-                              className="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-md border border-slate-200 dark:border-white/10 flex items-center gap-1 transition-colors cursor-pointer"
+                              className="px-3 py-1 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] dark:bg-[#3c4043] dark:hover:bg-[#5f6368] text-[#202124] dark:text-[#e8eaed] rounded-full flex items-center gap-1 transition-colors cursor-pointer"
                             >
-                              {copiedOtp ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                              {copiedOtp ? <Check className="w-3.5 h-3.5 text-[#1e8e3e]" /> : <Copy className="w-3.5 h-3.5" />}
                               <span>{copiedOtp ? 'Copied' : 'Copy'}</span>
                             </button>
                           </div>
@@ -614,7 +584,7 @@ export default function LoginPage() {
                               )}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center justify-center w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold gap-1.5 transition-colors shadow-sm"
+                              className="inline-flex items-center justify-center w-full py-2 px-3 bg-[#1e8e3e] hover:bg-[#137333] text-white rounded-full text-xs font-medium gap-1.5 transition-colors shadow-none"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
                               <span>Open in WhatsApp</span>
@@ -624,41 +594,41 @@ export default function LoginPage() {
                       )}
 
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Enter 6-Digit Verification Code *</label>
+                        <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">Enter 6-Digit Code *</label>
                         <Input
                           type="text"
                           maxLength={6}
                           placeholder="e.g. 849201"
                           value={enteredOtp}
                           onChange={(e) => setEnteredOtp(e.target.value)}
-                          className="bg-white dark:bg-slate-900/60 border-slate-300 dark:border-cyan-500/30 text-indigo-600 dark:text-cyan-300 font-mono tracking-widest text-center text-base py-4 font-bold shadow-sm"
+                          className="bg-white dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#1a73e8] dark:text-[#8ab4f8] font-mono tracking-widest text-center text-base py-3 rounded-full font-bold"
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300">New Secure Password *</label>
+                        <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">New Secure Password *</label>
                         <div className="relative">
-                          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
                           <Input
                             type="password"
                             placeholder="Min 6 chars (letters + numbers)"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            className="pl-9 bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white text-xs shadow-sm"
+                            className="pl-10 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-full text-xs"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Confirm New Password *</label>
+                        <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">Confirm New Password *</label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
                           <Input
                             type="password"
                             placeholder="Re-enter new password"
                             value={confirmNewPassword}
                             onChange={(e) => setConfirmNewPassword(e.target.value)}
-                            className="pl-9 bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white text-xs shadow-sm"
+                            className="pl-10 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-full text-xs"
                           />
                         </div>
                       </div>
@@ -668,7 +638,7 @@ export default function LoginPage() {
                           type="button"
                           variant="outline"
                           onClick={() => setOtpSent(false)}
-                          className="text-xs bg-white hover:bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-400 dark:hover:text-white cursor-pointer"
+                          className="text-xs bg-white hover:bg-[#f1f3f4] dark:bg-[#1e1e1e] dark:hover:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-full cursor-pointer"
                         >
                           Change Contact
                         </Button>
@@ -676,9 +646,9 @@ export default function LoginPage() {
                         <Button
                           type="submit"
                           disabled={loading}
-                          className="flex-1 bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-sm text-xs cursor-pointer"
+                          className="flex-1 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-medium py-2.5 rounded-full flex items-center justify-center gap-2 shadow-none text-xs cursor-pointer"
                         >
-                          {loading ? 'Verifying OTP...' : '🔒 Verify OTP & Reset Password'}
+                          {loading ? 'Verifying...' : 'Reset Password'}
                         </Button>
                       </div>
                     </form>
@@ -690,33 +660,33 @@ export default function LoginPage() {
               {activeTab === 'admin' && (
                 <motion.form
                   key="admin"
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.15 }}
                   onSubmit={handleAdminLogin}
                   className="space-y-4"
                 >
-                  <div className="p-3.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 rounded-xl text-xs text-amber-900 dark:text-amber-200 space-y-1">
-                    <div className="font-semibold flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
-                      <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <div className="p-3.5 bg-[#fef7e0] dark:bg-[#3c3010] rounded-2xl text-xs text-[#b06000] dark:text-[#fdd663] space-y-1">
+                    <div className="font-semibold flex items-center gap-1.5">
+                      <Shield className="w-4 h-4 text-[#f9ab00] shrink-0" />
                       <span>Creator Master Portal</span>
                     </div>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                    <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">
                       Private management interface for user accounts, data audits, and system configuration.
                     </p>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Creator Master Passcode / PIN</label>
+                    <label className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">Creator Master Passcode / PIN</label>
                     <div className="relative">
-                      <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
                       <Input
                         type="password"
                         placeholder="Enter private Master Access Code"
                         value={adminCode}
                         onChange={(e) => setAdminCode(e.target.value)}
-                        className="pl-9 bg-slate-50 dark:bg-slate-900/60 border-amber-300 dark:border-amber-500/30 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-amber-500 text-xs font-mono shadow-sm"
+                        className="pl-10 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] text-xs font-mono rounded-full"
                       />
                     </div>
                   </div>
@@ -724,9 +694,9 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-5 rounded-xl flex items-center justify-center gap-2 shadow-sm text-xs cursor-pointer"
+                    className="w-full bg-[#1a73e8] hover:bg-[#1557b0] text-white font-medium py-2.5 rounded-full flex items-center justify-center gap-2 shadow-none text-xs cursor-pointer"
                   >
-                    {loading ? 'Verifying Security Key...' : 'Unlock Creator Portal 🛡️'}
+                    {loading ? 'Verifying Security Key...' : 'Unlock Creator Portal'}
                     <Shield className="w-4 h-4" />
                   </Button>
                 </motion.form>
@@ -738,13 +708,13 @@ export default function LoginPage() {
 
       {/* Why Choose HabitBot Feature Tour Dialog Modal */}
       <Dialog open={showGuideModal} onOpenChange={setShowGuideModal}>
-        <DialogContent className="max-w-2xl bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl p-6 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
+        <DialogContent className="max-w-2xl bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-600 dark:text-purple-400" />
-              <span>Why Choose HabitBot v5.0 Pro Suite?</span>
+            <DialogTitle className="text-base font-bold text-[#202124] dark:text-[#e8eaed] flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#1a73e8]" />
+              <span>Why Choose HabitBot?</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+            <DialogDescription className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">
               Transforming ambitious aspirations into automatic daily atomic habits with cutting-edge behavioral AI.
             </DialogDescription>
           </DialogHeader>
@@ -755,29 +725,29 @@ export default function LoginPage() {
               return (
                 <div
                   key={i}
-                  className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm"
+                  className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5"
                 >
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
-                    <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-slate-950 border border-indigo-200 dark:border-white/10">
-                      <Icon className={`w-4 h-4 ${sec.color}`} />
+                  <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
+                    <div className="p-1.5 rounded-full bg-[#e8f0fe] text-[#1a73e8]">
+                      <Icon className="w-4 h-4" />
                     </div>
                     <span>{sec.title}</span>
                   </div>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">{sec.desc}</p>
+                  <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">{sec.desc}</p>
                 </div>
               );
             })}
           </div>
 
-          <div className="p-3.5 bg-slate-50 dark:bg-gradient-to-r dark:from-purple-950/40 dark:via-cyan-950/40 dark:to-slate-900/60 rounded-xl border border-slate-200 dark:border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm">
+          <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div>
-              <div className="font-semibold text-slate-900 dark:text-white">Ready to begin your behavioral transformation?</div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400">Sign in with an existing account or register in 5 seconds.</div>
+              <div className="font-semibold text-[#202124] dark:text-[#e8eaed]">Ready to begin your behavioral transformation?</div>
+              <div className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">Sign in with an existing account or register in 5 seconds.</div>
             </div>
             <Button
               size="sm"
               onClick={() => setShowGuideModal(false)}
-              className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs px-4 rounded-lg shrink-0 cursor-pointer shadow-sm"
+              className="bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs px-5 py-2 rounded-full font-medium shadow-none cursor-pointer"
             >
               Get Started
             </Button>

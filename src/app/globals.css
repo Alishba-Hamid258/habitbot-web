@@ -47,64 +47,64 @@
 }
 
 :root {
-  /* Clean, Minimalist, Sophisticated White Theme (Default) */
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Google Material Design Natural White Palette */
+  --background: #f8f9fa;
+  --foreground: #202124;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #202124;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #0f172a;
+  --popover-foreground: #202124;
+  --primary: #1a73e8;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #334155;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
-  --accent: #2563eb;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #0f172a;
+  --secondary: #f1f3f4;
+  --secondary-foreground: #3c4043;
+  --muted: #f8f9fa;
+  --muted-foreground: #5f6368;
+  --accent: #e8f0fe;
+  --accent-foreground: #1967d2;
+  --destructive: #d93025;
+  --border: #dadce0;
+  --input: #dadce0;
+  --ring: #1a73e8;
   --radius: 0.75rem;
   --sidebar: #ffffff;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #0f172a;
+  --sidebar-foreground: #202124;
+  --sidebar-primary: #1a73e8;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #0f172a;
+  --sidebar-accent: #f1f3f4;
+  --sidebar-accent-foreground: #202124;
+  --sidebar-border: #dadce0;
+  --sidebar-ring: #1a73e8;
 }
 
 .dark {
   /* Sleek Dark Theme */
-  --background: #090d16;
-  --foreground: #f1f5f9;
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  --popover: #0f172a;
-  --popover-foreground: #f8fafc;
-  --primary: #8b5cf6;
-  --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #f1f5f9;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #06b6d4;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.12);
-  --ring: #8b5cf6;
-  --sidebar: #0b1120;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #8b5cf6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e293b;
-  --sidebar-accent-foreground: #f1f5f9;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #8b5cf6;
+  --background: #121212;
+  --foreground: #e8eaed;
+  --card: #1e1e1e;
+  --card-foreground: #e8eaed;
+  --popover: #1e1e1e;
+  --popover-foreground: #e8eaed;
+  --primary: #8ab4f8;
+  --primary-foreground: #202124;
+  --secondary: #2d2e30;
+  --secondary-foreground: #e8eaed;
+  --muted: #2d2e30;
+  --muted-foreground: #9aa0a6;
+  --accent: #394457;
+  --accent-foreground: #8ab4f8;
+  --destructive: #f28b82;
+  --border: #3c4043;
+  --input: #3c4043;
+  --ring: #8ab4f8;
+  --sidebar: #1e1e1e;
+  --sidebar-foreground: #e8eaed;
+  --sidebar-primary: #8ab4f8;
+  --sidebar-primary-foreground: #202124;
+  --sidebar-accent: #2d2e30;
+  --sidebar-accent-foreground: #e8eaed;
+  --sidebar-border: #3c4043;
+  --sidebar-ring: #8ab4f8;
 }
 
 @layer base {
@@ -116,84 +116,80 @@
     color: var(--foreground);
     font-feature-settings: "rlig" 1, "calt" 1;
     overflow-x: hidden;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
 }
 
-/* Adaptive Clean Panels & Cards */
+/* Google Material Cards & Panels */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.08), 0 1px 3px 1px rgba(60, 64, 67, 0.04);
 }
 
 .dark .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: #1e1e1e;
+  border: 1px solid #3c4043;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
 }
 
 .glass-card {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dadce0;
   border-radius: var(--radius);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.06);
+  transition: all 0.15s ease;
 }
 
 .glass-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.06);
+  border-color: #bdc1c6;
+  box-shadow: 0 2px 6px 2px rgba(60, 64, 67, 0.12);
 }
 
 .dark .glass-card {
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: none;
+  background: #1e1e1e;
+  border: 1px solid #3c4043;
 }
 
 .dark .glass-card:hover {
-  background: rgba(30, 41, 59, 0.6);
-  border-color: rgba(139, 92, 246, 0.3);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  background: #252629;
+  border-color: #5f6368;
 }
 
+/* Natural Clean Text - No artificial AI neon gradients */
 .gradient-text {
-  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #202124;
+  font-weight: 700;
 }
 
 .dark .gradient-text {
-  background: linear-gradient(135deg, #a78bfa 0%, #38bdf8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #e8eaed;
+  font-weight: 700;
 }
 
+/* Google Blue Primary Button */
 .gradient-button {
-  background: #0f172a;
-  color: white;
-  transition: all 0.2s ease;
+  background-color: #1a73e8;
+  color: #ffffff;
+  font-weight: 500;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .gradient-button:hover {
-  background: #1e293b;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+  background-color: #1557b0;
+  box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
 }
 
 .dark .gradient-button {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-  color: white;
+  background-color: #8ab4f8;
+  color: #202124;
 }
 
 .dark .gradient-button:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  background-color: #aecbfa;
 }
 
-/* Custom Scrollbar for Light & Dark Theme */
+/* Natural Google Minimal Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -204,22 +200,18 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #dadce0;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: #bdc1c6;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.3);
+  background: #3c4043;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
+  background: #5f6368;
 }

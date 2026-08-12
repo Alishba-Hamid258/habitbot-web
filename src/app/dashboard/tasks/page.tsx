@@ -15,6 +15,9 @@ import {
   ChevronDown,
   Flame,
   ArrowUpDown,
+  Check,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -237,14 +240,14 @@ Objective: "${aiGoal}"`,
   const progress = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
-            <CheckSquare className="w-5 h-5 text-indigo-600 dark:text-purple-400" /> Action Sprints & Task Planner
+          <h1 className="text-lg font-bold text-[#202124] dark:text-[#e8eaed] flex items-center gap-2">
+            <CheckSquare className="w-5 h-5 text-[#1a73e8]" /> Action Sprints & Tasks
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Micro-task execution engine with automated Master Database persistence</p>
+          <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">Micro-task execution engine with automated Master Database persistence</p>
         </div>
 
         {/* Master History Button */}
@@ -252,17 +255,17 @@ Objective: "${aiGoal}"`,
           size="sm"
           variant="outline"
           onClick={() => setShowHistory(!showHistory)}
-          className="text-xs bg-white hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 border-slate-200 dark:border-white/10 text-indigo-600 dark:text-cyan-300 gap-1.5 rounded-lg shadow-sm cursor-pointer"
+          className="text-xs bg-white hover:bg-[#f1f3f4] dark:bg-[#1e1e1e] dark:hover:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#1a73e8] dark:text-[#8ab4f8] gap-1.5 rounded-full font-medium cursor-pointer"
         >
-          <History className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
+          <History className="w-3.5 h-3.5" />
           <span>{showHistory ? 'Hide History' : `Master Database (${taskHistory.length})`}</span>
         </Button>
       </div>
 
       {/* AI Task Architect */}
-      <div className="p-4 bg-white dark:bg-gradient-to-r dark:from-purple-950/40 dark:via-slate-900/60 dark:to-indigo-950/40 rounded-xl border border-slate-200/80 dark:border-purple-500/20 space-y-2.5 shadow-sm">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-purple-300">
-          <Sparkles className="w-4 h-4 text-indigo-600 dark:text-purple-400" />
+      <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-2.5">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-[#202124] dark:text-[#e8eaed]">
+          <Sparkles className="w-4 h-4 text-[#1a73e8]" />
           <span>AI Task Architect & Goal Breakdown</span>
         </div>
         <form onSubmit={handleAiBreakdown} className="flex gap-2">
@@ -272,13 +275,13 @@ Objective: "${aiGoal}"`,
             value={aiGoal}
             onChange={(e) => setAiGoal(e.target.value)}
             disabled={aiArchitectLoading}
-            className="flex-1 bg-slate-50 dark:bg-slate-950/80 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs shadow-sm"
+            className="flex-1 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] text-xs rounded-full px-4"
           />
           <Button
             type="submit"
             size="sm"
             disabled={!aiGoal.trim() || aiArchitectLoading}
-            className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs px-4 rounded-lg shrink-0 gap-1.5 shadow-sm cursor-pointer"
+            className="bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs px-4 rounded-full shrink-0 gap-1.5 font-medium shadow-none cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{aiArchitectLoading ? 'Deconstructing...' : 'Break Down'}</span>
@@ -292,18 +295,18 @@ Objective: "${aiGoal}"`,
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="p-4 bg-white dark:bg-slate-900/80 rounded-xl border border-slate-200 dark:border-cyan-500/30 space-y-3 shadow-md"
+          className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-3"
         >
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-900 dark:text-cyan-300 border-b border-slate-100 dark:border-white/5 pb-2">
+          <div className="flex items-center justify-between text-xs font-medium text-[#202124] dark:text-[#e8eaed] border-b border-[#dadce0] dark:border-[#3c4043] pb-2">
             <span className="flex items-center gap-1.5">
-              <History className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
+              <History className="w-4 h-4 text-[#1a73e8]" />
               <span>Permanent Completed Tasks History ({taskHistory.length})</span>
             </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Synced with Excel Life Audit</span>
+            <span className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">Synced with Excel Life Audit</span>
           </div>
 
           {taskHistory.length === 0 ? (
-            <div className="text-center py-6 text-xs text-slate-500">
+            <div className="text-center py-6 text-xs text-[#5f6368] dark:text-[#9aa0a6]">
               No tasks completed yet. Complete tasks below to record your permanent action history!
             </div>
           ) : (
@@ -311,26 +314,22 @@ Objective: "${aiGoal}"`,
               {taskHistory.map((h, i) => (
                 <div
                   key={h.id || i}
-                  className="p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-lg border border-slate-200/80 dark:border-white/5 flex items-center justify-between text-xs shadow-sm"
+                  className="p-2.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-xl border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-[#1e8e3e] shrink-0" />
                     <div>
-                      <span className="text-slate-700 dark:text-slate-200 line-through decoration-slate-400 font-medium">{h.task}</span>
-                      <div className="text-[10px] text-slate-500 flex items-center gap-2 mt-0.5 font-mono">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-2.5 h-2.5 text-indigo-600 dark:text-cyan-400" /> {h.completedAt}
-                        </span>
-                        <span>•</span>
-                        <span>{h.time}</span>
-                        <span>•</span>
-                        <span className="text-indigo-600 dark:text-purple-400 font-semibold">{h.priority} Priority</span>
+                      <span className="text-[#5f6368] dark:text-[#9aa0a6] line-through font-medium">{h.task}</span>
+                      <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] flex items-center gap-2 mt-0.5 font-mono">
+                        <span>🕒 {h.time}</span>
+                        <span>• Priority: {h.priority}</span>
+                        {h.completedAt && <span>• Completed: {h.completedAt}</span>}
                       </div>
                     </div>
                   </div>
 
-                  <span className="text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 px-2 py-0.5 rounded font-mono font-semibold">
-                    +5 XP Earned
+                  <span className="text-[10px] font-mono text-[#1e8e3e] bg-[#e6f4ea] dark:bg-[#1a3826] px-2 py-0.5 rounded-full font-semibold">
+                    +5 XP
                   </span>
                 </div>
               ))}
@@ -339,26 +338,31 @@ Objective: "${aiGoal}"`,
         </motion.div>
       )}
 
-      {/* Add New Custom Task Form */}
-      <form onSubmit={handleAddTask} className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-3 shadow-sm">
+      {/* Add Task Input Form */}
+      <form onSubmit={handleAddTask} className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-3">
+        <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] flex items-center gap-1.5">
+          <Plus className="w-3.5 h-3.5 text-[#1a73e8]" />
+          <span>Add New Action Task</span>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-2">
           <Input
             type="text"
-            placeholder="What micro-action will you tackle next?"
+            placeholder="What needs to get done right now?"
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
-            className="flex-1 bg-slate-50 dark:bg-slate-950/80 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs shadow-sm"
+            className="flex-1 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] text-xs rounded-full px-4"
           />
 
           <div className="flex gap-2">
             <select
               value={newPriority}
               onChange={(e) => setNewPriority(e.target.value as any)}
-              className="bg-slate-50 dark:bg-slate-950/80 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm cursor-pointer font-medium"
+              className="bg-[#f8f9fa] dark:bg-[#2d2e30] border border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] text-xs rounded-full px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#1a73e8] cursor-pointer font-medium"
             >
-              <option value="High">🔴 High Priority</option>
-              <option value="Medium">🟡 Medium Priority</option>
-              <option value="Low">🟢 Low Priority</option>
+              <option value="High">🔴 High</option>
+              <option value="Medium">🟡 Medium</option>
+              <option value="Low">🟢 Low</option>
             </select>
 
             <Input
@@ -366,10 +370,10 @@ Objective: "${aiGoal}"`,
               placeholder="Est: 25 mins"
               value={newTime}
               onChange={(e) => setNewTime(e.target.value)}
-              className="w-28 bg-slate-50 dark:bg-slate-950/80 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white text-xs shadow-sm"
+              className="w-28 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] text-xs rounded-full px-3"
             />
 
-            <Button type="submit" size="sm" className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs px-4 rounded-lg shadow-sm cursor-pointer">
+            <Button type="submit" size="sm" className="bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs px-4 rounded-full font-medium shadow-none cursor-pointer">
               <Plus className="w-4 h-4 mr-1" /> Add
             </Button>
           </div>
@@ -377,11 +381,11 @@ Objective: "${aiGoal}"`,
       </form>
 
       {/* Active Tasks Progress & Alignment / Sorting Control Bar */}
-      <div className="p-4 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-3 shadow-sm">
+      <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-300">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Active Sprint Tasks ({completedCount} / {tasks.length} Completed)</span>
+          <div className="flex items-center gap-2 text-xs font-medium text-[#202124] dark:text-[#e8eaed]">
+            <CheckCircle2 className="w-4 h-4 text-[#1e8e3e]" />
+            <span>Active Tasks ({completedCount} / {tasks.length} Completed)</span>
           </div>
 
           {/* High to Low Alignment Button & Clear Finished */}
@@ -390,20 +394,20 @@ Objective: "${aiGoal}"`,
               type="button"
               onClick={handleSortHighToLow}
               title="Align tasks from High to Low priority"
-              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
                 isSortedHighToLow
-                  ? 'bg-slate-900 text-white border-slate-900 dark:bg-purple-600 dark:border-purple-400 shadow-sm'
-                  : 'bg-white hover:bg-slate-100 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10'
+                  ? 'bg-[#1a73e8] text-white'
+                  : 'bg-[#f1f3f4] hover:bg-[#e8eaed] dark:bg-[#2d2e30] dark:hover:bg-[#3c4043] text-[#202124] dark:text-[#e8eaed]'
               }`}
             >
-              <Flame className="w-3.5 h-3.5 text-rose-500" />
+              <Flame className="w-3.5 h-3.5 text-[#e37400]" />
               <span>High to Low</span>
             </button>
 
             {completedCount > 0 && (
               <button
                 onClick={clearCompleted}
-                className="text-xs text-slate-500 hover:text-red-600 flex items-center gap-1 transition-colors px-2 py-1 cursor-pointer font-medium"
+                className="text-xs text-[#5f6368] hover:text-[#d93025] flex items-center gap-1 transition-colors px-2 py-1 cursor-pointer font-medium"
               >
                 <Trash2 className="w-3 h-3" /> Clear Finished
               </button>
@@ -412,12 +416,12 @@ Objective: "${aiGoal}"`,
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-slate-200 dark:bg-slate-950 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-[#e8eaed] dark:bg-[#2d2e30] rounded-full h-1.5 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
-            className="h-full bg-slate-900 dark:bg-gradient-to-r dark:from-purple-500 dark:to-cyan-400"
+            transition={{ duration: 0.4 }}
+            className="h-full bg-[#1a73e8] dark:bg-[#8ab4f8]"
           />
         </div>
       </div>
@@ -425,9 +429,9 @@ Objective: "${aiGoal}"`,
       {/* Active Tasks List */}
       <div className="space-y-2">
         {tasks.length === 0 ? (
-          <div className="p-8 text-center bg-white dark:bg-slate-900/30 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-2 shadow-sm">
-            <CheckSquare className="w-8 h-8 text-slate-400 mx-auto" />
-            <div className="text-xs text-slate-500">All clear! Add a task above or use AI Breakdown to plan your day.</div>
+          <div className="p-8 text-center bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-2">
+            <CheckSquare className="w-8 h-8 text-[#5f6368] mx-auto" />
+            <div className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">All clear! Add a task above or use AI Breakdown to plan your day.</div>
           </div>
         ) : (
           <AnimatePresence>
@@ -435,41 +439,41 @@ Objective: "${aiGoal}"`,
               <motion.div
                 key={t.id}
                 layout
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className={`p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between gap-3 group shadow-sm ${
+                className={`p-3.5 sm:p-4 rounded-2xl border transition-colors flex items-center justify-between gap-3 group ${
                   t.done
-                    ? 'bg-slate-50/90 dark:bg-slate-950/40 border-slate-200/60 dark:border-emerald-500/20 opacity-70'
-                    : 'bg-white hover:bg-slate-50/80 dark:bg-slate-900/60 dark:hover:bg-slate-900/90 border-slate-200/80 dark:border-white/5 hover:border-slate-300'
+                    ? 'bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] opacity-75'
+                    : 'bg-white hover:bg-[#f8f9fa] dark:bg-[#1e1e1e] dark:hover:bg-[#252629] border-[#dadce0] dark:border-[#3c4043]'
                 }`}
               >
                 {/* LEFT: Radio Checkbox + Task Name (Line 1) + Time (Line 2 Below Name) */}
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   <button
                     onClick={() => toggleTask(t.id)}
-                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border shrink-0 mt-0.5 cursor-pointer ${
+                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border-2 shrink-0 mt-0.5 cursor-pointer ${
                       t.done
-                        ? 'bg-emerald-600 border-emerald-600 text-white'
-                        : 'border-slate-300 dark:border-white/30 hover:border-indigo-600 dark:hover:border-purple-400 bg-white dark:bg-transparent'
+                        ? 'bg-[#1e8e3e] border-[#1e8e3e] text-white'
+                        : 'border-[#5f6368] dark:border-[#9aa0a6] hover:border-[#1a73e8] bg-white dark:bg-transparent'
                     }`}
                   >
-                    {t.done && <CheckSquare className="w-3.5 h-3.5" />}
+                    {t.done && <Check className="w-3 h-3 text-white" />}
                   </button>
 
                   <div className="min-w-0 flex-1 space-y-1">
                     {/* Line 1: Task Title */}
                     <div
                       className={`text-xs sm:text-sm font-medium leading-snug break-words ${
-                        t.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-200'
+                        t.done ? 'line-through text-[#5f6368] dark:text-[#9aa0a6]' : 'text-[#202124] dark:text-[#e8eaed]'
                       }`}
                     >
                       {t.task}
                     </div>
 
                     {/* Line 2: Estimated Time Below Task Name */}
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-cyan-300 font-mono">
-                      <Clock className="w-3 h-3 text-indigo-600 dark:text-cyan-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-[11px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">
+                      <Clock className="w-3 h-3 text-[#1a73e8] shrink-0" />
                       <span>{t.time}</span>
                     </div>
                   </div>
@@ -479,55 +483,63 @@ Objective: "${aiGoal}"`,
                 <div className="flex items-center gap-1.5 shrink-0 ml-2">
                   {/* Priority Badge */}
                   <span
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 shadow-sm ${
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium flex items-center gap-1.5 ${
                       t.priority === 'High'
-                        ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-500/40'
+                        ? 'bg-[#fce8e6] text-[#c5221f] dark:bg-[#3c2020] dark:text-[#f28b82]'
                         : t.priority === 'Medium'
-                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-500/40'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-500/40'
+                        ? 'bg-[#fef7e0] text-[#b06000] dark:bg-[#3c3010] dark:text-[#fdd663]'
+                        : 'bg-[#e6f4ea] text-[#137333] dark:bg-[#1a3826] dark:text-[#81c995]'
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
                         t.priority === 'High'
-                          ? 'bg-rose-600 dark:bg-red-400'
+                          ? 'bg-[#d93025]'
                           : t.priority === 'Medium'
-                          ? 'bg-amber-600 dark:bg-amber-400'
-                          : 'bg-emerald-600 dark:bg-emerald-400'
+                          ? 'bg-[#f9ab00]'
+                          : 'bg-[#1e8e3e]'
                       }`}
                     />
                     <span>{t.priority}</span>
                   </span>
 
-                  {/* Manual Swap Up / Down Buttons */}
-                  <div className="flex flex-col bg-slate-100 dark:bg-slate-950/70 p-0.5 rounded-lg border border-slate-200 dark:border-white/5 opacity-80 group-hover:opacity-100 transition-opacity shadow-sm">
-                    <button
-                      type="button"
-                      disabled={idx === 0}
-                      onClick={() => moveTask(idx, 'up')}
-                      className="p-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-cyan-300 disabled:opacity-20 transition-colors cursor-pointer"
-                      title="Move task up"
-                    >
-                      <ChevronUp className="w-3 h-3" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={idx === tasks.length - 1}
-                      onClick={() => moveTask(idx, 'down')}
-                      className="p-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-cyan-300 disabled:opacity-20 transition-colors cursor-pointer"
-                      title="Move task down"
-                    >
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
-                  </div>
+                  {/* Move UP Swap Button */}
+                  <button
+                    type="button"
+                    onClick={() => moveTask(idx, 'up')}
+                    disabled={idx === 0}
+                    className={`p-1.5 rounded-full transition-colors ${
+                      idx === 0
+                        ? 'opacity-20 cursor-not-allowed text-[#5f6368]'
+                        : 'text-[#5f6368] hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#2d2e30] cursor-pointer'
+                    }`}
+                    title="Swap with task above (Move Up)"
+                  >
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </button>
 
-                  {/* Delete Button */}
+                  {/* Move DOWN Swap Button */}
+                  <button
+                    type="button"
+                    onClick={() => moveTask(idx, 'down')}
+                    disabled={idx === tasks.length - 1}
+                    className={`p-1.5 rounded-full transition-colors ${
+                      idx === tasks.length - 1
+                        ? 'opacity-20 cursor-not-allowed text-[#5f6368]'
+                        : 'text-[#5f6368] hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#2d2e30] cursor-pointer'
+                    }`}
+                    title="Swap with task below (Move Down)"
+                  >
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Delete Task Button */}
                   <button
                     onClick={() => deleteTask(t.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400 transition-all ml-0.5 cursor-pointer"
-                    title="Delete task"
+                    className="opacity-0 group-hover:opacity-100 text-[#5f6368] hover:text-[#d93025] p-1.5 rounded-full hover:bg-[#fce8e6] dark:hover:bg-[#3c2020] transition-all cursor-pointer"
+                    title="Delete task from sprint (Preserved in Master DB)"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </motion.div>

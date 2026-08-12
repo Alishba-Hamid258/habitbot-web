@@ -431,44 +431,42 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-5.5rem)] max-w-5xl mx-auto gap-3">
       {/* Dynamic Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/80 dark:border-white/5 shadow-sm transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#1e1e1e] p-3 px-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] transition-colors">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-gradient-to-tr dark:from-purple-600 dark:to-indigo-600 p-0.5 shadow-sm shrink-0">
-            <div className="w-full h-full bg-slate-900 dark:bg-slate-950 rounded-xl flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white dark:text-purple-400" />
-            </div>
+          <div className="w-8 h-8 rounded-full bg-[#1a73e8] flex items-center justify-center text-white shrink-0">
+            <Bot className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span>AI Habit Coach</span>
+            <h1 className="text-sm font-bold text-[#202124] dark:text-[#e8eaed]">
+              AI Habit Coach
             </h1>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Behavioral routines, deep work coaching & document drills</p>
+            <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">Behavioral routines, deep work coaching & document drills</p>
           </div>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           {/* Dual AI Engine Toggle */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-200 dark:border-white/10 text-xs">
+          <div className="flex items-center bg-[#f1f3f4] dark:bg-[#2d2e30] p-1 rounded-full text-xs">
             <button
               onClick={() => setSelectedProvider('groq')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+              className={`px-3 py-1 rounded-full font-medium transition-colors flex items-center gap-1 cursor-pointer ${
                 selectedProvider === 'groq'
-                  ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white shadow-sm border border-slate-200/80 dark:border-transparent font-semibold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] font-semibold'
+                  : 'text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#202124]'
               }`}
             >
-              <Cpu className="w-3 h-3 text-indigo-600 dark:text-purple-300" /> Groq (Fast)
+              <Cpu className="w-3 h-3" /> Groq (Fast)
             </button>
             <button
               onClick={() => setSelectedProvider('gemini')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+              className={`px-3 py-1 rounded-full font-medium transition-colors flex items-center gap-1 cursor-pointer ${
                 selectedProvider === 'gemini'
-                  ? 'bg-white dark:bg-cyan-600/30 text-slate-900 dark:text-cyan-200 shadow-sm border border-slate-200/80 dark:border-cyan-500/30 font-semibold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] font-semibold'
+                  : 'text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#202124]'
               }`}
             >
-              <Sparkles className="w-3 h-3 text-indigo-600 dark:text-cyan-400" /> Gemini Vision
+              <Sparkles className="w-3 h-3" /> Gemini Vision
             </button>
           </div>
 
@@ -476,16 +474,16 @@ export default function DashboardPage() {
             size="sm"
             variant="outline"
             onClick={() => setShowArchives(true)}
-            className="h-8 text-xs bg-white hover:bg-slate-100 dark:bg-slate-900/60 dark:hover:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 gap-1.5 rounded-lg shadow-sm cursor-pointer"
+            className="h-8 text-xs bg-white hover:bg-[#f1f3f4] dark:bg-[#1e1e1e] dark:hover:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] gap-1.5 rounded-full font-medium cursor-pointer"
           >
-            <Archive className="w-3.5 h-3.5 text-indigo-600 dark:text-purple-400" />
+            <Archive className="w-3.5 h-3.5 text-[#1a73e8]" />
             <span>Vault ({archives.length})</span>
           </Button>
 
           <Button
             size="sm"
             onClick={handleNewChat}
-            className="h-8 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button gap-1.5 rounded-lg shadow-sm cursor-pointer"
+            className="h-8 text-xs bg-[#1a73e8] hover:bg-[#1557b0] text-white gap-1.5 rounded-full font-medium cursor-pointer shadow-none"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Chat</span>
@@ -495,87 +493,87 @@ export default function DashboardPage() {
 
       {/* Interactive Onboarding Tour Modal */}
       <Dialog open={showOnboardingModal} onOpenChange={setShowOnboardingModal}>
-        <DialogContent className="max-w-2xl bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
+        <DialogContent className="max-w-2xl bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-3xl p-6 sm:p-7 shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-600 dark:text-purple-400" />
-              <span>Welcome to HabitBot v5.0! 👋</span>
+            <DialogTitle className="text-base font-bold text-[#202124] dark:text-[#e8eaed] flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#1a73e8]" />
+              <span>Welcome to HabitBot! 👋</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+            <DialogDescription className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">
               Here is everything you can do with your HabitBot account in 60 seconds:
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
-                <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-slate-950 border border-indigo-200 dark:border-white/10">
-                  <FileText className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
+            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
+                <div className="p-1.5 rounded-full bg-[#e8f0fe] text-[#1a73e8]">
+                  <FileText className="w-4 h-4" />
                 </div>
                 <span>1. PDF & Document Habit Coach</span>
               </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
                 Click 📎 Paperclip to attach any PDF book, handout, or notes. HabitBot parses full multi-page chapters and extracts custom actionable drills.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
-                <div className="p-1.5 rounded-lg bg-purple-50 dark:bg-slate-950 border border-purple-200 dark:border-white/10">
-                  <Bot className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
+                <div className="p-1.5 rounded-full bg-[#e8f0fe] text-[#1a73e8]">
+                  <Bot className="w-4 h-4" />
                 </div>
                 <span>2. Image OCR & Gemini Vision</span>
               </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
                 Attach quote posters, workout charts, or notes. In-browser OCR extracts text instantly while Gemini Vision analyzes visual layouts.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
-                <div className="p-1.5 rounded-lg bg-amber-50 dark:bg-slate-950 border border-amber-200 dark:border-white/10">
-                  <Headphones className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
+                <div className="p-1.5 rounded-full bg-[#fef7e0] text-[#b06000]">
+                  <Headphones className="w-4 h-4" />
                 </div>
                 <span>3. Ambient Media & Device Audio</span>
               </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
                 Listen to curated lofi presets, paste any YouTube link, or upload your own local audio/video files from your device.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
-                <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-slate-950 border border-blue-200 dark:border-white/10">
-                  <CheckSquare className="w-4 h-4 text-blue-600 dark:text-indigo-400" />
+            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
+                <div className="p-1.5 rounded-full bg-[#e8f0fe] text-[#1a73e8]">
+                  <CheckSquare className="w-4 h-4" />
                 </div>
                 <span>4. Task Sprints & Swap Order</span>
               </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
                 Generate 4 micro-tasks with AI. Reorder tasks with ⬆️/⬇️ swap buttons, sort High-to-Low, and earn +5 XP per checkmark.
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
-                <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-slate-950 border border-emerald-200 dark:border-white/10">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
+                <div className="p-1.5 rounded-full bg-[#e6f4ea] text-[#137333]">
+                  <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <span>5. Habit Matrix & Streak Freeze</span>
               </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
                 Check off daily habits in the sidebar (+10 XP). Toggle "Freeze Day" ❄️ during rest or travel days to shield your streak without penalties!
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-1.5 hover:border-slate-300 dark:hover:border-purple-500/20 transition-colors shadow-sm">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
-                <div className="p-1.5 rounded-lg bg-pink-50 dark:bg-slate-950 border border-pink-200 dark:border-white/10">
-                  <FileSpreadsheet className="w-4 h-4 text-pink-600 dark:text-pink-400" />
+            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
+                <div className="p-1.5 rounded-full bg-[#fce8e6] text-[#c5221f]">
+                  <FileSpreadsheet className="w-4 h-4" />
                 </div>
                 <span>6. Logbook & 5-Sheet Excel Audit</span>
               </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                Log daily reflections and export your full lifetime habits, tasks, media history, and streaks into an organized Excel (.xlsx) file!
+              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
+                Log daily wins & friction points (+15 XP) and export your full lifetime habits, tasks, media history, and streaks into an organized Excel (.xlsx) file!
               </p>
             </div>
           </div>
@@ -584,29 +582,29 @@ export default function DashboardPage() {
             <Button
               size="sm"
               onClick={() => setShowOnboardingModal(false)}
-              className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs px-5 py-2.5 rounded-lg shadow-sm cursor-pointer"
+              className="bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs px-5 py-2 rounded-full font-medium shadow-none cursor-pointer"
             >
-              Start Coaching
+              Get Started
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Archives Vault Dialog Modal */}
+      {/* Conversation Vault Archive Modal */}
       <Dialog open={showArchives} onOpenChange={setShowArchives}>
-        <DialogContent className="max-w-md bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl p-6 shadow-2xl backdrop-blur-2xl">
+        <DialogContent className="max-w-md bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-3xl p-6 shadow-2xl space-y-3">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-slate-900 dark:gradient-text flex items-center gap-2">
-              <Archive className="w-5 h-5 text-indigo-600 dark:text-purple-400" />
-              <span>Conversation Archives Vault</span>
+            <DialogTitle className="text-base font-bold text-[#202124] dark:text-[#e8eaed] flex items-center gap-2">
+              <Archive className="w-5 h-5 text-[#1a73e8]" />
+              <span>Coaching Conversation Vault</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
-              Browse and resume past coaching sessions with HabitBot.
+            <DialogDescription className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">
+              All your previous coaching conversations are securely preserved. Click to resume anytime.
             </DialogDescription>
           </DialogHeader>
 
           {archives.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 text-xs">
+            <div className="p-6 text-center text-xs text-[#5f6368] dark:text-[#9aa0a6] bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl">
               No archived conversations yet. Start chatting to create history!
             </div>
           ) : (
@@ -614,11 +612,11 @@ export default function DashboardPage() {
               {archives.map((arch) => (
                 <div
                   key={arch.id}
-                  className="p-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/60 dark:hover:bg-slate-900/90 rounded-xl border border-slate-200/80 dark:border-white/5 flex items-center justify-between group transition-all shadow-sm"
+                  className="p-3 bg-[#f8f9fa] hover:bg-[#f1f3f4] dark:bg-[#2d2e30] dark:hover:bg-[#3c4043] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between group transition-colors"
                 >
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">{arch.title}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    <div className="text-xs font-semibold text-[#202124] dark:text-[#e8eaed] truncate">{arch.title}</div>
+                    <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] mt-0.5 font-mono">
                       {arch.timestamp} • {arch.messages.length} messages
                     </div>
                   </div>
@@ -628,17 +626,17 @@ export default function DashboardPage() {
                       size="sm"
                       variant="ghost"
                       onClick={() => handleResumeChat(arch)}
-                      className="h-7 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:text-cyan-400 dark:hover:bg-cyan-950/30 px-2 rounded-lg cursor-pointer"
+                      className="h-7 text-xs text-[#1a73e8] hover:bg-[#e8f0fe] dark:text-[#8ab4f8] dark:hover:bg-[#394457] px-3 rounded-full cursor-pointer font-medium"
                     >
                       Resume
                     </Button>
 
                     <button
                       onClick={(e) => handleDeleteArchive(arch.id, e)}
-                      className="p-2 text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                      className="p-1.5 text-[#5f6368] hover:text-[#d93025] dark:text-[#9aa0a6] dark:hover:text-[#f28b82] rounded-full hover:bg-[#fce8e6] dark:hover:bg-[#3c2020] transition-colors cursor-pointer"
                       title="Delete session"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -655,10 +653,10 @@ export default function DashboardPage() {
             <button
               key={idx}
               onClick={() => handleSend(p.prompt)}
-              className="p-2.5 bg-white hover:bg-slate-50 dark:bg-slate-900/60 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-purple-500/30 rounded-xl text-left transition-all shadow-sm group cursor-pointer"
+              className="p-3 bg-white hover:bg-[#f8f9fa] dark:bg-[#1e1e1e] dark:hover:bg-[#2d2e30] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl text-left transition-colors cursor-pointer"
             >
-              <div className="text-xs font-semibold text-slate-900 dark:text-purple-300 group-hover:text-indigo-600 dark:group-hover:text-purple-200">{p.label}</div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{p.prompt}</div>
+              <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">{p.label}</div>
+              <div className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] line-clamp-2 mt-0.5">{p.prompt}</div>
             </button>
           ))}
         </div>
@@ -669,39 +667,37 @@ export default function DashboardPage() {
         {messages.map((m) => (
           <motion.div
             key={m.id}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             className={`flex items-start gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-gradient-to-tr dark:from-purple-600 dark:to-indigo-600 p-0.5 shrink-0 shadow-sm">
-                <div className="w-full h-full bg-slate-900 dark:bg-slate-950 rounded-lg flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-white dark:text-purple-400" />
-                </div>
+              <div className="w-8 h-8 rounded-full bg-[#1a73e8] text-white flex items-center justify-center shrink-0">
+                <Bot className="w-4 h-4" />
               </div>
             )}
 
             <div
-              className={`relative group max-w-[80%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-sm transition-colors ${
+              className={`relative group max-w-[80%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed transition-colors ${
                 m.role === 'user'
-                  ? 'bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-indigo-600 text-white rounded-tr-sm'
-                  : 'bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-slate-200 rounded-tl-sm'
+                  ? 'bg-[#1a73e8] dark:bg-[#8ab4f8] text-white dark:text-[#202124] rounded-tr-sm'
+                  : 'bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-tl-sm'
               }`}
             >
               {m.imagePreview && (
-                <div className="mb-2.5 rounded-lg overflow-hidden border border-slate-200 dark:border-white/20 max-w-xs shadow-sm">
+                <div className="mb-2.5 rounded-xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] max-w-xs">
                   <img src={m.imagePreview} alt="Attached context" className="w-full h-auto object-cover" />
                 </div>
               )}
 
               {m.documentInfo && (
-                <div className="mb-2.5 p-2.5 bg-slate-100 dark:bg-purple-950/80 border border-slate-200 dark:border-purple-500/30 rounded-xl flex items-center gap-2 max-w-sm shadow-sm">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-purple-900/60 border border-indigo-200 dark:border-purple-500/20 flex items-center justify-center text-indigo-600 dark:text-purple-300 shrink-0">
+                <div className="mb-2.5 p-2.5 bg-[#f8f9fa] dark:bg-[#2d2e30] border border-[#dadce0] dark:border-[#3c4043] rounded-xl flex items-center gap-2 max-w-sm">
+                  <div className="w-8 h-8 rounded-lg bg-[#e8f0fe] dark:bg-[#394457] flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
                     <FileText className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">{m.documentInfo.name}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-purple-300 font-mono">{m.documentInfo.size} Document Attached</div>
+                    <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] truncate">{m.documentInfo.name}</div>
+                    <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">{m.documentInfo.size} Document</div>
                   </div>
                 </div>
               )}
@@ -710,42 +706,42 @@ export default function DashboardPage() {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    p: ({ children }) => <p className="mb-3.5 leading-relaxed text-slate-700 dark:text-slate-200 last:mb-0">{children}</p>,
+                    p: ({ children }) => <p className="mb-3 leading-relaxed last:mb-0">{children}</p>,
                     h1: ({ children }) => (
-                      <h1 className="text-base font-bold text-slate-900 dark:text-white mt-4 mb-2.5 flex items-center gap-2 border-b border-slate-100 dark:border-white/10 pb-1.5">
+                      <h1 className="text-base font-bold text-[#202124] dark:text-[#e8eaed] mt-4 mb-2 flex items-center gap-2 border-b border-[#dadce0] dark:border-[#3c4043] pb-1">
                         {children}
                       </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-sm font-bold text-slate-900 dark:text-purple-300 mt-4 mb-2 flex items-center gap-2">
+                      <h2 className="text-sm font-bold text-[#202124] dark:text-[#e8eaed] mt-4 mb-2 flex items-center gap-2">
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-xs font-bold text-indigo-700 dark:text-cyan-300 mt-3.5 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
+                      <h3 className="text-xs font-bold text-[#1a73e8] dark:text-[#8ab4f8] mt-3 mb-1 uppercase tracking-wider flex items-center gap-1.5">
                         {children}
                       </h3>
                     ),
-                    ul: ({ children }) => <ul className="my-3 space-y-2 pl-4 list-disc marker:text-indigo-600 dark:marker:text-purple-400">{children}</ul>,
-                    ol: ({ children }) => <ol className="my-3 space-y-2 pl-4 list-decimal marker:text-indigo-600 dark:marker:text-cyan-400">{children}</ol>,
-                    li: ({ children }) => <li className="leading-relaxed text-slate-700 dark:text-slate-200 pl-0.5">{children}</li>,
+                    ul: ({ children }) => <ul className="my-2.5 space-y-1.5 pl-4 list-disc marker:text-[#1a73e8]">{children}</ul>,
+                    ol: ({ children }) => <ol className="my-2.5 space-y-1.5 pl-4 list-decimal marker:text-[#1a73e8]">{children}</ol>,
+                    li: ({ children }) => <li className="leading-relaxed pl-0.5">{children}</li>,
                     strong: ({ children }) => (
-                      <strong className="font-semibold text-slate-900 dark:text-white bg-slate-100 dark:bg-purple-950/50 px-1.5 py-0.5 rounded border border-slate-200 dark:border-purple-500/20 text-[12px] sm:text-[13px]">
+                      <strong className="font-semibold">
                         {children}
                       </strong>
                     ),
                     blockquote: ({ children }) => (
-                      <blockquote className="my-3.5 pl-3.5 border-l-2 border-indigo-600 dark:border-purple-400 bg-slate-50 dark:bg-purple-950/30 py-2 pr-3 rounded-r-xl text-slate-700 dark:text-slate-300 italic shadow-sm">
+                      <blockquote className="my-3 pl-3 border-l-2 border-[#1a73e8] bg-[#f8f9fa] dark:bg-[#2d2e30] py-2 pr-3 rounded-r-xl italic">
                         {children}
                       </blockquote>
                     ),
                     code: ({ inline, children }: any) =>
                       inline ? (
-                        <code className="bg-slate-100 dark:bg-slate-950/80 text-indigo-700 dark:text-cyan-300 px-1.5 py-0.5 rounded text-[11px] font-mono border border-slate-200 dark:border-white/10">
+                        <code className="bg-[#f1f3f4] dark:bg-[#2d2e30] text-[#1a73e8] dark:text-[#8ab4f8] px-1.5 py-0.5 rounded text-[11px] font-mono">
                           {children}
                         </code>
                       ) : (
-                        <pre className="my-3.5 p-3.5 bg-slate-900 dark:bg-slate-950 rounded-xl overflow-x-auto text-[11px] font-mono border border-slate-800 dark:border-white/10 text-slate-100 dark:text-cyan-200">
+                        <pre className="my-3 p-3 bg-[#202124] dark:bg-[#121212] rounded-xl overflow-x-auto text-[11px] font-mono text-white">
                           {children}
                         </pre>
                       ),
@@ -758,15 +754,15 @@ export default function DashboardPage() {
               {m.role === 'assistant' && m.content && (
                 <button
                   onClick={() => copyToClipboard(m.content, m.id)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all text-[10px] flex items-center gap-1 cursor-pointer"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 rounded-full bg-white hover:bg-[#f1f3f4] dark:bg-[#2d2e30] dark:hover:bg-[#3c4043] text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-white transition-opacity text-[10px] flex items-center gap-1 cursor-pointer border border-[#dadce0] dark:border-[#3c4043]"
                 >
-                  {copiedId === m.id ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  {copiedId === m.id ? <Check className="w-3 h-3 text-[#1e8e3e]" /> : <Copy className="w-3 h-3" />}
                 </button>
               )}
             </div>
 
             {m.role === 'user' && (
-              <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/10 flex items-center justify-center shrink-0 text-slate-700 dark:text-slate-300 overflow-hidden shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-[#f1f3f4] dark:bg-[#2d2e30] flex items-center justify-center shrink-0 text-[#5f6368] dark:text-[#9aa0a6] overflow-hidden">
                 {currentUser?.avatar ? (
                   <img src={currentUser.avatar} alt="User avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -779,13 +775,11 @@ export default function DashboardPage() {
 
         {loading && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-gradient-to-tr dark:from-purple-600 dark:to-indigo-600 p-0.5 shrink-0 shadow-sm">
-              <div className="w-full h-full bg-slate-900 dark:bg-slate-950 rounded-lg flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white dark:text-purple-400 animate-spin" />
-              </div>
+            <div className="w-8 h-8 rounded-full bg-[#1a73e8] text-white flex items-center justify-center shrink-0">
+              <Bot className="w-4 h-4" />
             </div>
-            <div className="p-3.5 bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-white/10 text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-purple-400 animate-pulse" />
+            <div className="p-3.5 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] text-xs text-[#5f6368] dark:text-[#9aa0a6] flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#1a73e8] animate-pulse" />
               <span>HabitBot ({selectedProvider === 'gemini' ? 'Gemini Vision' : 'Groq'}) is formulating advice...</span>
             </div>
           </div>
@@ -796,23 +790,23 @@ export default function DashboardPage() {
 
       {/* File / Document Preview Floating Pill */}
       {attachedFile && (
-        <div className="flex items-center gap-2 p-2 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-purple-500/30 rounded-xl max-w-fit shadow-md">
+        <div className="flex items-center gap-2 p-2 px-3 bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] rounded-full max-w-fit shadow-sm">
           {attachedFile.type === 'image' ? (
-            <ImageIcon className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
+            <ImageIcon className="w-4 h-4 text-[#1a73e8]" />
           ) : (
-            <FileText className="w-4 h-4 text-indigo-600 dark:text-purple-400" />
+            <FileText className="w-4 h-4 text-[#1a73e8]" />
           )}
-          <div className="text-xs text-slate-700 dark:text-slate-200">
-            <span className="font-semibold text-slate-900 dark:text-white">{attachedFile.name}</span>{' '}
-            <span className="text-slate-500 dark:text-slate-400 font-mono">({attachedFile.size})</span>
+          <div className="text-xs text-[#202124] dark:text-[#e8eaed]">
+            <span className="font-medium">{attachedFile.name}</span>{' '}
+            <span className="text-[#5f6368] dark:text-[#9aa0a6] font-mono">({attachedFile.size})</span>
           </div>
-          <button onClick={() => setAttachedFile(null)} className="text-slate-400 hover:text-red-600 p-0.5 ml-1 cursor-pointer">
+          <button onClick={() => setAttachedFile(null)} className="text-[#5f6368] hover:text-[#d93025] p-0.5 ml-1 cursor-pointer">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Input Form with Separate Image and Document Selectors */}
+      {/* Google Search Style Prompt Input Bar */}
       <div className="relative">
         {/* Floating Attachment Menu Popup */}
         <AnimatePresence>
@@ -821,9 +815,9 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute bottom-16 left-2 z-30 p-2 bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl flex flex-col gap-1 w-52"
+              className="absolute bottom-16 left-2 z-30 p-2 bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xl flex flex-col gap-1 w-52"
             >
-              <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 px-2 py-1 uppercase tracking-wider">
+              <div className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] px-2 py-1 uppercase tracking-wider">
                 Attach File
               </div>
 
@@ -834,14 +828,14 @@ export default function DashboardPage() {
                   imageInputRef.current?.click();
                   setShowAttachmentMenu(false);
                 }}
-                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-purple-950/60 transition-all text-left group cursor-pointer"
+                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-[#202124] dark:text-[#e8eaed] hover:bg-[#f1f3f4] dark:hover:bg-[#2d2e30] transition-colors text-left group cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-cyan-950/60 border border-indigo-200 dark:border-cyan-500/30 flex items-center justify-center text-indigo-600 dark:text-cyan-300 group-hover:scale-105 transition-transform">
+                <div className="w-7 h-7 rounded-full bg-[#e8f0fe] dark:bg-[#394457] flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
                   <ImageIcon className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-slate-900 dark:text-white font-semibold text-xs">Image / Photo</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">PNG, JPG, WebP</div>
+                  <div className="font-medium text-xs">Image / Photo</div>
+                  <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">PNG, JPG, WebP</div>
                 </div>
               </button>
 
@@ -852,14 +846,14 @@ export default function DashboardPage() {
                   docInputRef.current?.click();
                   setShowAttachmentMenu(false);
                 }}
-                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-purple-950/60 transition-all text-left group cursor-pointer"
+                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-[#202124] dark:text-[#e8eaed] hover:bg-[#f1f3f4] dark:hover:bg-[#2d2e30] transition-colors text-left group cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-300 group-hover:scale-105 transition-transform">
+                <div className="w-7 h-7 rounded-full bg-[#e8f0fe] dark:bg-[#394457] flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
                   <FileText className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-slate-900 dark:text-white font-semibold text-xs">Document / Notes</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">PDF, TXT, CSV, MD</div>
+                  <div className="font-medium text-xs">Document / Notes</div>
+                  <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">PDF, TXT, CSV, MD</div>
                 </div>
               </button>
             </motion.div>
@@ -871,7 +865,7 @@ export default function DashboardPage() {
             e.preventDefault();
             handleSend();
           }}
-          className="relative flex items-center gap-2 p-2 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-white/10 shadow-md transition-colors"
+          className="relative flex items-center gap-2 p-2 bg-white dark:bg-[#1e1e1e] rounded-full border border-[#dadce0] dark:border-[#3c4043] shadow-sm hover:shadow-md focus-within:shadow-md focus-within:border-[#1a73e8] transition-all"
         >
           {/* Hidden Image Input */}
           <input
@@ -896,10 +890,10 @@ export default function DashboardPage() {
             type="button"
             onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
             title="Attach an Image or Document"
-            className={`p-2 rounded-xl transition-all cursor-pointer ${
+            className={`p-2 rounded-full transition-colors cursor-pointer ${
               showAttachmentMenu
-                ? 'bg-slate-900 text-white dark:bg-purple-600 shadow-sm'
-                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-cyan-400 dark:hover:bg-slate-800'
+                ? 'bg-[#e8f0fe] text-[#1a73e8]'
+                : 'text-[#5f6368] hover:text-[#202124] hover:bg-[#f1f3f4] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed] dark:hover:bg-[#2d2e30]'
             }`}
           >
             <Paperclip className="w-4 h-4" />
@@ -911,16 +905,16 @@ export default function DashboardPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
-            className="flex-1 bg-transparent border-0 text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-0 text-xs sm:text-sm pl-1 shadow-none"
+            className="flex-1 bg-transparent border-0 text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] dark:placeholder:text-[#9aa0a6] focus-visible:ring-0 text-xs sm:text-sm pl-1 shadow-none"
           />
 
           <Button
             type="submit"
             size="sm"
             disabled={(!input.trim() && !attachedFile) || loading}
-            className="bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button h-10 px-4 rounded-xl shadow-sm flex items-center gap-1.5 cursor-pointer"
+            className="bg-[#1a73e8] hover:bg-[#1557b0] text-white h-9 px-4 rounded-full shadow-none flex items-center gap-1.5 cursor-pointer font-medium"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Send</span>
           </Button>
         </form>

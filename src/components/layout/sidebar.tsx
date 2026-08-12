@@ -336,37 +336,35 @@ export function Sidebar() {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 320, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="w-80 h-full flex flex-col bg-white dark:bg-[#0b1120]/90 border-r border-slate-200/80 dark:border-white/10 shadow-sm z-20 overflow-hidden shrink-0 transition-colors"
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="w-80 h-full flex flex-col bg-white dark:bg-[#1e1e1e] border-r border-[#dadce0] dark:border-[#3c4043] z-20 overflow-hidden shrink-0 transition-colors"
           >
             {/* Header Brand */}
-            <div className="p-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between min-w-[320px]">
+            <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between min-w-[320px]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-gradient-to-tr dark:from-purple-600 dark:to-cyan-500 p-0.5 flex items-center justify-center shadow-md">
-                  <div className="w-full h-full bg-slate-900 dark:bg-slate-950 rounded-xl flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-white dark:text-purple-400" />
-                  </div>
+                <div className="w-8 h-8 rounded-full bg-[#1a73e8] flex items-center justify-center text-white shrink-0">
+                  <Bot className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 dark:gradient-text leading-tight">HabitBot</h2>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">v5.0 Pro Suite</p>
+                  <h2 className="text-sm font-bold text-[#202124] dark:text-[#e8eaed] leading-tight">HabitBot</h2>
+                  <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">Workspace</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-1.5">
-                {/* Guide Button Placed Right Beside HabitBot v5.0 Pro Suite */}
+                {/* Guide Button Placed Right Beside HabitBot */}
                 <button
                   onClick={() => setShowGuideModal(true)}
-                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/90 border border-slate-200 dark:border-purple-500/40 text-slate-700 dark:text-purple-300 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                  className="px-3 py-1 bg-[#e8f0fe] hover:bg-[#d2e3fc] dark:bg-[#394457] dark:hover:bg-[#475569] text-[#1a73e8] dark:text-[#8ab4f8] rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
                   title="Open HabitBot Quick User Guide & Tips"
                 >
-                  <BookOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
+                  <BookOpen className="w-3.5 h-3.5" />
                   <span>Guide</span>
                 </button>
 
                 {currentUser.isAdmin && (
-                  <span className="text-[10px] font-semibold bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Shield className="w-3 h-3 text-amber-500 dark:text-amber-400" /> Admin
+                  <span className="text-[10px] font-medium bg-[#fef7e0] text-[#b06000] dark:bg-[#3c3010] dark:text-[#fdd663] px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Shield className="w-3 h-3 text-[#f9ab00]" /> Admin
                   </span>
                 )}
 
@@ -378,7 +376,7 @@ export function Sidebar() {
                     window.dispatchEvent(new Event('habitbot_sidebar_state_changed'));
                     toast.info('Sidebar closed (Click "Open Sidebar" to re-open anytime)');
                   }}
-                  className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-[#f1f3f4] dark:hover:bg-[#2d2e30] text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed] rounded-full transition-colors cursor-pointer"
                   title="Close Sidebar"
                 >
                   <PanelLeftClose className="w-4 h-4" />
@@ -387,15 +385,15 @@ export function Sidebar() {
             </div>
 
             {/* Scrollable Workspace Body */}
-            <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5 custom-scrollbar min-w-[320px]">
+            <div className="flex-1 overflow-y-auto p-3.5 space-y-3 custom-scrollbar min-w-[320px]">
               {/* User Profile Card with Avatar & Settings */}
-              <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 flex items-center justify-between group shadow-sm transition-colors">
+              <div className="p-3 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between group transition-colors">
                 <button
                   onClick={() => setShowProfileModal(true)}
                   className="flex items-center gap-2.5 text-left flex-1 min-w-0 hover:opacity-90 transition-opacity cursor-pointer"
                   title="Click to view & edit profile"
                 >
-                  <div className="relative w-9 h-9 rounded-xl bg-indigo-50 dark:bg-purple-600/20 border border-indigo-200 dark:border-purple-500/30 flex items-center justify-center text-indigo-600 dark:text-purple-300 overflow-hidden shrink-0 shadow-sm">
+                  <div className="relative w-8 h-8 rounded-full bg-[#e8f0fe] dark:bg-[#394457] border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] overflow-hidden shrink-0">
                     {currentUser.avatar ? (
                       <img src={currentUser.avatar} alt={currentUser.username} className="w-full h-full object-cover" />
                     ) : (
@@ -406,11 +404,11 @@ export function Sidebar() {
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-semibold text-slate-900 dark:text-white capitalize truncate flex items-center gap-1">
+                    <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] capitalize truncate flex items-center gap-1">
                       <span>{currentUser.username}</span>
-                      <Settings className="w-3 h-3 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-purple-400 transition-colors" />
+                      <Settings className="w-3 h-3 text-[#5f6368] group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors" />
                     </div>
-                    <div className="text-[10px] font-mono text-slate-500 dark:text-cyan-300">ID: #{currentUser.id}</div>
+                    <div className="text-[10px] font-mono text-[#5f6368] dark:text-[#9aa0a6]">ID: #{currentUser.id}</div>
                   </div>
                 </button>
 
@@ -418,7 +416,7 @@ export function Sidebar() {
                   size="sm"
                   variant="ghost"
                   onClick={handleLogout}
-                  className="h-7 text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 dark:text-slate-400 dark:hover:text-red-400 dark:hover:bg-red-950/20 px-2 gap-1 rounded-lg shrink-0 ml-1 cursor-pointer"
+                  className="h-7 text-xs text-[#5f6368] hover:text-[#d93025] hover:bg-[#fce8e6] dark:text-[#9aa0a6] dark:hover:text-[#f28b82] dark:hover:bg-[#3c2020] px-2 gap-1 rounded-full shrink-0 ml-1 cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Logout</span>

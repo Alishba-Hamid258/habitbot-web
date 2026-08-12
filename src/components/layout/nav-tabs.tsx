@@ -81,9 +81,9 @@ export function NavTabs() {
   };
 
   return (
-    <header className="h-16 px-4 sm:px-6 bg-white/90 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between z-10 shrink-0 backdrop-blur-md transition-colors">
+    <header className="h-16 px-4 sm:px-6 bg-white dark:bg-[#1e1e1e] border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between z-10 shrink-0 transition-colors shadow-none">
       {/* Navigation Tabs with Open Sidebar Trigger */}
-      <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center gap-2.5 min-w-0">
         <AnimatePresence>
           {isSidebarCollapsed && (
             <motion.button
@@ -96,16 +96,16 @@ export function NavTabs() {
                 window.dispatchEvent(new Event('habitbot_open_sidebar'));
                 window.dispatchEvent(new Event('habitbot_sidebar_state_changed'));
               }}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/90 border border-slate-300 dark:border-purple-500/30 text-slate-800 dark:text-purple-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm group shrink-0 cursor-pointer"
+              className="px-3.5 py-1.5 bg-[#f1f3f4] hover:bg-[#e8eaed] dark:bg-[#2d2e30] dark:hover:bg-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
               title="Open HabitBot Sidebar"
             >
-              <PanelLeftOpen className="w-4 h-4 text-indigo-600 dark:text-cyan-400 group-hover:scale-110 transition-transform" />
+              <PanelLeftOpen className="w-4 h-4 text-[#1a73e8] dark:text-[#8ab4f8]" />
               <span className="hidden sm:inline">Open Sidebar</span>
             </motion.button>
           )}
         </AnimatePresence>
 
-        <nav className="flex items-center gap-1 bg-slate-100/90 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-200/80 dark:border-white/5 overflow-x-auto custom-scrollbar">
+        <nav className="flex items-center gap-1 bg-[#f1f3f4] dark:bg-[#2d2e30] p-1 rounded-full overflow-x-auto custom-scrollbar">
           {TABS.map((tab) => {
             const isActive = pathname === tab.href;
             const Icon = tab.icon;
@@ -114,15 +114,15 @@ export function NavTabs() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`relative px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors ${
+                className={`relative px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 transition-colors ${
                   isActive
-                    ? 'text-slate-900 dark:text-white'
-                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                    ? 'text-[#1a73e8] dark:text-[#8ab4f8] font-semibold'
+                    : 'text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed]'
                 }`}
               >
                 <Icon
                   className={`w-3.5 h-3.5 ${
-                    isActive ? 'text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-400'
+                    isActive ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-[#9aa0a6]'
                   }`}
                 />
                 <span>{tab.label}</span>
@@ -130,8 +130,8 @@ export function NavTabs() {
                 {isActive && (
                   <motion.div
                     layoutId="nav-tab-active"
-                    className="absolute inset-0 bg-white dark:bg-gradient-to-r dark:from-purple-600/30 dark:to-indigo-600/30 border border-slate-200/90 dark:border-purple-500/40 rounded-lg -z-10 shadow-sm"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                    className="absolute inset-0 bg-[#e8f0fe] dark:bg-[#394457] rounded-full -z-10"
+                    transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
                   />
                 )}
               </Link>
@@ -148,15 +148,15 @@ export function NavTabs() {
               ? '⚠️ Streak At Risk! Check at least 1 habit or click Freeze Day today to keep your streak alive!'
               : `${stats.streak} consecutive days active!`
           }
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-all shadow-sm ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
             stats.isAtRisk
-              ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-500/50 text-amber-700 dark:text-amber-300 animate-pulse'
-              : 'bg-white dark:bg-slate-900/80 border-slate-200 dark:border-white/5 text-amber-600 dark:text-amber-300'
+              ? 'bg-[#fce8e6] text-[#c5221f] dark:bg-[#3c2020] dark:text-[#f28b82] font-semibold'
+              : 'bg-[#fef7e0] text-[#b06000] dark:bg-[#3c3010] dark:text-[#fdd663]'
           }`}
         >
           <Flame
             className={`w-3.5 h-3.5 ${
-              stats.isAtRisk ? 'text-amber-600 dark:text-amber-400 animate-bounce' : 'text-amber-500 fill-amber-500'
+              stats.isAtRisk ? 'text-[#d93025] animate-bounce' : 'text-[#f9ab00] fill-[#f9ab00]'
             }`}
           />
           <span className="font-semibold">{stats.isAtRisk ? `${stats.streak}d At Risk ⚠️` : `${stats.streak}d Streak`}</span>
@@ -164,22 +164,22 @@ export function NavTabs() {
 
         <div
           title={`Discipline Rate: Completed Habits Today (${stats.disciplineRate}%)`}
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-900/80 rounded-lg border border-slate-200 dark:border-white/5 text-xs text-indigo-700 dark:text-cyan-300 font-mono shadow-sm font-semibold"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-[#e6f4ea] dark:bg-[#1a3826] text-[#137333] dark:text-[#81c995] rounded-full text-xs font-mono font-semibold"
         >
-          <Target className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
+          <Target className="w-3.5 h-3.5 text-[#1e8e3e] dark:text-[#81c995]" />
           <span>{stats.disciplineRate}% Discipline</span>
         </div>
 
         {/* Theme Toggle Button */}
         <button
           onClick={handleToggleTheme}
-          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm cursor-pointer"
+          className="p-2 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-[#2d2e30] text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed] transition-colors cursor-pointer"
           title={`Switch to ${currentTheme === 'dark' ? 'Light' : 'Dark'} Mode`}
         >
           {currentTheme === 'dark' ? (
-            <Sun className="w-4 h-4 text-amber-400" />
+            <Sun className="w-4 h-4 text-[#fdd663]" />
           ) : (
-            <Moon className="w-4 h-4 text-slate-700" />
+            <Moon className="w-4 h-4 text-[#5f6368]" />
           )}
         </button>
       </div>

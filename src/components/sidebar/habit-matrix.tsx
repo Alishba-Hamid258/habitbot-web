@@ -141,28 +141,28 @@ export function HabitMatrix() {
   const progress = habits.length ? Math.round((completedCount / habits.length) * 100) : 0;
 
   return (
-    <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-white/5 space-y-3 transition-colors">
+    <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-3 transition-colors">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-purple-300">
-          <CheckSquare className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
+        <div className="flex items-center gap-1.5 text-xs font-medium text-[#202124] dark:text-[#e8eaed]">
+          <CheckSquare className="w-3.5 h-3.5 text-[#1a73e8] dark:text-[#8ab4f8]" />
           <span>Daily Habit Matrix</span>
         </div>
-        <span className="text-[11px] font-mono text-indigo-600 dark:text-cyan-400 bg-indigo-50 dark:bg-cyan-500/10 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-cyan-500/20 font-semibold">
+        <span className="text-[11px] font-mono text-[#1a73e8] dark:text-[#8ab4f8] bg-[#e8f0fe] dark:bg-[#394457] px-2 py-0.5 rounded-full font-semibold">
           {completedCount}/{habits.length} ({progress}%)
         </span>
       </div>
 
       {/* Streak At-Risk Warning Banner (Grace State) */}
       {streakInfo.isAtRisk && !isFrozen && (
-        <div className="p-2 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-500/40 rounded-lg flex items-center justify-between text-[11px] text-amber-800 dark:text-amber-300 animate-pulse shadow-sm">
+        <div className="p-2.5 bg-[#fef7e0] dark:bg-[#3c3010] border border-[#f9ab00]/40 rounded-xl flex items-center justify-between text-[11px] text-[#b06000] dark:text-[#fdd663]">
           <div className="flex items-center gap-1.5 min-w-0">
-            <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <Flame className="w-3.5 h-3.5 text-[#e37400] shrink-0" />
             <span className="truncate"><b>{streakInfo.streak}d Streak at risk!</b> Check 1 habit or freeze</span>
           </div>
           <button
             onClick={toggleFreezeDay}
-            className="text-[10px] text-indigo-600 dark:text-cyan-300 hover:underline font-semibold shrink-0 ml-1 cursor-pointer"
+            className="text-[11px] text-[#1a73e8] dark:text-[#8ab4f8] hover:underline font-semibold shrink-0 ml-1 cursor-pointer"
           >
             Freeze
           </button>
@@ -171,14 +171,14 @@ export function HabitMatrix() {
 
       {/* Freeze Banner when active */}
       {isFrozen && (
-        <div className="p-2 bg-sky-50 dark:bg-cyan-950/50 border border-sky-200 dark:border-cyan-500/30 rounded-lg flex items-center justify-between text-[11px] text-sky-800 dark:text-cyan-300 shadow-sm">
+        <div className="p-2.5 bg-[#e8f0fe] dark:bg-[#394457] border border-[#1a73e8]/30 rounded-xl flex items-center justify-between text-[11px] text-[#1967d2] dark:text-[#8ab4f8]">
           <div className="flex items-center gap-1.5">
-            <Snowflake className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400 animate-pulse" />
+            <Snowflake className="w-3.5 h-3.5 text-[#1a73e8] dark:text-[#8ab4f8] animate-pulse" />
             <span>Streak Shield Active (Rest Day)</span>
           </div>
           <button
             onClick={toggleFreezeDay}
-            className="text-[10px] text-sky-600 dark:text-cyan-200 hover:underline font-semibold cursor-pointer"
+            className="text-[11px] text-[#1a73e8] dark:text-[#8ab4f8] hover:underline font-semibold cursor-pointer"
           >
             Unfreeze
           </button>
@@ -194,10 +194,10 @@ export function HabitMatrix() {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`group flex items-center justify-between p-2 rounded-lg border transition-all ${
+              className={`group flex items-center justify-between p-2 rounded-xl border transition-colors ${
                 habit.completed
-                  ? 'bg-emerald-50/80 dark:bg-purple-950/30 border-emerald-200 dark:border-purple-500/30 text-slate-700 dark:text-slate-300 shadow-sm'
-                  : 'bg-white dark:bg-slate-950/50 border-slate-200/80 dark:border-white/5 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-white/10 shadow-sm'
+                  ? 'bg-[#e6f4ea] dark:bg-[#1a3826] border-[#1e8e3e]/30 text-[#137333] dark:text-[#81c995]'
+                  : 'bg-white dark:bg-[#1e1e1e] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] hover:bg-[#f8f9fa] dark:hover:bg-[#252629]'
               }`}
             >
               <button
@@ -205,17 +205,17 @@ export function HabitMatrix() {
                 className="flex items-center gap-2 text-left flex-1 min-w-0 cursor-pointer"
               >
                 <div
-                  className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
+                  className={`w-4 h-4 rounded-full flex items-center justify-center border-2 transition-colors ${
                     habit.completed
-                      ? 'bg-emerald-600 dark:bg-purple-600 border-emerald-600 dark:border-purple-500 text-white'
-                      : 'border-slate-300 dark:border-slate-600 group-hover:border-slate-400 dark:group-hover:border-purple-400'
+                      ? 'bg-[#1e8e3e] border-[#1e8e3e] text-white'
+                      : 'border-[#5f6368] dark:border-[#9aa0a6] group-hover:border-[#1a73e8]'
                   }`}
                 >
                   {habit.completed && <span className="text-[10px] font-bold">✓</span>}
                 </div>
                 <span
                   className={`text-xs truncate font-medium ${
-                    habit.completed ? 'line-through text-slate-400 dark:text-slate-400' : ''
+                    habit.completed ? 'line-through text-[#5f6368] dark:text-[#9aa0a6]' : ''
                   }`}
                 >
                   {habit.name}
@@ -224,9 +224,9 @@ export function HabitMatrix() {
 
               <button
                 onClick={() => removeHabit(habit.id, habit.name)}
-                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400 p-1 transition-opacity cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 text-[#5f6368] hover:text-[#d93025] dark:text-[#9aa0a6] dark:hover:text-[#f28b82] p-1 transition-opacity cursor-pointer"
               >
-                <Trash2 className="w-3 h-3" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </motion.div>
           ))}
@@ -241,10 +241,10 @@ export function HabitMatrix() {
             placeholder="Habit name..."
             value={newHabitName}
             onChange={(e) => setNewHabitName(e.target.value)}
-            className="h-8 text-xs bg-white dark:bg-slate-950/80 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white"
+            className="h-8 text-xs bg-white dark:bg-[#1e1e1e] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-full px-3"
             autoFocus
           />
-          <Button size="sm" type="submit" className="h-8 px-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:gradient-button text-xs">
+          <Button size="sm" type="submit" className="h-8 px-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs rounded-full font-medium shadow-none">
             Add
           </Button>
           <Button
@@ -252,7 +252,7 @@ export function HabitMatrix() {
             type="button"
             variant="ghost"
             onClick={() => setShowAddForm(false)}
-            className="h-8 px-2 text-xs text-slate-500 dark:text-slate-400"
+            className="h-8 px-2 text-xs text-[#5f6368] dark:text-[#9aa0a6] rounded-full"
           >
             ✕
           </Button>
@@ -263,7 +263,7 @@ export function HabitMatrix() {
             size="sm"
             variant="outline"
             onClick={() => setShowAddForm(true)}
-            className="flex-1 h-7 text-[11px] bg-white hover:bg-slate-100 dark:bg-slate-950/50 dark:hover:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 gap-1 rounded-lg shadow-sm"
+            className="flex-1 h-7 text-[11px] bg-white hover:bg-[#f1f3f4] dark:bg-[#1e1e1e] dark:hover:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] gap-1 rounded-full font-medium"
           >
             <Plus className="w-3 h-3" /> Add Habit
           </Button>
@@ -272,15 +272,15 @@ export function HabitMatrix() {
             size="sm"
             variant="outline"
             onClick={toggleFreezeDay}
-            className={`h-7 px-2.5 text-[11px] border gap-1 rounded-lg transition-all shadow-sm ${
+            className={`h-7 px-3 text-[11px] border gap-1 rounded-full font-medium transition-colors ${
               isFrozen
-                ? 'bg-sky-100 text-sky-800 border-sky-300 dark:bg-cyan-900/60 dark:text-cyan-200 dark:border-cyan-400/50'
-                : 'bg-white hover:bg-sky-50 text-sky-700 dark:bg-slate-950/50 dark:hover:bg-cyan-950/30 dark:text-cyan-400 border-slate-200 dark:border-white/10'
+                ? 'bg-[#e8f0fe] text-[#1967d2] border-[#1a73e8]/40 dark:bg-[#394457] dark:text-[#8ab4f8]'
+                : 'bg-white hover:bg-[#f1f3f4] text-[#1a73e8] dark:bg-[#1e1e1e] dark:hover:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043]'
             }`}
           >
             {isFrozen ? (
               <>
-                <Sun className="w-3 h-3 text-amber-500" />
+                <Sun className="w-3 h-3 text-[#f9ab00]" />
                 <span>Unfreeze</span>
               </>
             ) : (
