@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckSquare, Plus, Trash2, Snowflake, ShieldCheck, Sun } from 'lucide-react';
+import { CheckSquare, Plus, Trash2, Snowflake, ShieldCheck, Sun, Flame, AlertTriangle, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
+import { ScoringGuideModal } from '@/components/modals/scoring-guide-modal';
 
 import {
   getActiveUser,
@@ -16,7 +17,6 @@ import {
   checkAndPerformDailyMidnightReset,
   calculateUserStreakInfo,
 } from '@/lib/auth-storage';
-import { Flame, AlertTriangle } from 'lucide-react';
 
 interface HabitItem {
   id: string;
@@ -37,6 +37,7 @@ export function HabitMatrix() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [isFrozen, setIsFrozen] = useState(false);
   const [userId, setUserId] = useState<number>(1);
+  const [showGuide, setShowGuide] = useState(false);
 
   const loadHabits = (uid: number) => {
     const defaultInitial = uid === 1 ? DEFAULT_HABITS : [];
@@ -163,6 +164,13 @@ export function HabitMatrix() {
         <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
           <CheckSquare className="w-3.5 h-3.5 text-primary" />
           <span>Daily Habits</span>
+          <button
+            onClick={() => setShowGuide(true)}
+            className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-0.5 rounded ml-0.5"
+            title="Learn how streaks, daily resets, and freeze days work"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+          </button>
         </div>
         <span className="text-[11px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded-md font-semibold">
           {completedCount}/{habits.length} ({progress}%)
@@ -308,6 +316,15 @@ export function HabitMatrix() {
             )}
           </Button>
         </div>
+      )}
+
+      {/* Scoring & Streak Guide Modal */}
+      {showGuide && (
+        <ScoringGuideModal
+          open={showGuide}
+          onOpenChange={setShowGuide}
+          defaultTab="streak"
+        />
       )}
     </div>
   );

@@ -30,6 +30,9 @@ import {
   FileSpreadsheet,
   FileText,
   X,
+  Zap,
+  Flame,
+  Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,37 +44,43 @@ type TabType = 'login' | 'signup' | 'admin' | 'forgot';
 
 const WHY_HABITBOT_SECTIONS = [
   {
-    title: '1. Atomic Habit Stacking',
+    title: '1. XP, Streaks & Rolling Discipline',
+    icon: Zap,
+    color: 'text-amber-500',
+    desc: 'Earn +10 XP per habit, +50 XP for perfect days, and +5 XP per sprint task. Streaks track continuous execution with Freeze Day protection, while dynamic discipline scores evaluate your 7-day consistency.',
+  },
+  {
+    title: '2. Atomic Habit Stacking',
     icon: Bot,
     color: 'text-primary',
     desc: 'Based on James Clear’s Atomic Habits methodology. Build automatic 2-minute daily rituals that compound into lasting routines.',
   },
   {
-    title: '2. Document & PDF Coach',
+    title: '3. Document & PDF Coach',
     icon: FileText,
     color: 'text-primary',
     desc: 'Upload study guides, habit books, or PDF handouts. HabitBot parses chapters and translates them into actionable daily micro-routines.',
   },
   {
-    title: '3. Image OCR & Vision',
+    title: '4. Image OCR & Vision',
     icon: Sparkles,
     color: 'text-purple-500',
     desc: 'Snap a picture of your workout schedule, notes, or quotes. Built-in OCR and Vision extract text and provide direct coaching.',
   },
   {
-    title: '4. Focus Timer & Ambient Audio',
+    title: '5. Focus Timer & Ambient Audio',
     icon: Headphones,
     color: 'text-amber-500',
     desc: 'Eliminate distractions with customizable 25-minute Pomodoro intervals. Play curated lofi streams, YouTube tracks, or local device audio.',
   },
   {
-    title: '5. Task Sprints & Priority Order',
+    title: '6. Task Sprints & Priority Order',
     icon: CheckSquare,
     color: 'text-blue-500',
     desc: 'Break large goals into 4 concrete micro-tasks. Reorder tasks with ⬆️/⬇️ swap buttons and earn XP in your permanent database.',
   },
   {
-    title: '6. Logbook & Data Export',
+    title: '7. Logbook & Excel Life Audit',
     icon: FileSpreadsheet,
     color: 'text-pink-500',
     desc: 'Track daily reflections, protect your streak with Streak Freeze on rest days, and export complete multi-sheet Excel (.xlsx) files.',

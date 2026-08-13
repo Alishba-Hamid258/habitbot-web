@@ -34,6 +34,9 @@ import {
   Upload,
   PanelLeftClose,
   PanelLeftOpen,
+  Zap,
+  Flame,
+  Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -767,18 +770,48 @@ export function Sidebar() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-                <FileText className="w-3.5 h-3.5 text-primary" />
-                <span>1. Documents & Coach</span>
+                <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                <span>⚡ Experience Points (XP) & Levels</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Attach PDFs or text notes via the paperclip icon in the Coach tab. The AI parses the contents and generates routines.
+                Earn <b>+10 XP</b> per habit checked, <b>+50 XP</b> for a Perfect Day (all core habits complete), and <b>+5 XP</b> per task sprint. Unchecking items deducts XP accordingly. Every 100 XP unlocks a new mastery rank.
+              </p>
+            </div>
+
+            <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
+              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                <Flame className="w-3.5 h-3.5 text-amber-500" />
+                <span>🔥 Streaks, Grace & Freeze Shield</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Streaks track continuous daily execution. If no habit is checked yet today, your streak enters the <b>Grace Period (At Risk)</b> until midnight. Activate <b>Freeze Day ❄️</b> to shield your streak during rest or travel.
+              </p>
+            </div>
+
+            <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
+              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                <Target className="w-3.5 h-3.5 text-emerald-500" />
+                <span>🎯 Discipline Score (0% – 100%)</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                A rolling 7-day weighted score blending <b>60% Daily Habits</b> and <b>40% Task Sprints</b>. Missing days without freeze or unchecking items drops your discipline score; daily execution steadily restores it.
+              </p>
+            </div>
+
+            <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
+              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                <FileText className="w-3.5 h-3.5 text-primary" />
+                <span>📄 Document & PDF Coach</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Attach PDFs or text notes via the paperclip icon in the Coach tab. The AI parses the contents and translates them into daily actionable micro-routines.
               </p>
             </div>
 
             <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
                 <Bot className="w-3.5 h-3.5 text-purple-500" />
-                <span>2. Image OCR & Vision</span>
+                <span>👁️ Image OCR & Vision</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 Attach images or quotes. In-browser OCR extracts text directly, and Gemini Vision reads diagrams and schedules.
@@ -788,40 +821,30 @@ export function Sidebar() {
             <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
                 <Headphones className="w-3.5 h-3.5 text-amber-500" />
-                <span>3. Focus Audio</span>
+                <span>🎧 Focus Audio & Pomodoro</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Play built-in ambient streams (Lofi Nasheed, Heavy Rain), paste any YouTube link, or upload local audio files.
+                Pair 25-minute Pomodoro focus intervals with ambient audio streams (Lofi Nasheed, Heavy Rain), YouTube URLs, or local device audio.
               </p>
             </div>
 
             <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
                 <CheckSquare className="w-3.5 h-3.5 text-blue-500" />
-                <span>4. Task Sprints</span>
+                <span>📋 Action Sprints & Priority Order</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Break large goals into 4 micro-tasks with AI. Reorder tasks with ⬆️/⬇️ buttons and earn XP on completion.
-              </p>
-            </div>
-
-            <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
-              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                <span>5. Habit Matrix & Freeze Day</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Log daily habits in the sidebar. Use "Freeze Day" during rest or travel to protect your streak.
+                Break large goals into 4 micro-tasks with AI. Reorder tasks with ⬆️/⬇️ swap buttons and filter by priority.
               </p>
             </div>
 
             <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
                 <FileSpreadsheet className="w-3.5 h-3.5 text-pink-500" />
-                <span>6. Logbook & Data Export</span>
+                <span>📊 Logbook & Multi-Sheet Excel Export</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Record evening reflections and export your entire habit, task, and focus history as an Excel spreadsheet (.xlsx).
+                Record evening reflections and export your entire lifetime habit, task, and focus history as an organized Excel spreadsheet (.xlsx).
               </p>
             </div>
           </div>

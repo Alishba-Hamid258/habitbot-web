@@ -19,6 +19,7 @@ import {
 import { getActiveUser, computeUserStats } from '@/lib/auth-storage';
 import { getInitialTheme, setThemeMode, ThemeMode } from '@/lib/theme';
 import { toast } from 'sonner';
+import { ScoringGuideModal } from '@/components/modals/scoring-guide-modal';
 
 const TABS = [
   { href: '/dashboard', label: 'Coach', icon: MessageSquare },
@@ -33,6 +34,8 @@ export function NavTabs() {
   const [stats, setStats] = useState({ streak: 0, disciplineRate: 0, isAtRisk: false });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<ThemeMode>('light');
+  const [showScoringGuide, setShowScoringGuide] = useState(false);
+  const [scoringTab, setScoringTab] = useState<'xp' | 'streak' | 'discipline'>('streak');
 
   const refreshStats = () => {
     const active = getActiveUser();
@@ -134,13 +137,17 @@ export function NavTabs() {
 
       {/* Top Right Live Stats & Theme Switcher */}
       <div className="flex items-center gap-2">
-        <div
+        <button
+          onClick={() => {
+            setScoringTab('streak');
+            setShowScoringGuide(true);
+          }}
           title={
             stats.isAtRisk
-              ? 'Streak at risk. Complete a habit or activate Freeze Day.'
-              : `${stats.streak} consecutive days active`
+              ? 'Streak at risk. Click to view streak & grace rules.'
+              : `${stats.streak} consecutive days active. Click to learn more.`
           }
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono border transition-colors ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono border transition-colors cursor-pointer hover:opacity-90 active:scale-95 ${
             stats.isAtRisk
               ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800/40 font-medium'
               : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800/40'
@@ -152,11 +159,15 @@ export function NavTabs() {
             }`}
           />
           <span className="font-semibold">{stats.streak}d streak</span>
-        </div>
+        </button>
 
-        <div
-          title={`Discipline Score: ${stats.disciplineRate}% (Rolling 7-day Habit & Task Execution)`}
-          className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border transition-colors ${
+        <button
+          onClick={() => {
+            setScoringTab('discipline');
+            setShowScoringGuide(true);
+          }}
+          title={`Discipline Score: ${stats.disciplineRate}% (Rolling 7-day Habit & Task Execution). Click to learn how it is calculated.`}
+          className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border transition-colors cursor-pointer hover:opacity-90 active:scale-95 ${
             stats.disciplineRate >= 80
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40'
               : stats.disciplineRate >= 50
@@ -172,7 +183,7 @@ export function NavTabs() {
               : 'text-muted-foreground'
           }`} />
           <span>{stats.disciplineRate}%</span>
-        </div>
+        </button>
 
         {/* Theme Toggle Button */}
         <button
@@ -187,6 +198,15 @@ export function NavTabs() {
           )}
         </button>
       </div>
+
+      {/* Scoring Guide Modal */}
+      {showScoringGuide && (
+        <ScoringGuideModal
+          open={showScoringGuide}
+          onOpenChange={setShowScoringGuide}
+          defaultTab={scoringTab}
+        />
+      )}
     </header>
   );
 }
