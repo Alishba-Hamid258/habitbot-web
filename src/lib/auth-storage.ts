@@ -600,9 +600,7 @@ export function getTaskHistory(userId: number): MasterTaskRecord[] {
 
 export function getMasterTasks(userId: number): MasterTaskRecord[] {
   return getUserScopedData<MasterTaskRecord[]>(userId, 'tasks_master_db', []);
-}
-
-export interface DailyHabitLogRecord {
+}export interface DailyHabitLogRecord {
   date: string;
   completedCount: number;
   totalCount: number;
@@ -613,45 +611,82 @@ export interface DailyHabitLogRecord {
  * Checks for midnight rollover on the client.
  * When the calendar day changes:
  * 1. Archives yesterday's progress into `daily_habit_history_user_${userId}`.
- * 2. Unchecks today's checkboxes so user gets a fresh slate for the new day.
+ * 2. Fills in any missed days between last active date and today as 0 completed habits.
+ * 3. Unchecks today's checkboxes so user gets a fresh slate for the new day.
  */
-export function checkAndPerformDailyMidnightReset(userId: number) {
-  if (typeof window === 'undefined') return;
-  const todayStr = new Date().toISOString().split('T')[0];
-  const lastActiveDate = getUserScopedData<string>(userId, 'last_active_date', todayStr);
+export function checkAndPerformDailyMidnightReset(userId: number): boolean {
+  if (typeof window === 'undefined') return false;
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const storedLastDate = getUserScopedData<string | null>(userId, 'last_active_date', null);
 
-  if (lastActiveDate !== todayStr) {
-    // 1. Record previous day's state in history ledger
+  // If this is the user's first time or last_active_date is uninitialized
+  if (!storedLastDate) {
+    setUserScopedData(userId, 'last_active_date', todayStr);
+    return false;
+  }
+
+  // If calendar day has rolled over
+  if (storedLastDate !== todayStr) {
     const habits = getUserScopedData<any[]>(userId, 'habits', []);
-    const completed = habits.filter((h) => h.completed).length;
+    const completedCount = habits.filter((h) => h.completed).length;
     const isFrozen = getUserScopedData<boolean>(userId, 'is_frozen', false);
 
     const history = getUserScopedData<DailyHabitLogRecord[]>(userId, 'daily_habit_history', []);
-    const existingIndex = history.findIndex((h) => h.date === lastActiveDate);
+    
+    // 1. Record the previous active day's progress
+    const existingIndex = history.findIndex((h) => h.date === storedLastDate);
+    const dayRecord: DailyHabitLogRecord = {
+      date: storedLastDate,
+      completedCount,
+      totalCount: habits.length,
+      isFrozen,
+    };
 
     if (existingIndex >= 0) {
-      history[existingIndex] = {
-        date: lastActiveDate,
-        completedCount: completed,
-        totalCount: habits.length,
-        isFrozen,
-      };
+      history[existingIndex] = dayRecord;
     } else {
-      history.push({
-        date: lastActiveDate,
-        completedCount: completed,
-        totalCount: habits.length,
-        isFrozen,
-      });
+      history.push(dayRecord);
     }
+
+    // 2. If multiple days elapsed, record intermediate missed days with 0 completed
+    try {
+      const lastDateObj = new Date(storedLastDate);
+      const todayDateObj = new Date(todayStr);
+      const diffTime = todayDateObj.getTime() - lastDateObj.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays > 1) {
+        for (let i = 1; i < diffDays; i++) {
+          const missedDate = new Date(lastDateObj);
+          missedDate.setDate(missedDate.getDate() + i);
+          const missedStr = missedDate.toISOString().split('T')[0];
+          if (!history.some((h) => h.date === missedStr)) {
+            history.push({
+              date: missedStr,
+              completedCount: 0,
+              totalCount: habits.length,
+              isFrozen: false,
+            });
+          }
+        }
+      }
+    } catch (_) {}
+
     setUserScopedData(userId, 'daily_habit_history', history);
 
-    // 2. Reset daily checkmarks for the fresh new day
+    // 3. Reset daily checkmarks for a fresh slate
     const resetHabits = habits.map((h) => ({ ...h, completed: false }));
     setUserScopedData(userId, 'habits', resetHabits);
     setUserScopedData(userId, 'is_frozen', false);
     setUserScopedData(userId, 'last_active_date', todayStr);
+
+    // Notify all UI widgets across the application
+    window.dispatchEvent(new Event('habitbot_data_updated'));
+    return true;
   }
+
+  return false;
 }
 
 /**
@@ -721,20 +756,116 @@ export function calculateUserStreak(userId: number): number {
 }
 
 /**
- * Computes live user XP, multi-day streak, and discipline stats for active user
+ * Computes dynamic rolling discipline score (0-100%) factoring in:
+ * 1. Daily habit completion (weighted 60%)
+ * 2. Daily task/sprint completion (weighted 40%)
+ * 3. Rolling consistency over 7 days (or since account creation)
+ * 4. Streak Freeze protections (100% on shielded rest/travel days)
+ * 5. Missed days or unchecking tasks/habits directly reduces discipline in real time.
+ */
+export function computeDisciplineRate(userId: number): number {
+  if (typeof window === 'undefined') return 0;
+
+  const users = getRegisteredUsers();
+  const user = users.find((u) => u.id === userId);
+  const createdDateStr = user?.createdAt || new Date().toISOString().split('T')[0];
+  const createdDate = new Date(createdDateStr);
+
+  const history = getUserScopedData<DailyHabitLogRecord[]>(userId, 'daily_habit_history', []);
+  const todayHabits = getUserScopedData<any[]>(userId, 'habits', []);
+  const todayTasks = getUserScopedData<any[]>(userId, 'tasks', []);
+  const isFrozenToday = getUserScopedData<boolean>(userId, 'is_frozen', false);
+  const masterTasks = getUserScopedData<MasterTaskRecord[]>(userId, 'tasks_master_db', []);
+
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  // Evaluate rolling 7 days window (last 6 days + today)
+  const dailyScores: number[] = [];
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const dStr = d.toISOString().split('T')[0];
+
+    // Don't penalize days prior to user's account registration
+    if (d < createdDate && dStr !== createdDateStr) {
+      continue;
+    }
+
+    let habitScore = 0;
+    let taskScore: number | null = null;
+
+    if (dStr === todayStr) {
+      // TODAY'S LIVE STATUS
+      if (isFrozenToday) {
+        habitScore = 100;
+        taskScore = 100;
+      } else {
+        const completedHabits = todayHabits.filter((h) => h.completed).length;
+        habitScore = todayHabits.length > 0 ? (completedHabits / todayHabits.length) * 100 : 0;
+
+        if (todayTasks.length > 0) {
+          const completedTasks = todayTasks.filter((t) => t.done).length;
+          taskScore = (completedTasks / todayTasks.length) * 100;
+        }
+      }
+    } else {
+      // PAST DAYS IN LOGBOOK HISTORY
+      const log = history.find((h) => h.date === dStr);
+      if (log) {
+        if (log.isFrozen) {
+          habitScore = 100;
+          taskScore = 100;
+        } else {
+          habitScore = log.totalCount > 0 ? (log.completedCount / log.totalCount) * 100 : log.completedCount > 0 ? 100 : 0;
+        }
+      } else {
+        // Missed day in account history
+        habitScore = 0;
+      }
+
+      // Check tasks recorded on past day
+      const tasksOnDay = masterTasks.filter((t) => t.createdAt === dStr || t.completedAt === dStr);
+      if (tasksOnDay.length > 0) {
+        const completedOnDay = tasksOnDay.filter((t) => t.completedAt === dStr || t.status === 'Completed').length;
+        taskScore = (completedOnDay / tasksOnDay.length) * 100;
+      }
+    }
+
+    // Blend Habits (60%) and Tasks (40%) if tasks existed, otherwise 100% habits
+    let dayTotal = habitScore;
+    if (taskScore !== null) {
+      dayTotal = Math.round(habitScore * 0.6 + taskScore * 0.4);
+    }
+
+    dailyScores.push(dayTotal);
+  }
+
+  if (dailyScores.length === 0) {
+    const completedHabits = todayHabits.filter((h) => h.completed).length;
+    return todayHabits.length > 0 ? Math.round((completedHabits / todayHabits.length) * 100) : 0;
+  }
+
+  const sum = dailyScores.reduce((acc, val) => acc + val, 0);
+  const average = Math.round(sum / dailyScores.length);
+  return Math.min(100, Math.max(0, average));
+}
+
+/**
+ * Computes live user XP, multi-day streak, and dynamic discipline stats for active user
  */
 export function computeUserStats(userId: number) {
   if (typeof window === 'undefined') {
     return { totalXP: 0, streak: 0, disciplineRate: 0, isAtRisk: false, needsActionToday: false };
   }
 
+  // Ensure midnight rollover is applied before computing stats
+  checkAndPerformDailyMidnightReset(userId);
+
   const totalXP = getUserXP(userId);
-
-  const habits = getUserScopedData<any[]>(userId, 'habits', []);
-  const completedHabits = habits.filter((h) => h.completed).length;
   const streakInfo = calculateUserStreakInfo(userId);
-
-  const disciplineRate = habits.length > 0 ? Math.round((completedHabits / habits.length) * 100) : 0;
+  const disciplineRate = computeDisciplineRate(userId);
 
   return {
     totalXP,

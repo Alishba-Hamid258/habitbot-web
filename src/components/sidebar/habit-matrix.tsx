@@ -38,18 +38,34 @@ export function HabitMatrix() {
   const [isFrozen, setIsFrozen] = useState(false);
   const [userId, setUserId] = useState<number>(1);
 
-  // Load user-scoped habits and trigger daily midnight reset check
+  const loadHabits = (uid: number) => {
+    const defaultInitial = uid === 1 ? DEFAULT_HABITS : [];
+    const userHabits = getUserScopedData<HabitItem[]>(uid, 'habits', defaultInitial);
+    setHabits(userHabits);
+    const userFrozen = getUserScopedData<boolean>(uid, 'is_frozen', false);
+    setIsFrozen(userFrozen);
+  };
+
+  // Load user-scoped habits and listen for day resets / live data updates
   useEffect(() => {
     const active = getActiveUser();
     if (active) {
       setUserId(active.id);
       checkAndPerformDailyMidnightReset(active.id);
-      const defaultInitial = active.id === 1 ? DEFAULT_HABITS : [];
-      const userHabits = getUserScopedData<HabitItem[]>(active.id, 'habits', defaultInitial);
-      setHabits(userHabits);
-      const userFrozen = getUserScopedData<boolean>(active.id, 'is_frozen', false);
-      setIsFrozen(userFrozen);
+      loadHabits(active.id);
     }
+
+    const handleDataUpdate = () => {
+      const u = getActiveUser();
+      if (u) {
+        loadHabits(u.id);
+      }
+    };
+
+    window.addEventListener('habitbot_data_updated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('habitbot_data_updated', handleDataUpdate);
+    };
   }, []);
 
   const saveHabits = (updated: HabitItem[]) => {

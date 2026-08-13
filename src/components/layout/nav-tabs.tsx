@@ -155,10 +155,22 @@ export function NavTabs() {
         </div>
 
         <div
-          title={`Discipline Rate: ${stats.disciplineRate}% of habits completed today`}
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40 rounded-md text-xs font-mono font-medium"
+          title={`Discipline Score: ${stats.disciplineRate}% (Rolling 7-day Habit & Task Execution)`}
+          className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border transition-colors ${
+            stats.disciplineRate >= 80
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40'
+              : stats.disciplineRate >= 50
+              ? 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800/40'
+              : 'bg-muted text-muted-foreground border-border'
+          }`}
         >
-          <Target className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <Target className={`w-3.5 h-3.5 ${
+            stats.disciplineRate >= 80
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : stats.disciplineRate >= 50
+              ? 'text-blue-600 dark:text-blue-400'
+              : 'text-muted-foreground'
+          }`} />
           <span>{stats.disciplineRate}%</span>
         </div>
 

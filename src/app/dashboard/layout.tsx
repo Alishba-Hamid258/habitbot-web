@@ -1,16 +1,49 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { NavTabs } from '@/components/layout/nav-tabs';
+import { getActiveUser, checkAndPerformDailyMidnightReset } from '@/lib/auth-storage';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Continuous midnight and tab-focus day rollover detection
+  useEffect(() => {
+    const handleMidnightCheck = () => {
+      const active = getActiveUser();
+      if (active) {
+        checkAndPerformDailyMidnightReset(active.id);
+      }
+    };
+
+    // 1. Check immediately on mount
+    handleMidnightCheck();
+
+    // 2. Periodic check every 30 seconds
+    const interval = setInterval(handleMidnightCheck, 30000);
+
+    // 3. Check on tab visibility or window focus
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        handleMidnightCheck();
+      }
+    };
+
+    window.addEventListener('focus', handleMidnightCheck);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleMidnightCheck);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#f8f9fa] dark:bg-[#121212] text-[#202124] dark:text-[#e8eaed]">
+    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
       {/* Persistent Left Sidebar */}
       <Sidebar />
 
