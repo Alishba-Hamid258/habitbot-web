@@ -81,31 +81,31 @@ export function NavTabs() {
   };
 
   return (
-    <header className="h-16 px-4 sm:px-6 bg-white dark:bg-[#1e1e1e] border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between z-10 shrink-0 transition-colors shadow-none">
+    <header className="h-14 px-4 sm:px-6 bg-card border-b border-border flex items-center justify-between z-10 shrink-0 transition-colors">
       {/* Navigation Tabs with Open Sidebar Trigger */}
-      <div className="flex items-center gap-2.5 min-w-0">
+      <div className="flex items-center gap-3 min-w-0">
         <AnimatePresence>
           {isSidebarCollapsed && (
             <motion.button
-              initial={{ opacity: 0, scale: 0.9, x: -10 }}
+              initial={{ opacity: 0, scale: 0.9, x: -6 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.9, x: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, scale: 0.9, x: -6 }}
+              transition={{ duration: 0.15 }}
               onClick={() => {
                 localStorage.setItem('habitbot_sidebar_collapsed', 'false');
                 window.dispatchEvent(new Event('habitbot_open_sidebar'));
                 window.dispatchEvent(new Event('habitbot_sidebar_state_changed'));
               }}
-              className="px-3.5 py-1.5 bg-[#f1f3f4] hover:bg-[#e8eaed] dark:bg-[#2d2e30] dark:hover:bg-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-              title="Open HabitBot Sidebar"
+              className="h-8 px-2.5 bg-muted hover:bg-secondary text-foreground rounded-md text-xs font-medium flex items-center gap-1.5 border border-border transition-colors shrink-0 cursor-pointer"
+              title="Open Sidebar"
             >
-              <PanelLeftOpen className="w-4 h-4 text-[#1a73e8] dark:text-[#8ab4f8]" />
-              <span className="hidden sm:inline">Open Sidebar</span>
+              <PanelLeftOpen className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">Sidebar</span>
             </motion.button>
           )}
         </AnimatePresence>
 
-        <nav className="flex items-center gap-1 bg-[#f1f3f4] dark:bg-[#2d2e30] p-1 rounded-full overflow-x-auto custom-scrollbar">
+        <nav className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg border border-border/50">
           {TABS.map((tab) => {
             const isActive = pathname === tab.href;
             const Icon = tab.icon;
@@ -114,26 +114,18 @@ export function NavTabs() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`relative px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 transition-colors ${
+                className={`relative px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors ${
                   isActive
-                    ? 'text-[#1a73e8] dark:text-[#8ab4f8] font-semibold'
-                    : 'text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed]'
+                    ? 'text-foreground font-semibold bg-background shadow-xs border border-border/60'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
                 }`}
               >
                 <Icon
                   className={`w-3.5 h-3.5 ${
-                    isActive ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-[#9aa0a6]'
+                    isActive ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 />
                 <span>{tab.label}</span>
-
-                {isActive && (
-                  <motion.div
-                    layoutId="nav-tab-active"
-                    className="absolute inset-0 bg-[#e8f0fe] dark:bg-[#394457] rounded-full -z-10"
-                    transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
-                  />
-                )}
               </Link>
             );
           })}
@@ -145,41 +137,41 @@ export function NavTabs() {
         <div
           title={
             stats.isAtRisk
-              ? '⚠️ Streak At Risk! Check at least 1 habit or click Freeze Day today to keep your streak alive!'
-              : `${stats.streak} consecutive days active!`
+              ? 'Streak at risk. Complete a habit or activate Freeze Day.'
+              : `${stats.streak} consecutive days active`
           }
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono border transition-colors ${
             stats.isAtRisk
-              ? 'bg-[#fce8e6] text-[#c5221f] dark:bg-[#3c2020] dark:text-[#f28b82] font-semibold'
-              : 'bg-[#fef7e0] text-[#b06000] dark:bg-[#3c3010] dark:text-[#fdd663]'
+              ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800/40 font-medium'
+              : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800/40'
           }`}
         >
           <Flame
             className={`w-3.5 h-3.5 ${
-              stats.isAtRisk ? 'text-[#d93025] animate-bounce' : 'text-[#f9ab00] fill-[#f9ab00]'
+              stats.isAtRisk ? 'text-red-500' : 'text-amber-500 fill-amber-500'
             }`}
           />
-          <span className="font-semibold">{stats.isAtRisk ? `${stats.streak}d At Risk ⚠️` : `${stats.streak}d Streak`}</span>
+          <span className="font-semibold">{stats.streak}d streak</span>
         </div>
 
         <div
-          title={`Discipline Rate: Completed Habits Today (${stats.disciplineRate}%)`}
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-[#e6f4ea] dark:bg-[#1a3826] text-[#137333] dark:text-[#81c995] rounded-full text-xs font-mono font-semibold"
+          title={`Discipline Rate: ${stats.disciplineRate}% of habits completed today`}
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40 rounded-md text-xs font-mono font-medium"
         >
-          <Target className="w-3.5 h-3.5 text-[#1e8e3e] dark:text-[#81c995]" />
-          <span>{stats.disciplineRate}% Discipline</span>
+          <Target className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <span>{stats.disciplineRate}%</span>
         </div>
 
         {/* Theme Toggle Button */}
         <button
           onClick={handleToggleTheme}
-          className="p-2 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-[#2d2e30] text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed] transition-colors cursor-pointer"
-          title={`Switch to ${currentTheme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-colors cursor-pointer"
+          title={`Switch to ${currentTheme === 'dark' ? 'Light' : 'Dark'} mode`}
         >
           {currentTheme === 'dark' ? (
-            <Sun className="w-4 h-4 text-[#fdd663]" />
+            <Sun className="w-4 h-4 text-amber-400" />
           ) : (
-            <Moon className="w-4 h-4 text-[#5f6368]" />
+            <Moon className="w-4 h-4" />
           )}
         </button>
       </div>

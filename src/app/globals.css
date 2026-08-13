@@ -47,64 +47,64 @@
 }
 
 :root {
-  /* Google Material Design Natural White Palette */
-  --background: #f8f9fa;
-  --foreground: #202124;
+  /* Modern Clean Human-Crafted Neutral Palette */
+  --background: #f9fafb;
+  --foreground: #111827;
   --card: #ffffff;
-  --card-foreground: #202124;
+  --card-foreground: #111827;
   --popover: #ffffff;
-  --popover-foreground: #202124;
+  --popover-foreground: #111827;
   --primary: #1a73e8;
   --primary-foreground: #ffffff;
-  --secondary: #f1f3f4;
-  --secondary-foreground: #3c4043;
-  --muted: #f8f9fa;
-  --muted-foreground: #5f6368;
-  --accent: #e8f0fe;
-  --accent-foreground: #1967d2;
-  --destructive: #d93025;
-  --border: #dadce0;
-  --input: #dadce0;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #374151;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #eff6ff;
+  --accent-foreground: #1d4ed8;
+  --destructive: #ef4444;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
   --ring: #1a73e8;
-  --radius: 0.75rem;
+  --radius: 0.625rem;
   --sidebar: #ffffff;
-  --sidebar-foreground: #202124;
+  --sidebar-foreground: #111827;
   --sidebar-primary: #1a73e8;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f3f4;
-  --sidebar-accent-foreground: #202124;
-  --sidebar-border: #dadce0;
+  --sidebar-accent: #f3f4f6;
+  --sidebar-accent-foreground: #111827;
+  --sidebar-border: #e5e7eb;
   --sidebar-ring: #1a73e8;
 }
 
 .dark {
-  /* Sleek Dark Theme */
-  --background: #121212;
-  --foreground: #e8eaed;
-  --card: #1e1e1e;
-  --card-foreground: #e8eaed;
-  --popover: #1e1e1e;
-  --popover-foreground: #e8eaed;
-  --primary: #8ab4f8;
-  --primary-foreground: #202124;
-  --secondary: #2d2e30;
-  --secondary-foreground: #e8eaed;
-  --muted: #2d2e30;
-  --muted-foreground: #9aa0a6;
-  --accent: #394457;
-  --accent-foreground: #8ab4f8;
-  --destructive: #f28b82;
-  --border: #3c4043;
-  --input: #3c4043;
-  --ring: #8ab4f8;
-  --sidebar: #1e1e1e;
-  --sidebar-foreground: #e8eaed;
-  --sidebar-primary: #8ab4f8;
-  --sidebar-primary-foreground: #202124;
-  --sidebar-accent: #2d2e30;
-  --sidebar-accent-foreground: #e8eaed;
-  --sidebar-border: #3c4043;
-  --sidebar-ring: #8ab4f8;
+  /* Sleek Minimal Dark Theme */
+  --background: #09090b;
+  --foreground: #f4f4f5;
+  --card: #18181b;
+  --card-foreground: #f4f4f5;
+  --popover: #18181b;
+  --popover-foreground: #f4f4f5;
+  --primary: #3b82f6;
+  --primary-foreground: #09090b;
+  --secondary: #27272a;
+  --secondary-foreground: #f4f4f5;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #1e293b;
+  --accent-foreground: #60a5fa;
+  --destructive: #f87171;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #3b82f6;
+  --sidebar: #121215;
+  --sidebar-foreground: #f4f4f5;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #09090b;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #3b82f6;
 }
 
 @layer base {
@@ -114,46 +114,46 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     overflow-x: hidden;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
 }
 
-/* Google Material Cards & Panels */
+/* Modern Card & Surface Utilities */
 .glass-panel {
   background: #ffffff;
-  border: 1px solid #dadce0;
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.08), 0 1px 3px 1px rgba(60, 64, 67, 0.04);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
 .dark .glass-panel {
-  background: #1e1e1e;
-  border: 1px solid #3c4043;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
+  background: #18181b;
+  border: 1px solid #27272a;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.5);
 }
 
 .glass-card {
   background: #ffffff;
-  border: 1px solid #dadce0;
+  border: 1px solid #e5e7eb;
   border-radius: var(--radius);
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.06);
-  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .glass-card:hover {
-  border-color: #bdc1c6;
-  box-shadow: 0 2px 6px 2px rgba(60, 64, 67, 0.12);
+  border-color: #d1d5db;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.06);
 }
 
 .dark .glass-card {
-  background: #1e1e1e;
-  border: 1px solid #3c4043;
+  background: #18181b;
+  border: 1px solid #27272a;
 }
 
 .dark .glass-card:hover {
-  background: #252629;
-  border-color: #5f6368;
+  background: #202024;
+  border-color: #3f3f46;
 }
 
 /* Natural Clean Text - No artificial AI neon gradients */

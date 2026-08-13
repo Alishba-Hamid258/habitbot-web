@@ -173,89 +173,89 @@ export default function LibraryPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-lg font-bold text-[#202124] dark:text-[#e8eaed] flex items-center gap-2">
-          <Library className="w-5 h-5 text-[#1a73e8]" /> Behavioral Mastery Library
+        <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <Library className="w-5 h-5 text-primary" /> Library & Resources
         </h1>
-        <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">Curated free literature, habit masterclasses, and distraction-free custom media player</p>
+        <p className="text-xs text-muted-foreground">Free literature, behavioral masterclasses, and focus media player</p>
       </div>
 
       {/* Sub Tabs Bar */}
-      <div className="flex items-center gap-1 p-1 bg-[#f1f3f4] dark:bg-[#2d2e30] rounded-full max-w-fit">
+      <div className="flex items-center gap-1 p-0.5 bg-muted/60 rounded-lg border border-border/50 max-w-fit">
         <button
           onClick={() => setActiveTab('books')}
-          className={`px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
             activeTab === 'books'
-              ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] font-semibold'
-              : 'text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed]'
+              ? 'bg-background text-foreground shadow-xs font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <BookOpen className="w-3.5 h-3.5" />
-          <span>📖 Essential Books</span>
+          <span>Books</span>
         </button>
 
         <button
           onClick={() => setActiveTab('theater')}
-          className={`px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
             activeTab === 'theater'
-              ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] font-semibold'
-              : 'text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed]'
+              ? 'bg-background text-foreground shadow-xs font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Film className="w-3.5 h-3.5" />
-          <span>🎥 Mastery Theater</span>
+          <span>Masterclasses</span>
         </button>
 
         <button
           onClick={() => setActiveTab('customPlayer')}
-          className={`px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
             activeTab === 'customPlayer'
-              ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] font-semibold'
-              : 'text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed]'
+              ? 'bg-background text-foreground shadow-xs font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Video className="w-3.5 h-3.5" />
-          <span>🎬 Custom Player</span>
+          <span>Media Player</span>
         </button>
       </div>
 
       {/* TAB 1: ESSENTIAL BOOKS */}
       {activeTab === 'books' && (
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-3"
         >
-          <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">📖 The Habit Blueprint (100% Free Online Reading)</div>
+          <div className="text-xs font-medium text-foreground">Recommended Literature (Free Online Reading)</div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {BOOKS.map((b, i) => (
               <div
                 key={i}
-                className="p-4 bg-white hover:bg-[#f8f9fa] dark:bg-[#1e1e1e] dark:hover:bg-[#252629] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl transition-colors space-y-2.5 flex flex-col justify-between"
+                className="p-3.5 bg-card hover:bg-muted/30 border border-border rounded-xl transition-colors space-y-2.5 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{b.icon}</span>
+                      <span className="text-base">{b.icon}</span>
                       <div>
-                        <h3 className="text-sm font-medium text-[#202124] dark:text-[#e8eaed]">{b.title}</h3>
-                        <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">by {b.author}</p>
+                        <h3 className="text-sm font-semibold text-foreground">{b.title}</h3>
+                        <p className="text-[11px] text-muted-foreground">{b.author}</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-mono bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] px-2 py-0.5 rounded-full font-semibold">
+                    <span className="text-[10px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-md font-semibold">
                       {b.category}
                     </span>
                   </div>
 
-                  <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-2 leading-relaxed">{b.desc}</p>
+                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{b.desc}</p>
                 </div>
 
-                <div className="pt-2 border-t border-[#dadce0] dark:border-[#3c4043] flex justify-end">
+                <div className="pt-2 border-t border-border flex justify-end">
                   <a
                     href={b.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[#1a73e8] hover:bg-[#e8f0fe] dark:text-[#8ab4f8] dark:hover:bg-[#394457] px-3.5 py-1.5 rounded-full transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:bg-primary/10 px-3 py-1 rounded-md transition-colors cursor-pointer"
                   >
                     <span>Read Free Online</span>
                     <ExternalLink className="w-3 h-3" />
@@ -270,19 +270,19 @@ export default function LibraryPage() {
       {/* TAB 2: MASTERY THEATER */}
       {activeTab === 'theater' && (
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-3"
         >
-          <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">🎥 High-Impact Behavioral Lectures & Animations</div>
+          <div className="text-xs font-medium text-foreground">Behavioral Lectures & Summaries</div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {MASTERCLASSES.map((v, i) => (
               <div
                 key={i}
-                className="p-3 bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl space-y-2 group transition-colors"
+                className="p-2.5 bg-card border border-border rounded-xl space-y-2 group transition-colors"
               >
-                <div className="relative aspect-video rounded-xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] bg-black">
+                <div className="relative aspect-video rounded-lg overflow-hidden border border-border bg-black">
                   <iframe
                     src={`https://www.youtube.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1`}
                     title={v.title}
@@ -293,8 +293,8 @@ export default function LibraryPage() {
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] truncate">{v.title}</h4>
-                  <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">{v.speaker}</p>
+                  <h4 className="text-xs font-medium text-foreground truncate">{v.title}</h4>
+                  <p className="text-[10px] text-muted-foreground">{v.speaker}</p>
                 </div>
               </div>
             ))}
@@ -302,22 +302,22 @@ export default function LibraryPage() {
         </motion.div>
       )}
 
-      {/* TAB 3: CUSTOM MEDIA PLAYER WITH LOCAL DEVICE UPLOAD */}
+      {/* TAB 3: CUSTOM MEDIA PLAYER */}
       {activeTab === 'customPlayer' && (
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
+          className="space-y-3"
         >
-          <div className="p-5 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-4">
+          <div className="p-4 bg-card rounded-xl border border-border space-y-3.5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <div className="text-sm font-medium text-[#202124] dark:text-[#e8eaed] flex items-center gap-2">
-                  <Video className="w-4 h-4 text-[#1a73e8]" />
-                  <span>Distraction-Free Focus Media Player</span>
+                <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Video className="w-4 h-4 text-primary" />
+                  <span>Focus Media Player</span>
                 </div>
-                <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-1">
-                  Paste any YouTube study stream OR upload music and video files directly from your computer/phone!
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Paste a YouTube URL or load audio/video files directly from your computer.
                 </p>
               </div>
 
@@ -325,29 +325,29 @@ export default function LibraryPage() {
               <Button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-[#1e8e3e] hover:bg-[#137333] text-white text-xs px-4 py-2 rounded-full flex items-center gap-1.5 shrink-0 font-medium shadow-none cursor-pointer"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3.5 h-8 rounded-md flex items-center gap-1.5 shrink-0 font-medium shadow-none cursor-pointer"
               >
                 <Upload className="w-3.5 h-3.5" />
-                <span>Upload Device Audio / Video</span>
+                <span>Load Device File</span>
               </Button>
             </div>
 
             <form onSubmit={handleApplyCustomVideo} className="flex gap-2">
               <Input
                 type="text"
-                placeholder="https://www.youtube.com/watch?v=... OR 11-digit video ID"
+                placeholder="https://www.youtube.com/watch?v=... or video ID"
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
-                className="flex-1 bg-[#f8f9fa] dark:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] text-xs rounded-full px-4"
+                className="flex-1 bg-background border-border text-foreground text-xs rounded-md h-8 px-3"
               />
-              <Button type="submit" size="sm" className="bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs px-5 rounded-full font-medium shadow-none cursor-pointer">
+              <Button type="submit" size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-4 h-8 rounded-md font-medium cursor-pointer">
                 Load & Play
               </Button>
             </form>
 
             {/* Video / Audio Player Display */}
-            <div className="space-y-2 pt-2">
-              <div className="relative aspect-video max-w-2xl mx-auto rounded-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] bg-black shadow-md flex items-center justify-center">
+            <div className="space-y-2 pt-1">
+              <div className="relative aspect-video max-w-2xl mx-auto rounded-xl overflow-hidden border border-border bg-black shadow-xs flex items-center justify-center">
                 {localMedia ? (
                   localMedia.isVideo ? (
                     <video
@@ -357,13 +357,13 @@ export default function LibraryPage() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <div className="space-y-4 text-center p-6 bg-gradient-to-b from-[#f8f9fa] to-[#e8eaed] dark:from-[#1e1e1e] dark:to-[#121212] w-full h-full flex flex-col items-center justify-center">
-                      <div className="w-14 h-14 rounded-full bg-[#e6f4ea] text-[#1e8e3e] flex items-center justify-center shadow-none">
-                        <FileAudio className="w-7 h-7" />
+                    <div className="space-y-3 text-center p-6 bg-card w-full h-full flex flex-col items-center justify-center">
+                      <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300 flex items-center justify-center">
+                        <FileAudio className="w-6 h-6" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-[#202124] dark:text-[#e8eaed]">{localMedia.name}</h4>
-                        <p className="text-xs text-[#1e8e3e] font-mono mt-0.5">Playing Local Audio File from Device</p>
+                        <h4 className="text-xs font-semibold text-foreground">{localMedia.name}</h4>
+                        <p className="text-[11px] text-muted-foreground font-mono mt-0.5">Playing Local Audio</p>
                       </div>
                       <audio src={localMedia.url} controls autoPlay className="w-full max-w-md" />
                     </div>
@@ -372,7 +372,7 @@ export default function LibraryPage() {
                   activeVideoId && (
                     <iframe
                       src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                      title="Custom Focus Stream"
+                      title="Focus Stream"
                       className="w-full h-full border-0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -381,8 +381,8 @@ export default function LibraryPage() {
                 )}
               </div>
 
-              <div className="text-center text-xs text-[#1e8e3e] font-medium">
-                ✅ Active in Global Workspace — Keep your focus soundtrack running while you work!
+              <div className="text-center text-xs text-muted-foreground">
+                Synced with sidebar media widget.
               </div>
             </div>
           </div>

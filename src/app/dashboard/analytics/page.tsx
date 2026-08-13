@@ -147,120 +147,120 @@ export default function AnalyticsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg font-bold text-[#202124] dark:text-[#e8eaed] flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-[#1a73e8]" /> Performance Analytics
+          <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <BarChart2 className="w-5 h-5 text-primary" /> Performance Analytics
           </h1>
-          <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">Live dynamic tracking of habit consistency, deep work volume, and behavioral milestones</p>
+          <p className="text-xs text-muted-foreground">Habit consistency, deep work volume, and behavioral trends</p>
         </div>
 
         <Button
           size="sm"
           onClick={generateReport}
           disabled={reportLoading}
-          className="bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs gap-1.5 rounded-full font-medium shadow-none cursor-pointer"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5 rounded-md font-medium cursor-pointer h-8"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>{reportLoading ? 'Analyzing...' : 'Generate AI Weekly Audit'}</span>
+          <span>{reportLoading ? 'Analyzing...' : 'Generate AI Audit'}</span>
         </Button>
       </div>
 
       {/* AI Report Card */}
       {aiReport && (
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] text-xs leading-relaxed space-y-2"
+          className="p-4 bg-card rounded-xl border border-border text-xs leading-relaxed space-y-2 shadow-xs"
         >
-          <div className="flex items-center gap-2 text-[#1a73e8] dark:text-[#8ab4f8] font-semibold">
+          <div className="flex items-center gap-2 text-primary font-semibold">
             <Sparkles className="w-4 h-4" />
-            <span>AI Executive Coaching Audit</span>
+            <span>AI Weekly Performance Audit</span>
           </div>
-          <div className="text-[#202124] dark:text-[#e8eaed] whitespace-pre-line">{aiReport}</div>
+          <div className="text-foreground whitespace-pre-line">{aiReport}</div>
         </motion.div>
       )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1">
-          <div className="flex items-center justify-between text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium">
+        <div className="p-3.5 bg-card rounded-xl border border-border space-y-1">
+          <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
             <span>Active Streak</span>
-            <Flame className="w-4 h-4 text-[#e37400]" />
+            <Flame className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-bold text-[#202124] dark:text-[#e8eaed] font-mono">{userAnalytics.streak} Days</div>
-          <div className="text-[10px] text-[#1e8e3e] font-medium">Live tracking</div>
+          <div className="text-2xl font-bold text-foreground font-mono">{userAnalytics.streak} Days</div>
+          <div className="text-[10px] text-emerald-600 font-medium">Live tracking</div>
         </div>
 
-        <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1">
-          <div className="flex items-center justify-between text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium">
+        <div className="p-3.5 bg-card rounded-xl border border-border space-y-1">
+          <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
             <span>Habits Checked</span>
-            <Shield className="w-4 h-4 text-[#1a73e8]" />
+            <Shield className="w-4 h-4 text-primary" />
           </div>
-          <div className="text-2xl font-bold text-[#202124] dark:text-[#e8eaed] font-mono">{userAnalytics.habitsCompleted} Done</div>
-          <div className="text-[10px] text-[#1a73e8] dark:text-[#8ab4f8] font-medium">{userAnalytics.disciplineRate}% discipline rate</div>
+          <div className="text-2xl font-bold text-foreground font-mono">{userAnalytics.habitsCompleted} Done</div>
+          <div className="text-[10px] text-primary font-medium">{userAnalytics.disciplineRate}% discipline rate</div>
         </div>
 
-        <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1">
-          <div className="flex items-center justify-between text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium">
+        <div className="p-3.5 bg-card rounded-xl border border-border space-y-1">
+          <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
             <span>Deep Work</span>
-            <Clock className="w-4 h-4 text-[#12b5cb]" />
+            <Clock className="w-4 h-4 text-cyan-500" />
           </div>
-          <div className="text-2xl font-bold text-[#202124] dark:text-[#e8eaed] font-mono">{userAnalytics.focusHours} Hours</div>
-          <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-medium">{userAnalytics.focusMins} total mins</div>
+          <div className="text-2xl font-bold text-foreground font-mono">{userAnalytics.focusHours}h</div>
+          <div className="text-[10px] text-muted-foreground font-medium">{userAnalytics.focusMins} total mins</div>
         </div>
 
-        <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1">
-          <div className="flex items-center justify-between text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium">
+        <div className="p-3.5 bg-card rounded-xl border border-border space-y-1">
+          <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
             <span>Mastery Level</span>
-            <Award className="w-4 h-4 text-[#f9ab00]" />
+            <Award className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-bold text-[#202124] dark:text-[#e8eaed] font-mono">Level {xpInfo.level}</div>
-          <div className="text-[10px] text-[#b06000] dark:text-[#fdd663] font-medium">{xpInfo.name}</div>
+          <div className="text-2xl font-bold text-foreground font-mono">Level {xpInfo.level}</div>
+          <div className="text-[10px] text-amber-700 dark:text-amber-300 font-medium">{xpInfo.name}</div>
         </div>
       </div>
 
       {/* Visual Charts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {/* Habit Completion Chart (Real Last 7 Days) */}
-        <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-3">
-          <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] flex items-center gap-1.5">
-            <Shield className="w-4 h-4 text-[#1a73e8]" />
+        {/* Habit Completion Chart */}
+        <div className="p-4 bg-card rounded-xl border border-border space-y-3">
+          <div className="text-xs font-medium text-foreground flex items-center gap-1.5">
+            <Shield className="w-4 h-4 text-primary" />
             <span>Daily Habits Logged (Last 7 Days)</span>
           </div>
 
-          <div className="h-60 w-full">
+          <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
-                <XAxis dataKey="day" stroke="#5f6368" fontSize={11} />
-                <YAxis stroke="#5f6368" fontSize={11} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border/40" />
+                <XAxis dataKey="day" stroke="currentColor" className="text-muted-foreground" fontSize={11} />
+                <YAxis stroke="currentColor" className="text-muted-foreground" fontSize={11} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#dadce0', borderRadius: '12px', fontSize: '11px', color: '#202124' }}
+                  contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px', fontSize: '11px', color: 'var(--foreground)' }}
                 />
-                <Bar dataKey="habits" fill="#1a73e8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="habits" fill="var(--primary)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Focus Minutes Chart (Real Last 7 Days) */}
-        <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-3">
-          <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-[#12b5cb]" />
+        {/* Focus Minutes Chart */}
+        <div className="p-4 bg-card rounded-xl border border-border space-y-3">
+          <div className="text-xs font-medium text-foreground flex items-center gap-1.5">
+            <Clock className="w-4 h-4 text-cyan-500" />
             <span>Deep Work Minutes</span>
           </div>
 
-          <div className="h-60 w-full">
+          <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
-                <XAxis dataKey="day" stroke="#5f6368" fontSize={11} />
-                <YAxis stroke="#5f6368" fontSize={11} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border/40" />
+                <XAxis dataKey="day" stroke="currentColor" className="text-muted-foreground" fontSize={11} />
+                <YAxis stroke="currentColor" className="text-muted-foreground" fontSize={11} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#dadce0', borderRadius: '12px', fontSize: '11px', color: '#202124' }}
+                  contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px', fontSize: '11px', color: 'var(--foreground)' }}
                 />
-                <Bar dataKey="focusMins" fill="#12b5cb" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="focusMins" fill="#06b6d4" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -268,15 +268,15 @@ export default function AnalyticsPage() {
       </div>
 
       {/* 365-Day Consistency Heatmap Grid */}
-      <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-3">
+      <div className="p-4 bg-card rounded-xl border border-border space-y-3">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-medium text-[#202124] dark:text-[#e8eaed]">365-Day Habit Matrix Heatmap</span>
-          <div className="flex items-center gap-1.5 text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">
+          <span className="font-medium text-foreground">365-Day Consistency Heatmap</span>
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <span>Less</span>
-            <div className="w-2.5 h-2.5 rounded-sm bg-[#ebedf0] dark:bg-[#2d2e30]" />
-            <div className="w-2.5 h-2.5 rounded-sm bg-[#9be9a8] dark:bg-[#1a4a2b]" />
-            <div className="w-2.5 h-2.5 rounded-sm bg-[#40c463] dark:bg-[#2e7d32]" />
-            <div className="w-2.5 h-2.5 rounded-sm bg-[#216e39] dark:bg-[#1e8e3e]" />
+            <div className="w-2.5 h-2.5 rounded-xs bg-muted" />
+            <div className="w-2.5 h-2.5 rounded-xs bg-emerald-200 dark:bg-emerald-950" />
+            <div className="w-2.5 h-2.5 rounded-xs bg-emerald-400 dark:bg-emerald-700" />
+            <div className="w-2.5 h-2.5 rounded-xs bg-emerald-600 dark:bg-emerald-500" />
             <span>More</span>
           </div>
         </div>
@@ -286,20 +286,20 @@ export default function AnalyticsPage() {
             const intensity = Math.min(4, d.count);
             const bgClass =
               intensity >= 4
-                ? 'bg-[#216e39] dark:bg-[#1e8e3e]'
+                ? 'bg-emerald-600 dark:bg-emerald-500'
                 : intensity === 3
-                ? 'bg-[#40c463] dark:bg-[#2e7d32]'
+                ? 'bg-emerald-500 dark:bg-emerald-600'
                 : intensity === 2
-                ? 'bg-[#9be9a8] dark:bg-[#1a4a2b]'
+                ? 'bg-emerald-300 dark:bg-emerald-800'
                 : intensity === 1
-                ? 'bg-[#c6e48b] dark:bg-[#133820]'
-                : 'bg-[#ebedf0] dark:bg-[#2d2e30]';
+                ? 'bg-emerald-200 dark:bg-emerald-950'
+                : 'bg-muted';
 
             return (
               <div
                 key={i}
                 title={`${d.date}: ${d.count > 0 ? `${d.count} habits completed` : 'No habits logged'}`}
-                className={`w-2.5 h-2.5 rounded-sm ${bgClass} transition-transform hover:scale-125 cursor-pointer`}
+                className={`w-2.5 h-2.5 rounded-xs ${bgClass} transition-transform hover:scale-125 cursor-pointer`}
               />
             );
           })}

@@ -430,43 +430,43 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-5.5rem)] max-w-5xl mx-auto gap-3">
-      {/* Dynamic Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#1e1e1e] p-3 px-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#1a73e8] flex items-center justify-center text-white shrink-0">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-3 px-4 rounded-xl border border-border transition-colors">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground shrink-0">
             <Bot className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-[#202124] dark:text-[#e8eaed]">
-              AI Habit Coach
+            <h1 className="text-sm font-semibold text-foreground">
+              Habit Coach
             </h1>
-            <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">Behavioral routines, deep work coaching & document drills</p>
+            <p className="text-[11px] text-muted-foreground">Ask routine questions, paste study notes, or attach documents</p>
           </div>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
-          {/* Dual AI Engine Toggle */}
-          <div className="flex items-center bg-[#f1f3f4] dark:bg-[#2d2e30] p-1 rounded-full text-xs">
+          {/* AI Engine Switch */}
+          <div className="flex items-center bg-muted/60 p-0.5 rounded-lg text-xs border border-border/50">
             <button
               onClick={() => setSelectedProvider('groq')}
-              className={`px-3 py-1 rounded-full font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md font-medium transition-colors flex items-center gap-1 cursor-pointer ${
                 selectedProvider === 'groq'
-                  ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] font-semibold'
-                  : 'text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#202124]'
+                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Cpu className="w-3 h-3" /> Groq (Fast)
+              <Cpu className="w-3 h-3" /> Groq
             </button>
             <button
               onClick={() => setSelectedProvider('gemini')}
-              className={`px-3 py-1 rounded-full font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md font-medium transition-colors flex items-center gap-1 cursor-pointer ${
                 selectedProvider === 'gemini'
-                  ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] font-semibold'
-                  : 'text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#202124]'
+                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Sparkles className="w-3 h-3" /> Gemini Vision
+              <Sparkles className="w-3 h-3 text-primary" /> Gemini Vision
             </button>
           </div>
 
@@ -474,16 +474,16 @@ export default function DashboardPage() {
             size="sm"
             variant="outline"
             onClick={() => setShowArchives(true)}
-            className="h-8 text-xs bg-white hover:bg-[#f1f3f4] dark:bg-[#1e1e1e] dark:hover:bg-[#2d2e30] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] gap-1.5 rounded-full font-medium cursor-pointer"
+            className="h-7 text-xs bg-card hover:bg-muted border-border text-foreground gap-1.5 rounded-md font-medium cursor-pointer"
           >
-            <Archive className="w-3.5 h-3.5 text-[#1a73e8]" />
-            <span>Vault ({archives.length})</span>
+            <Archive className="w-3.5 h-3.5 text-primary" />
+            <span>History ({archives.length})</span>
           </Button>
 
           <Button
             size="sm"
             onClick={handleNewChat}
-            className="h-8 text-xs bg-[#1a73e8] hover:bg-[#1557b0] text-white gap-1.5 rounded-full font-medium cursor-pointer shadow-none"
+            className="h-7 text-xs bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 rounded-md font-medium cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Chat</span>
@@ -491,98 +491,66 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Interactive Onboarding Tour Modal */}
+      {/* Onboarding Tour Modal */}
       <Dialog open={showOnboardingModal} onOpenChange={setShowOnboardingModal}>
-        <DialogContent className="max-w-2xl bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-3xl p-6 sm:p-7 shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
+        <DialogContent className="max-w-2xl bg-card border border-border text-foreground rounded-xl p-6 shadow-xl max-h-[85vh] overflow-y-auto custom-scrollbar space-y-4">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[#202124] dark:text-[#e8eaed] flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[#1a73e8]" />
-              <span>Welcome to HabitBot! 👋</span>
+            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+              <Bot className="w-4 h-4 text-primary" />
+              <span>Welcome to HabitBot</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">
-              Here is everything you can do with your HabitBot account in 60 seconds:
+            <DialogDescription className="text-xs text-muted-foreground">
+              Quick 30-second overview of what you can accomplish:
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
-                <div className="p-1.5 rounded-full bg-[#e8f0fe] text-[#1a73e8]">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <span>1. PDF & Document Habit Coach</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
+              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                <FileText className="w-3.5 h-3.5 text-primary" />
+                <span>1. Documents & Coach</span>
               </div>
-              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
-                Click 📎 Paperclip to attach any PDF book, handout, or notes. HabitBot parses full multi-page chapters and extracts custom actionable drills.
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Attach PDFs or text files to generate customized routines, study drills, or habit stacks.
               </p>
             </div>
 
-            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
-                <div className="p-1.5 rounded-full bg-[#e8f0fe] text-[#1a73e8]">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <span>2. Image OCR & Gemini Vision</span>
+            <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
+              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                <Bot className="w-3.5 h-3.5 text-purple-500" />
+                <span>2. OCR & Vision</span>
               </div>
-              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
-                Attach quote posters, workout charts, or notes. In-browser OCR extracts text instantly while Gemini Vision analyzes visual layouts.
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Upload image notes or schedules. In-browser OCR reads text directly while Vision parses diagrams.
               </p>
             </div>
 
-            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
-                <div className="p-1.5 rounded-full bg-[#fef7e0] text-[#b06000]">
-                  <Headphones className="w-4 h-4" />
-                </div>
-                <span>3. Ambient Media & Device Audio</span>
+            <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
+              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                <Headphones className="w-3.5 h-3.5 text-amber-500" />
+                <span>3. Focus Audio</span>
               </div>
-              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
-                Listen to curated lofi presets, paste any YouTube link, or upload your own local audio/video files from your device.
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Play background lofi audio, stream YouTube soundtracks, or load files from your computer.
               </p>
             </div>
 
-            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
-                <div className="p-1.5 rounded-full bg-[#e8f0fe] text-[#1a73e8]">
-                  <CheckSquare className="w-4 h-4" />
-                </div>
-                <span>4. Task Sprints & Swap Order</span>
+            <div className="p-3 bg-muted/40 rounded-lg border border-border/80 space-y-1">
+              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                <CheckSquare className="w-3.5 h-3.5 text-blue-500" />
+                <span>4. Task Sprints</span>
               </div>
-              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
-                Generate 4 micro-tasks with AI. Reorder tasks with ⬆️/⬇️ swap buttons, sort High-to-Low, and earn +5 XP per checkmark.
-              </p>
-            </div>
-
-            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
-                <div className="p-1.5 rounded-full bg-[#e6f4ea] text-[#137333]">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-                <span>5. Habit Matrix & Streak Freeze</span>
-              </div>
-              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
-                Check off daily habits in the sidebar (+10 XP). Toggle "Freeze Day" ❄️ during rest or travel days to shield your streak without penalties!
-              </p>
-            </div>
-
-            <div className="p-3.5 bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-1.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#202124] dark:text-[#e8eaed]">
-                <div className="p-1.5 rounded-full bg-[#fce8e6] text-[#c5221f]">
-                  <FileSpreadsheet className="w-4 h-4" />
-                </div>
-                <span>6. Logbook & 5-Sheet Excel Audit</span>
-              </div>
-              <p className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed">
-                Log daily wins & friction points (+15 XP) and export your full lifetime habits, tasks, media history, and streaks into an organized Excel (.xlsx) file!
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Break large goals into 4 micro-tasks with AI and reorder priority using ⬆️/⬇️ buttons.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-end pt-2">
+          <div className="flex items-center justify-end pt-1">
             <Button
               size="sm"
               onClick={() => setShowOnboardingModal(false)}
-              className="bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs px-5 py-2 rounded-full font-medium shadow-none cursor-pointer"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-4 h-8 rounded-md font-medium cursor-pointer"
             >
               Get Started
             </Button>
@@ -590,34 +558,34 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Conversation Vault Archive Modal */}
+      {/* History Archive Modal */}
       <Dialog open={showArchives} onOpenChange={setShowArchives}>
-        <DialogContent className="max-w-md bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-3xl p-6 shadow-2xl space-y-3">
+        <DialogContent className="max-w-md bg-card border border-border text-foreground rounded-xl p-6 shadow-xl space-y-3">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[#202124] dark:text-[#e8eaed] flex items-center gap-2">
-              <Archive className="w-5 h-5 text-[#1a73e8]" />
-              <span>Coaching Conversation Vault</span>
+            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+              <Archive className="w-4 h-4 text-primary" />
+              <span>Conversation History</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">
-              All your previous coaching conversations are securely preserved. Click to resume anytime.
+            <DialogDescription className="text-xs text-muted-foreground">
+              Previous coaching sessions are saved automatically. Click to resume anytime.
             </DialogDescription>
           </DialogHeader>
 
           {archives.length === 0 ? (
-            <div className="p-6 text-center text-xs text-[#5f6368] dark:text-[#9aa0a6] bg-[#f8f9fa] dark:bg-[#2d2e30] rounded-2xl">
-              No archived conversations yet. Start chatting to create history!
+            <div className="p-6 text-center text-xs text-muted-foreground bg-muted/40 rounded-lg border border-border/60">
+              No saved conversations yet.
             </div>
           ) : (
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
+            <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
               {archives.map((arch) => (
                 <div
                   key={arch.id}
-                  className="p-3 bg-[#f8f9fa] hover:bg-[#f1f3f4] dark:bg-[#2d2e30] dark:hover:bg-[#3c4043] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between group transition-colors"
+                  className="p-2.5 bg-muted/40 hover:bg-muted/70 rounded-lg border border-border/80 flex items-center justify-between group transition-colors"
                 >
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="text-xs font-semibold text-[#202124] dark:text-[#e8eaed] truncate">{arch.title}</div>
-                    <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] mt-0.5 font-mono">
-                      {arch.timestamp} • {arch.messages.length} messages
+                    <div className="text-xs font-medium text-foreground truncate">{arch.title}</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                      {arch.timestamp} • {arch.messages.length} msgs
                     </div>
                   </div>
 
@@ -626,17 +594,17 @@ export default function DashboardPage() {
                       size="sm"
                       variant="ghost"
                       onClick={() => handleResumeChat(arch)}
-                      className="h-7 text-xs text-[#1a73e8] hover:bg-[#e8f0fe] dark:text-[#8ab4f8] dark:hover:bg-[#394457] px-3 rounded-full cursor-pointer font-medium"
+                      className="h-7 text-xs text-primary hover:bg-primary/10 px-2.5 rounded-md cursor-pointer font-medium"
                     >
                       Resume
                     </Button>
 
                     <button
                       onClick={(e) => handleDeleteArchive(arch.id, e)}
-                      className="p-1.5 text-[#5f6368] hover:text-[#d93025] dark:text-[#9aa0a6] dark:hover:text-[#f28b82] rounded-full hover:bg-[#fce8e6] dark:hover:bg-[#3c2020] transition-colors cursor-pointer"
+                      className="p-1 text-muted-foreground hover:text-destructive rounded hover:bg-destructive/10 transition-colors cursor-pointer"
                       title="Delete session"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
@@ -646,58 +614,58 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Quick Prompt Chips */}
+      {/* Quick Prompt Suggestions */}
       {messages.length <= 2 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {QUICK_PROMPTS.map((p, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(p.prompt)}
-              className="p-3 bg-white hover:bg-[#f8f9fa] dark:bg-[#1e1e1e] dark:hover:bg-[#2d2e30] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl text-left transition-colors cursor-pointer"
+              className="p-3 bg-card hover:bg-muted/50 border border-border rounded-lg text-left transition-colors cursor-pointer group"
             >
-              <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">{p.label}</div>
-              <div className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] line-clamp-2 mt-0.5">{p.prompt}</div>
+              <div className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">{p.label}</div>
+              <div className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{p.prompt}</div>
             </button>
           ))}
         </div>
       )}
 
       {/* Message History */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar min-h-[340px]">
+      <div className="flex-1 overflow-y-auto space-y-3.5 pr-1 custom-scrollbar min-h-[300px]">
         {messages.map((m) => (
           <motion.div
             key={m.id}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex items-start gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex items-start gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-[#1a73e8] text-white flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center shrink-0 text-xs">
+                <Bot className="w-3.5 h-3.5" />
               </div>
             )}
 
             <div
-              className={`relative group max-w-[80%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed transition-colors ${
+              className={`relative group max-w-[82%] rounded-xl p-3.5 text-xs sm:text-sm leading-relaxed transition-colors ${
                 m.role === 'user'
-                  ? 'bg-[#1a73e8] dark:bg-[#8ab4f8] text-white dark:text-[#202124] rounded-tr-sm'
-                  : 'bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-tl-sm'
+                  ? 'bg-primary text-primary-foreground rounded-tr-xs'
+                  : 'bg-card border border-border text-foreground rounded-tl-xs shadow-xs'
               }`}
             >
               {m.imagePreview && (
-                <div className="mb-2.5 rounded-xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] max-w-xs">
+                <div className="mb-2.5 rounded-lg overflow-hidden border border-border max-w-xs">
                   <img src={m.imagePreview} alt="Attached context" className="w-full h-auto object-cover" />
                 </div>
               )}
 
               {m.documentInfo && (
-                <div className="mb-2.5 p-2.5 bg-[#f8f9fa] dark:bg-[#2d2e30] border border-[#dadce0] dark:border-[#3c4043] rounded-xl flex items-center gap-2 max-w-sm">
-                  <div className="w-8 h-8 rounded-lg bg-[#e8f0fe] dark:bg-[#394457] flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
-                    <FileText className="w-4 h-4" />
+                <div className="mb-2.5 p-2 bg-muted/60 border border-border/80 rounded-lg flex items-center gap-2 max-w-sm">
+                  <div className="w-7 h-7 rounded bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <FileText className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] truncate">{m.documentInfo.name}</div>
-                    <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">{m.documentInfo.size} Document</div>
+                    <div className="text-xs font-medium text-foreground truncate">{m.documentInfo.name}</div>
+                    <div className="text-[10px] text-muted-foreground font-mono">{m.documentInfo.size} Document</div>
                   </div>
                 </div>
               )}
@@ -706,24 +674,24 @@ export default function DashboardPage() {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    p: ({ children }) => <p className="mb-3 leading-relaxed last:mb-0">{children}</p>,
+                    p: ({ children }) => <p className="mb-2.5 leading-relaxed last:mb-0">{children}</p>,
                     h1: ({ children }) => (
-                      <h1 className="text-base font-bold text-[#202124] dark:text-[#e8eaed] mt-4 mb-2 flex items-center gap-2 border-b border-[#dadce0] dark:border-[#3c4043] pb-1">
+                      <h1 className="text-sm font-bold text-foreground mt-3 mb-1.5 border-b border-border pb-1">
                         {children}
                       </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-sm font-bold text-[#202124] dark:text-[#e8eaed] mt-4 mb-2 flex items-center gap-2">
+                      <h2 className="text-xs font-bold text-foreground mt-3 mb-1">
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-xs font-bold text-[#1a73e8] dark:text-[#8ab4f8] mt-3 mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                      <h3 className="text-xs font-semibold text-primary mt-2 mb-1">
                         {children}
                       </h3>
                     ),
-                    ul: ({ children }) => <ul className="my-2.5 space-y-1.5 pl-4 list-disc marker:text-[#1a73e8]">{children}</ul>,
-                    ol: ({ children }) => <ol className="my-2.5 space-y-1.5 pl-4 list-decimal marker:text-[#1a73e8]">{children}</ol>,
+                    ul: ({ children }) => <ul className="my-2 space-y-1 pl-4 list-disc marker:text-primary">{children}</ul>,
+                    ol: ({ children }) => <ol className="my-2 space-y-1 pl-4 list-decimal marker:text-primary">{children}</ol>,
                     li: ({ children }) => <li className="leading-relaxed pl-0.5">{children}</li>,
                     strong: ({ children }) => (
                       <strong className="font-semibold">
@@ -731,17 +699,17 @@ export default function DashboardPage() {
                       </strong>
                     ),
                     blockquote: ({ children }) => (
-                      <blockquote className="my-3 pl-3 border-l-2 border-[#1a73e8] bg-[#f8f9fa] dark:bg-[#2d2e30] py-2 pr-3 rounded-r-xl italic">
+                      <blockquote className="my-2 pl-3 border-l-2 border-primary bg-muted/40 py-1.5 pr-2 rounded-r-md italic">
                         {children}
                       </blockquote>
                     ),
                     code: ({ inline, children }: any) =>
                       inline ? (
-                        <code className="bg-[#f1f3f4] dark:bg-[#2d2e30] text-[#1a73e8] dark:text-[#8ab4f8] px-1.5 py-0.5 rounded text-[11px] font-mono">
+                        <code className="bg-muted text-primary px-1.5 py-0.5 rounded text-[11px] font-mono">
                           {children}
                         </code>
                       ) : (
-                        <pre className="my-3 p-3 bg-[#202124] dark:bg-[#121212] rounded-xl overflow-x-auto text-[11px] font-mono text-white">
+                        <pre className="my-2.5 p-3 bg-zinc-950 rounded-lg overflow-x-auto text-[11px] font-mono text-zinc-100 border border-border">
                           {children}
                         </pre>
                       ),
@@ -754,19 +722,20 @@ export default function DashboardPage() {
               {m.role === 'assistant' && m.content && (
                 <button
                   onClick={() => copyToClipboard(m.content, m.id)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 rounded-full bg-white hover:bg-[#f1f3f4] dark:bg-[#2d2e30] dark:hover:bg-[#3c4043] text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-white transition-opacity text-[10px] flex items-center gap-1 cursor-pointer border border-[#dadce0] dark:border-[#3c4043]"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-opacity text-[10px] flex items-center gap-1 cursor-pointer border border-border"
+                  title="Copy response"
                 >
-                  {copiedId === m.id ? <Check className="w-3 h-3 text-[#1e8e3e]" /> : <Copy className="w-3 h-3" />}
+                  {copiedId === m.id ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                 </button>
               )}
             </div>
 
             {m.role === 'user' && (
-              <div className="w-8 h-8 rounded-full bg-[#f1f3f4] dark:bg-[#2d2e30] flex items-center justify-center shrink-0 text-[#5f6368] dark:text-[#9aa0a6] overflow-hidden">
+              <div className="w-7 h-7 rounded-md bg-muted border border-border flex items-center justify-center shrink-0 text-muted-foreground overflow-hidden text-xs">
                 {currentUser?.avatar ? (
                   <img src={currentUser.avatar} alt="User avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <User className="w-4 h-4" />
+                  <User className="w-3.5 h-3.5" />
                 )}
               </div>
             )}
@@ -774,13 +743,13 @@ export default function DashboardPage() {
         ))}
 
         {loading && (
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#1a73e8] text-white flex items-center justify-center shrink-0">
-              <Bot className="w-4 h-4" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+              <Bot className="w-3.5 h-3.5" />
             </div>
-            <div className="p-3.5 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] text-xs text-[#5f6368] dark:text-[#9aa0a6] flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#1a73e8] animate-pulse" />
-              <span>HabitBot ({selectedProvider === 'gemini' ? 'Gemini Vision' : 'Groq'}) is formulating advice...</span>
+            <div className="p-3 bg-card rounded-xl border border-border text-xs text-muted-foreground flex items-center gap-2 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span>Thinking ({selectedProvider === 'gemini' ? 'Gemini Vision' : 'Groq'})...</span>
             </div>
           </div>
         )}
@@ -788,36 +757,36 @@ export default function DashboardPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* File / Document Preview Floating Pill */}
+      {/* File Preview Floating Pill */}
       {attachedFile && (
-        <div className="flex items-center gap-2 p-2 px-3 bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] rounded-full max-w-fit shadow-sm">
+        <div className="flex items-center gap-2 p-1.5 px-3 bg-card border border-border rounded-lg max-w-fit shadow-xs">
           {attachedFile.type === 'image' ? (
-            <ImageIcon className="w-4 h-4 text-[#1a73e8]" />
+            <ImageIcon className="w-3.5 h-3.5 text-primary" />
           ) : (
-            <FileText className="w-4 h-4 text-[#1a73e8]" />
+            <FileText className="w-3.5 h-3.5 text-primary" />
           )}
-          <div className="text-xs text-[#202124] dark:text-[#e8eaed]">
+          <div className="text-xs text-foreground">
             <span className="font-medium">{attachedFile.name}</span>{' '}
-            <span className="text-[#5f6368] dark:text-[#9aa0a6] font-mono">({attachedFile.size})</span>
+            <span className="text-muted-foreground font-mono text-[10px]">({attachedFile.size})</span>
           </div>
-          <button onClick={() => setAttachedFile(null)} className="text-[#5f6368] hover:text-[#d93025] p-0.5 ml-1 cursor-pointer">
+          <button onClick={() => setAttachedFile(null)} className="text-muted-foreground hover:text-destructive p-0.5 ml-1 cursor-pointer">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Google Search Style Prompt Input Bar */}
+      {/* Clean Prompt Input Bar */}
       <div className="relative">
         {/* Floating Attachment Menu Popup */}
         <AnimatePresence>
           {showAttachmentMenu && (
             <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute bottom-16 left-2 z-30 p-2 bg-white dark:bg-[#1e1e1e] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xl flex flex-col gap-1 w-52"
+              exit={{ opacity: 0, y: 8, scale: 0.96 }}
+              className="absolute bottom-14 left-2 z-30 p-1.5 bg-card border border-border rounded-xl shadow-lg flex flex-col gap-1 w-48"
             >
-              <div className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] px-2 py-1 uppercase tracking-wider">
+              <div className="text-[10px] font-medium text-muted-foreground px-2 py-0.5">
                 Attach File
               </div>
 
@@ -828,14 +797,14 @@ export default function DashboardPage() {
                   imageInputRef.current?.click();
                   setShowAttachmentMenu(false);
                 }}
-                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-[#202124] dark:text-[#e8eaed] hover:bg-[#f1f3f4] dark:hover:bg-[#2d2e30] transition-colors text-left group cursor-pointer"
+                className="flex items-center gap-2 p-1.5 rounded-md text-xs font-medium text-foreground hover:bg-muted transition-colors text-left cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-full bg-[#e8f0fe] dark:bg-[#394457] flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                  <ImageIcon className="w-4 h-4" />
+                <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <ImageIcon className="w-3.5 h-3.5" />
                 </div>
                 <div>
                   <div className="font-medium text-xs">Image / Photo</div>
-                  <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">PNG, JPG, WebP</div>
+                  <div className="text-[10px] text-muted-foreground font-mono">PNG, JPG, WebP</div>
                 </div>
               </button>
 
@@ -846,14 +815,14 @@ export default function DashboardPage() {
                   docInputRef.current?.click();
                   setShowAttachmentMenu(false);
                 }}
-                className="flex items-center gap-2.5 p-2 rounded-xl text-xs font-medium text-[#202124] dark:text-[#e8eaed] hover:bg-[#f1f3f4] dark:hover:bg-[#2d2e30] transition-colors text-left group cursor-pointer"
+                className="flex items-center gap-2 p-1.5 rounded-md text-xs font-medium text-foreground hover:bg-muted transition-colors text-left cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-full bg-[#e8f0fe] dark:bg-[#394457] flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                  <FileText className="w-4 h-4" />
+                <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <FileText className="w-3.5 h-3.5" />
                 </div>
                 <div>
                   <div className="font-medium text-xs">Document / Notes</div>
-                  <div className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">PDF, TXT, CSV, MD</div>
+                  <div className="text-[10px] text-muted-foreground font-mono">PDF, TXT, MD</div>
                 </div>
               </button>
             </motion.div>
@@ -865,7 +834,7 @@ export default function DashboardPage() {
             e.preventDefault();
             handleSend();
           }}
-          className="relative flex items-center gap-2 p-2 bg-white dark:bg-[#1e1e1e] rounded-full border border-[#dadce0] dark:border-[#3c4043] shadow-sm hover:shadow-md focus-within:shadow-md focus-within:border-[#1a73e8] transition-all"
+          className="relative flex items-center gap-2 p-1.5 bg-card rounded-xl border border-border shadow-xs hover:border-border/90 focus-within:border-primary/70 focus-within:ring-1 focus-within:ring-primary/20 transition-all"
         >
           {/* Hidden Image Input */}
           <input
@@ -885,15 +854,15 @@ export default function DashboardPage() {
             className="hidden"
           />
 
-          {/* Pin/Paperclip Button with Popup Toggle */}
+          {/* Pin/Paperclip Button */}
           <button
             type="button"
             onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
             title="Attach an Image or Document"
-            className={`p-2 rounded-full transition-colors cursor-pointer ${
+            className={`p-2 rounded-md transition-colors cursor-pointer ${
               showAttachmentMenu
-                ? 'bg-[#e8f0fe] text-[#1a73e8]'
-                : 'text-[#5f6368] hover:text-[#202124] hover:bg-[#f1f3f4] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed] dark:hover:bg-[#2d2e30]'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             }`}
           >
             <Paperclip className="w-4 h-4" />
@@ -901,18 +870,18 @@ export default function DashboardPage() {
 
           <Input
             type="text"
-            placeholder="Ask HabitBot anything about your habits, routines, or focus..."
+            placeholder="Ask about routines, habits, or productivity..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
-            className="flex-1 bg-transparent border-0 text-[#202124] dark:text-[#e8eaed] placeholder:text-[#5f6368] dark:placeholder:text-[#9aa0a6] focus-visible:ring-0 text-xs sm:text-sm pl-1 shadow-none"
+            className="flex-1 bg-transparent border-0 text-foreground placeholder:text-muted-foreground focus-visible:ring-0 text-xs sm:text-sm pl-1 shadow-none h-8"
           />
 
           <Button
             type="submit"
             size="sm"
             disabled={(!input.trim() && !attachedFile) || loading}
-            className="bg-[#1a73e8] hover:bg-[#1557b0] text-white h-9 px-4 rounded-full shadow-none flex items-center gap-1.5 cursor-pointer font-medium"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 px-3.5 rounded-lg shadow-none flex items-center gap-1.5 cursor-pointer font-medium"
           >
             <Send className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Send</span>

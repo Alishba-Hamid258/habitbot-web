@@ -109,7 +109,7 @@ export function MediaPlayer() {
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] space-y-3 transition-colors">
+    <div className="p-3.5 bg-card rounded-xl border border-border space-y-3 transition-colors">
       {/* Hidden File Input for Device Audio/Video */}
       <input
         type="file"
@@ -119,11 +119,11 @@ export function MediaPlayer() {
         className="hidden"
       />
 
-      {/* Row 1: Header Brand & Clean Action Buttons */}
+      {/* Row 1: Header Brand & Action Buttons */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs font-medium text-[#202124] dark:text-[#e8eaed]">
-          <Headphones className="w-3.5 h-3.5 text-[#1a73e8] dark:text-[#8ab4f8]" />
-          <span>Focus Sound & Media</span>
+        <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+          <Headphones className="w-3.5 h-3.5 text-primary" />
+          <span>Focus Audio</span>
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -131,8 +131,8 @@ export function MediaPlayer() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            title="Upload MP3/MP4 from your device"
-            className="px-2.5 py-1 rounded-full bg-[#e6f4ea] hover:bg-[#ceead6] dark:bg-[#1a3826] dark:hover:bg-[#255237] text-[11px] font-medium text-[#137333] dark:text-[#81c995] flex items-center gap-1 transition-colors cursor-pointer"
+            title="Upload audio/video from device"
+            className="px-2 py-0.5 rounded-md bg-muted hover:bg-secondary text-[11px] font-medium text-foreground border border-border flex items-center gap-1 transition-colors cursor-pointer"
           >
             <Upload className="w-3 h-3" />
             <span>Upload</span>
@@ -142,10 +142,10 @@ export function MediaPlayer() {
           <button
             type="button"
             onClick={() => setShowCustomInput(!showCustomInput)}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-medium flex items-center gap-1 transition-colors cursor-pointer ${
+            className={`px-2 py-0.5 rounded-md text-[11px] font-medium flex items-center gap-1 border transition-colors cursor-pointer ${
               showCustomInput
-                ? 'bg-[#1a73e8] text-white'
-                : 'bg-[#f1f3f4] hover:bg-[#e8eaed] text-[#202124] dark:bg-[#2d2e30] dark:text-[#e8eaed]'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-muted hover:bg-secondary text-foreground border-border'
             }`}
           >
             <LinkIcon className="w-3 h-3" />
@@ -161,10 +161,10 @@ export function MediaPlayer() {
             <button
               key={v.id}
               onClick={() => handleSelectPreset(v)}
-              className={`py-1 px-1.5 rounded-full text-[10px] font-medium truncate text-center transition-colors cursor-pointer ${
+              className={`py-1 px-1 rounded-md text-[10px] font-medium truncate text-center transition-colors cursor-pointer border ${
                 !localMedia && activeVideoId === v.id
-                  ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#394457] dark:text-[#8ab4f8] font-semibold'
-                  : 'bg-[#f1f3f4] hover:bg-[#e8eaed] text-[#5f6368] dark:bg-[#2d2e30] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed]'
+                  ? 'bg-primary/10 text-primary border-primary/30 font-semibold'
+                  : 'bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border/40'
               }`}
             >
               {v.title}
@@ -172,8 +172,8 @@ export function MediaPlayer() {
           ))}
         </div>
 
-        {/* Roomy Size Switcher Pills */}
-        <div className="flex items-center bg-[#f1f3f4] dark:bg-[#2d2e30] p-0.5 rounded-full shrink-0 text-[10px]">
+        {/* Size Switcher */}
+        <div className="flex items-center bg-muted/60 p-0.5 rounded-md shrink-0 text-[10px] border border-border/50">
           {(['compact', 'normal', 'large'] as PlayerSize[]).map((sz, idx) => {
             const labels = ['S', 'M', 'L'];
             return (
@@ -182,10 +182,10 @@ export function MediaPlayer() {
                 type="button"
                 onClick={() => setPlayerSize(sz)}
                 title={`${sz.toUpperCase()} player height`}
-                className={`px-2 py-0.5 rounded-full font-mono transition-colors cursor-pointer ${
+                className={`px-1.5 py-0.5 rounded font-mono transition-colors cursor-pointer ${
                   playerSize === sz
-                    ? 'bg-[#1a73e8] text-white dark:bg-[#8ab4f8] dark:text-[#202124] font-bold'
-                    : 'text-[#5f6368] hover:text-[#202124] dark:text-[#9aa0a6] dark:hover:text-[#e8eaed]'
+                    ? 'bg-background text-foreground shadow-xs font-bold'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {labels[idx]}
@@ -197,42 +197,42 @@ export function MediaPlayer() {
 
       {/* Custom URL Input Box */}
       {showCustomInput && (
-        <form onSubmit={handleSetCustomUrl} className="flex gap-1.5 pt-1">
+        <form onSubmit={handleSetCustomUrl} className="flex gap-1.5 pt-0.5">
           <Input
             type="text"
             placeholder="Paste YouTube link or video ID..."
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
-            className="h-8 text-xs bg-white dark:bg-[#1e1e1e] border-[#dadce0] dark:border-[#3c4043] text-[#202124] dark:text-[#e8eaed] rounded-full px-3"
+            className="h-8 text-xs bg-background border-border text-foreground rounded-md px-2.5"
           />
-          <Button size="sm" type="submit" className="h-8 px-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs rounded-full font-medium shadow-none shrink-0">
+          <Button size="sm" type="submit" className="h-8 px-3 bg-primary hover:bg-primary/90 text-primary-foreground text-xs rounded-md font-medium shrink-0">
             <Check className="w-3 h-3" />
           </Button>
         </form>
       )}
 
-      {/* Media Display Container (YouTube OR Device Local File) */}
+      {/* Media Display Container */}
       <div
-        className={`relative w-full rounded-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] bg-black transition-all duration-300 flex items-center justify-center ${heightClasses[playerSize]}`}
+        className={`relative w-full rounded-lg overflow-hidden border border-border bg-black transition-all duration-200 flex items-center justify-center ${heightClasses[playerSize]}`}
       >
         {localMedia ? (
           /* LOCAL DEVICE MEDIA PLAYER (AUDIO/VIDEO) */
-          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-b from-slate-900 to-slate-950 text-white">
+          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-zinc-950 text-white">
             {localMedia.isVideo ? (
               <video
                 src={localMedia.url}
                 controls
                 autoPlay
-                className="w-full h-full object-contain rounded-lg"
+                className="w-full h-full object-contain rounded-md"
               />
             ) : (
-              <div className="space-y-3 w-full max-w-[240px]">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 shadow-md">
-                  <FileAudio className="w-6 h-6 animate-pulse" />
+              <div className="space-y-2.5 w-full max-w-[240px]">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+                  <FileAudio className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-semibold text-white truncate">{localMedia.name}</div>
-                  <div className="text-[10px] text-emerald-400 font-mono">Playing from Device</div>
+                  <div className="text-xs font-medium text-white truncate">{localMedia.name}</div>
+                  <div className="text-[10px] text-muted-foreground font-mono">Local Audio File</div>
                 </div>
                 <audio src={localMedia.url} controls autoPlay className="w-full h-8" />
               </div>
@@ -241,7 +241,7 @@ export function MediaPlayer() {
             <button
               type="button"
               onClick={() => setLocalMedia(null)}
-              className="absolute top-2 right-2 p-1 bg-slate-950/80 hover:bg-slate-800 text-slate-400 hover:text-white rounded-md border border-white/10 transition-colors"
+              className="absolute top-2 right-2 p-1 bg-black/80 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded border border-white/10 transition-colors"
               title="Return to YouTube Streams"
             >
               <X className="w-3.5 h-3.5" />
@@ -253,15 +253,15 @@ export function MediaPlayer() {
             <iframe
               key={`${activeVideoId}-${autoplayKey}`}
               src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=${isPlaying ? 1 : 0}&rel=0&modestbranding=1&playsinline=1`}
-              title="HabitBot Focus Soundtrack"
+              title="HabitBot Focus Audio"
               className="w-full h-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
             />
           ) : (
-            <div className="flex items-center gap-2 text-xs text-slate-500">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Loading soundtrack...</span>
+              <span>Loading audio...</span>
             </div>
           )
         )}
@@ -275,12 +275,12 @@ export function MediaPlayer() {
           onClick={() => {
             setIsPlaying(true);
             setAutoplayKey((k) => k + 1);
-            toast.success('Focus audio started! 🎧');
+            toast.success('Focus audio started');
           }}
-          className="w-full h-7 text-[11px] font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-gradient-to-r dark:from-purple-600/60 dark:to-cyan-600/60 dark:hover:from-purple-600 dark:hover:to-cyan-600 border border-slate-200 dark:border-purple-500/30 rounded-lg flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+          className="w-full h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded-md flex items-center justify-center gap-1.5 shadow-none cursor-pointer"
         >
-          <Play className="w-3 h-3 fill-white" />
-          <span>Click to Play Focus Audio</span>
+          <Play className="w-3 h-3 fill-current" />
+          <span>Play Audio</span>
         </Button>
       )}
     </div>
